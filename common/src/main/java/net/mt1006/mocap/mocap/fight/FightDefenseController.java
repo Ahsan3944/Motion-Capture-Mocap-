@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 public final class FightDefenseController
 {
 	private static final double DEFAULT_DEFENSE_RANGE = 5.0;
+	private static final int MAX_BLOCK_TICKS = 10;
 
 	private FightDefenseController() {}
 
@@ -29,13 +30,15 @@ public final class FightDefenseController
 
 	public static boolean tick(FightParticipant participant, LivingEntity target)
 	{
-		if (!(participant.getEntity() instanceof LivingEntity living) || !(living.level() instanceof ServerLevel level))
+		if (!(participant.getEntity() instanceof net.minecraft.world.entity.player.Player player)
+				|| !(player.level() instanceof ServerLevel level))
 		{
 			stop(participant);
 			return false;
 		}
+		LivingEntity living = player;
 
-		if (!shouldBlock(participant, target))
+		if (!shouldBlock(participant, target) || participant.getShieldBlockTicks() >= MAX_BLOCK_TICKS)
 		{
 			stop(participant);
 			return false;
@@ -63,7 +66,8 @@ public final class FightDefenseController
 			return false;
 		}
 
-		shieldItem.use(level, (net.minecraft.world.entity.player.Player) living, hand);
+		shieldItem.use(level, player, hand);
+		participant.setShieldBlockTicks(participant.getShieldBlockTicks() + 1);
 		participant.setState(FightParticipant.State.USE_ITEM);
 		return living.isBlocking();
 	}
@@ -72,6 +76,7 @@ public final class FightDefenseController
 	{
 		if (participant == null || !(participant.getEntity() instanceof LivingEntity living)) { return; }
 		if (living.isUsingItem()) { living.stopUsingItem(); }
+		participant.clearShieldBlock();
 		if (participant.getState() == FightParticipant.State.USE_ITEM)
 		{
 			participant.setState(FightParticipant.State.RECOVER);
