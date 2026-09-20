@@ -7,6 +7,7 @@ import net.mt1006.mocap.api.v1.controller.MocapPlaybackRoot;
 import net.mt1006.mocap.api.v1.controller.config.MocapPlaybackConfig;
 import net.mt1006.mocap.api.v1.controller.playable.MocapPlayable;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.mt1006.mocap.mocap.files.Files;
 import net.mt1006.mocap.mocap.playing.playback.PlaybackRoot;
 import org.jetbrains.annotations.Nullable;
@@ -16,11 +17,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
 public final class FightManager
 {
@@ -28,6 +33,7 @@ public final class FightManager
 	private static final int FORMAT_VERSION = FightDefinition.CURRENT_VERSION;
 	private static final Map<String, FightDefinition> definitions = new LinkedHashMap<>();
 	private static final Map<String, FightRuntime> active = new LinkedHashMap<>();
+	private static final Map<UUID, String> participantOwners = new HashMap<>();
 	private static boolean loaded = false;
 
 	private FightManager() {}
@@ -137,9 +143,10 @@ public final class FightManager
 		{
 			return out.sendFailure("Fight has no source scene configured: " + id);
 		}
-
-		// Runtime participants are deliberately not created in this phase.
-		// The next runtime phase will bind scene playback instances here.
+		if (definition.getTargetScenes().isEmpty() && definition.getTargetPlayers().isEmpty())
+		{
+			return out.sendFailure("Fight has no target configured: " + id);
+		}
 		FightRuntime runtime;
 		try { runtime = new FightRuntime(definition, out); }
 		catch (Exception e) { MocapMod.LOGGER.error("Failed to initialize Fight '{}' .", id, e); return out.sendFailure("Failed to initialize Fight '" + id + "'."); }
@@ -191,7 +198,7 @@ public final class FightManager
 		{
 			try
 			{
-				entry.getValue().tick();
+				entry.getValue().tick(definitions.get(entry.getKey()));
 			}
 			catch (Exception e)
 			{
@@ -221,6 +228,7 @@ public final class FightManager
 			catch (Exception e) { MocapMod.LOGGER.error("Failed to reset Fight runtime.", e); }
 		}
 		active.clear();
+		participantOwners.clear();
 		for (FightDefinition definition : definitions.values())
 		{
 			definition.setState(FightDefinition.State.STOPPED);
@@ -342,27 +350,21 @@ public final class FightManager
 	private static final class FightRuntime
 	{
 		private final String id;
+		private final MinecraftServer server;
 		private final List<MocapPlaybackRoot> playbackRoots = new ArrayList<>();
-		private final List<Entity> actors = new ArrayList<>();
+		private final List<FightParticipant> participants = new ArrayList<>();
 
 		private FightRuntime(FightDefinition definition, CommandInfo info)
 		{
 			this.id = definition.getId();
+			this.server = info.getServer();
 			MocapPlaybackConfig baseConfig = MocapPlaybackConfig.createFromSettings();
 			baseConfig.setInvulnerablePlayback(false);
 			try
 			{
-				for (String source : definition.getSourceScenes())
-			{
-				MocapPlayable playable = MocapPlayable.get(info, source);
-				if (playable == null) { throw new IllegalArgumentException("Unknown source: " + source); }
-				MocapPlaybackConfig config = baseConfig.copy();
-				MocapPlaybackRoot root = playable.startPlayback(info, net.mt1006.mocap.api.v1.modifiers.MocapModifiers.empty(), config, true);
-				if (root == null) { throw new IllegalStateException("Playback failed: " + source); }
-				playbackRoots.add(root);
-				if (root instanceof PlaybackRoot playbackRoot) { actors.addAll(playbackRoot.getControlledEntities()); }
-					else { throw new IllegalStateException("Unsupported playback root implementation."); }
-				}
+				startSources(definition, info, baseConfig);
+				startTargets(definition, info, baseConfig);
+				if (participants.isEmpty()) { throw new IllegalStateException("Fight created no runtime participants."); }
 			}
 			catch (RuntimeException e)
 			{
@@ -371,18 +373,106 @@ public final class FightManager
 			}
 		}
 
-		private boolean isEmpty() { return actors.isEmpty(); }
-
-		private void tick()
+		private void startSources(FightDefinition definition, CommandInfo info, MocapPlaybackConfig baseConfig)
 		{
-			actors.removeIf(entity -> !entity.isAlive());
+			int index = 0;
+			for (String source : definition.getSourceScenes())
+			{
+				startPlayable(info, source, baseConfig, FightParticipant.Side.SOURCE, "source-" + index++);
+			}
+		}
+
+		private void startTargets(FightDefinition definition, CommandInfo info, MocapPlaybackConfig baseConfig)
+		{
+			int index = 0;
+			for (String target : definition.getTargetScenes())
+			{
+				startPlayable(info, target, baseConfig, FightParticipant.Side.TARGET, "target-" + index++);
+			}
+		}
+
+		private void startPlayable(CommandInfo info, String source, MocapPlaybackConfig baseConfig,
+				FightParticipant.Side side, String idPrefix)
+		{
+			MocapPlayable playable = MocapPlayable.get(info, source);
+			if (playable == null) { throw new IllegalArgumentException("Unknown Fight source/target: " + source); }
+
+			MocapPlaybackConfig config = baseConfig.copy();
+			config.setInvulnerablePlayback(false);
+			MocapPlaybackRoot root = playable.startPlayback(info,
+					net.mt1006.mocap.api.v1.modifiers.MocapModifiers.empty(), config, true);
+			if (root == null) { throw new IllegalStateException("Playback failed: " + source); }
+
+			playbackRoots.add(root);
+			if (!(root instanceof PlaybackRoot playbackRoot))
+			{
+				throw new IllegalStateException("Unsupported playback root implementation.");
+			}
+
+			List<Entity> entities = playbackRoot.getControlledEntities();
+			for (int i = 0; i < entities.size(); i++)
+			{
+				Entity entity = entities.get(i);
+				if (entity == null || !entity.isAlive()) { continue; }
+				if (!(entity instanceof LivingEntity))
+				{
+					throw new IllegalStateException("Fight participant is not a LivingEntity: " + entity.getTypeName());
+				}
+				if (!claimParticipant(entity.getUUID(), id))
+				{
+					throw new IllegalStateException("Entity is already controlled by another Fight: " + entity.getUUID());
+				}
+				participants.add(new FightParticipant(idPrefix + "-" + i, entity, side));
+			}
+		}
+
+		private boolean isEmpty() { return participants.isEmpty(); }
+
+		private void tick(FightDefinition definition)
+		{
+			for (FightParticipant participant : participants)
+			{
+				if (!participant.isActive()) { continue; }
+
+				Entity entity = participant.getEntity();
+				if (!entity.isAlive())
+				{
+					participant.deactivate();
+					continue;
+				}
+
+				Entity target = FightTargetSelector.select(participant, definition.getTargetMode(), participants,
+						definition.getTargetPlayers(), server, definition.getDetectionRange());
+				participant.setCurrentTarget(target);
+			}
 		}
 
 		private void reset()
 		{
-			for (MocapPlaybackRoot root : playbackRoots) { root.stop(); }
+			for (FightParticipant participant : participants)
+			{
+				participant.deactivate();
+				releaseParticipant(participant.getEntity().getUUID(), id);
+			}
+			participants.clear();
+
+			for (MocapPlaybackRoot root : playbackRoots)
+			{
+				try { root.stop(); }
+				catch (Exception e) { MocapMod.LOGGER.error("Failed to stop Fight playback root '{}'.", id, e); }
+			}
 			playbackRoots.clear();
-			actors.clear();
+		}
+
+		private static boolean claimParticipant(UUID uuid, String fightId)
+		{
+			String owner = participantOwners.putIfAbsent(uuid, fightId);
+			return owner == null || owner.equals(fightId);
+		}
+
+		private static void releaseParticipant(UUID uuid, String fightId)
+		{
+			participantOwners.remove(uuid, fightId);
 		}
 	}
 }
