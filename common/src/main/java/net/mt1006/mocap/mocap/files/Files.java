@@ -15,10 +15,12 @@ public class Files
 	private static final String SCENE_DIR_NAME = "scenes";
 	private static final String SKIN_DIR_NAME = "skins";
 	private static final String SLIM_SKIN_DIR_NAME = "slim";
+	private static final String FIGHTS_DIR_NAME = "fights";
 
 	private static final String CONFIG_FILE_NAME = "settings.txt";
 	public static final String RECORDING_EXTENSION = ".mcmocap_rec";
 	public static final String SCENE_EXTENSION = ".mcmocap_scene";
+	public static final String FIGHT_EXTENSION = ".mcmocap_fight";
 	private static final String SKIN_EXTENSION = ".png";
 	public static final String SKIN_LIST_EXTENSION = ".txt";
 	public static final String SLIM_SKIN_PREFIX = "slim/";
@@ -31,6 +33,7 @@ public class Files
 	public static File skinDirectory = null;
 	public static File slimSkinDirectory = null;
 	public static File skinListDirectory = null;
+	public static File fightDirectory = null;
 
 	public static void init()
 	{
@@ -46,9 +49,10 @@ public class Files
 		skinDirectory = createDirectory(mocapDirectory, SKIN_DIR_NAME);
 		slimSkinDirectory = createDirectory(skinDirectory, SLIM_SKIN_DIR_NAME);
 		skinListDirectory = createDirectory(skinDirectory, SKIN_LIST_PREFIX);
+		fightDirectory = createDirectory(mocapDirectory, FIGHTS_DIR_NAME);
 
 		if (!mocapDirectory.isDirectory() || !recordingsDirectory.isDirectory() || !sceneDirectory.isDirectory()
-				|| !skinDirectory.isDirectory() || !slimSkinDirectory.isDirectory())
+				|| !skinDirectory.isDirectory() || !slimSkinDirectory.isDirectory() || !fightDirectory.isDirectory())
 		{
 			return;
 		}
