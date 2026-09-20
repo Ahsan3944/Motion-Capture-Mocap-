@@ -1,6 +1,9 @@
 package net.mt1006.mocap.mocap.playing.playback;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+
+import java.util.List;
 import net.mt1006.mocap.api.v1.controller.MocapPlaybackRoot;
 import net.mt1006.mocap.api.v1.controller.config.MocapPlaybackConfig;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +68,8 @@ public class PlaybackRoot implements MocapPlaybackRoot
 	{
 		if (!instance.finished) { instance.stop(); }
 	}
+
+	public List<Entity> getControlledEntities() { return instance.getControlledEntities(); }
 
 	public void tick()
 	{
