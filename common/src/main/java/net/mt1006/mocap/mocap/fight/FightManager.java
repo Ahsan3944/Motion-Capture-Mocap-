@@ -548,6 +548,12 @@ public final class FightManager
 				if (entity.distanceToSqr(target) > attackRange * attackRange)
 				{
 					participant.setState(FightParticipant.State.CHASE);
+					if (participant.getNavigationWaypoint() != null)
+					{
+						FightNavigationController.navigate(participant, target, definition.getMovementSpeed(), attackRange);
+						if (participant.getNavigationWaypoint() != null) { continue; }
+					}
+
 					double beforeTargetDistance = entity.distanceToSqr(target);
 					boolean moved = FightMovementController.chase(participant, target, definition.getMovementSpeed(), attackRange);
 					double afterTargetDistance = entity.distanceToSqr(target);
@@ -559,7 +565,7 @@ public final class FightManager
 					{
 						participant.incrementNavigationStallTicks();
 					}
-					if ((!moved || participant.getNavigationStallTicks() >= 8) && participant.getNavigationStallTicks() >= 8)
+					if (participant.getNavigationStallTicks() >= 8)
 					{
 						FightNavigationController.navigate(participant, target, definition.getMovementSpeed(), attackRange);
 					}
