@@ -67,6 +67,13 @@ public final class FightManager
 		return definitions.get(id);
 	}
 
+	public static boolean teleportGroup(String id, FightParticipant.Side side, net.minecraft.world.phys.Vec3 destination)
+	{
+		FightRuntime runtime = active.get(id);
+		if (runtime == null) { return false; }
+		return runtime.teleportGroup(side, destination);
+	}
+
 	public static boolean create(CommandOutput out, String id)
 	{
 		ensureLoaded();
@@ -519,6 +526,12 @@ public final class FightManager
 		}
 
 		private boolean isEmpty() { return participants.isEmpty(); }
+
+		private boolean teleportGroup(FightParticipant.Side side, net.minecraft.world.phys.Vec3 destination)
+		{
+			List<FightParticipant> group = FightGroupController.selectBySide(participants, side);
+			return FightGroupController.teleportFormation(group, destination);
+		}
 
 		private void tick(FightDefinition definition)
 		{
