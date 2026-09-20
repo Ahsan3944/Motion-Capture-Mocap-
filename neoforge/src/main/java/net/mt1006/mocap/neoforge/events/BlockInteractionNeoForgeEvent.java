@@ -48,7 +48,7 @@ public class BlockInteractionNeoForgeEvent
 	{
 		Player player = event.getEntity();
 
-		if (FightFishingRodController.handleBlockUse(player, event.getHand(), event.getHitVec()))
+		if (FightFishingRodController.handleBlockUse(player, event.getHand(), event.getHitVec().getLocation()))
 		{
 			event.setCancellationResult(InteractionResult.SUCCESS_SERVER);
 			event.setCanceled(true);
