@@ -10,6 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.mt1006.mocap.mocap.files.Files;
+import net.mt1006.mocap.mocap.actions.Swing;
 import net.mt1006.mocap.mocap.playing.playback.PlaybackRoot;
 import org.jetbrains.annotations.Nullable;
 
@@ -531,10 +532,47 @@ public final class FightManager
 					continue;
 				}
 
+				participant.tickAttackCooldown();
 				Entity target = FightTargetSelector.select(participant, definition.getTargetMode(), participants,
 						definition.getTargetPlayers(), server, definition.getDetectionRange());
 				participant.setCurrentTarget(target);
+
+				if (target == null)
+				{
+					participant.setState(FightParticipant.State.SEARCH_TARGET);
+					continue;
+				}
+
+				double attackRange = definition.getAttackRange();
+				if (entity.distanceToSqr(target) > attackRange * attackRange)
+				{
+					participant.setState(FightParticipant.State.CHASE);
+					continue;
+				}
+
+				if (participant.getAttackCooldownTicks() > 0)
+				{
+					participant.setState(FightParticipant.State.RECOVER);
+					continue;
+				}
+
+				if (!(entity instanceof LivingEntity attacker) || !target.isAlive())
+				{
+					participant.setState(FightParticipant.State.DEAD);
+					participant.deactivate();
+					continue;
+				}
+
+				participant.setState(FightParticipant.State.ATTACK);
+				Swing.attackTarget(attacker, target, (net.minecraft.server.level.ServerLevel)entity.level());
+				participant.setAttackCooldownTicks(calculateAttackCooldown(definition.getAttackSpeed()));
 			}
+		}
+
+		private static int calculateAttackCooldown(double attacksPerSecond)
+		{
+			double safeSpeed = Math.max(0.1, Math.min(attacksPerSecond, 20.0));
+			return Math.max(1, (int)Math.round(20.0 / safeSpeed));
 		}
 
 		private void reset()
