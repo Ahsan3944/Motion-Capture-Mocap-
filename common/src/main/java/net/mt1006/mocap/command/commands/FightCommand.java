@@ -58,7 +58,7 @@ public final class FightCommand
 				.then(Commands.literal("remove")
 						.then(Commands.argument("name", StringArgumentType.word())
 								.suggests(FightCommand::suggestions)
-								.executes(CommandUtils.command(FightCommand::remove))));
+								.executes(CommandUtils.command(FightCommand::remove))))));
 	}
 
 	private static boolean list(CommandInfo info)
