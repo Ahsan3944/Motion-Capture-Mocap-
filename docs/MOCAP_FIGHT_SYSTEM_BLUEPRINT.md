@@ -1872,3 +1872,35 @@ Not implemented yet:
 - deterministic reset.
 
 The next phase must inspect and reuse the existing `PlaybackRoot`, `RecordingPlayback`, and `ScenePlayback` entity lifecycle before adding runtime actor ownership. No entity-control code should be guessed or added without that inspection.
+
+
+## Implementation Progress — Phase 2
+
+Phase 2 establishes the first real runtime ownership boundary between Fight and the existing Playback system.
+
+Implemented:
+1. Playback exposes its runtime-controlled entities internally without changing the public API v1 contract.
+2. Recording playback exposes its primary runtime entity.
+3. Scene playback aggregates controlled entities from nested playback instances.
+4. PlaybackRoot exposes those entities to the Fight runtime internally.
+5. Fight start now instantiates configured source playables through the existing Playback pipeline.
+6. Each Fight playback receives its own copied playback configuration.
+7. Fight playback is made damageable by disabling invulnerability for that runtime instance.
+8. Fight owns the created playback roots and their actor references.
+9. Fight stop/reset/server shutdown now stops owned playback roots.
+10. Partial Fight startup rolls back already-created playback roots on failure.
+11. Dead runtime actors are removed from the Fight actor registry.
+
+Still deliberately not implemented:
+- target acquisition;
+- movement/navigation;
+- attack execution;
+- weapon selection;
+- combat state machine;
+- death snapshot/reset restoration;
+- real-player combat;
+- group teleport.
+
+### Phase 2 invariant
+
+Fight does not directly create or replace Mocap actors. It asks the existing Playback system to create them, then records ownership of those runtime instances. This preserves normal recording/scene playback behavior and gives the future combat controller a deterministic actor set.
