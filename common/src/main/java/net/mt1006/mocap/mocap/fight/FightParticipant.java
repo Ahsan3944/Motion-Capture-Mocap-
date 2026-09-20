@@ -1,7 +1,12 @@
 package net.mt1006.mocap.mocap.fight;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class FightParticipant
 {
@@ -33,6 +38,10 @@ public final class FightParticipant
 	private int attackCooldownTicks = 0;
 	private int movementBlockedTicks = 0;
 	private int movementRecoveryDirection = 1;
+	private List<Vec3> navigationWaypoints = List.of();
+	private int navigationWaypointIndex = 0;
+	private int navigationAgeTicks = 0;
+	private @Nullable Vec3 navigationTargetPosition;
 	private boolean active = true;
 
 	public FightParticipant(String id, Entity entity, Side side)
@@ -53,6 +62,7 @@ public final class FightParticipant
 		{
 			movementBlockedTicks = 0;
 			movementRecoveryDirection = 1;
+			clearNavigationPath();
 		}
 		currentTarget = target;
 	}
@@ -66,6 +76,43 @@ public final class FightParticipant
 	public int getMovementRecoveryDirection() { return movementRecoveryDirection; }
 
 	public void flipMovementRecoveryDirection() { movementRecoveryDirection = -movementRecoveryDirection; }
+
+	public void setNavigationPath(List<Vec3> waypoints, @Nullable Vec3 targetPosition)
+	{
+		navigationWaypoints = waypoints.isEmpty() ? List.of() : List.copyOf(waypoints);
+		navigationWaypointIndex = 0;
+		navigationAgeTicks = 0;
+		navigationTargetPosition = targetPosition;
+	}
+
+	public void clearNavigationPath()
+	{
+		navigationWaypoints = List.of();
+		navigationWaypointIndex = 0;
+		navigationAgeTicks = 0;
+		navigationTargetPosition = null;
+	}
+
+	public @Nullable Vec3 getNavigationWaypoint()
+	{
+		if (navigationWaypointIndex >= navigationWaypoints.size()) { return null; }
+		return navigationWaypoints.get(navigationWaypointIndex);
+	}
+
+	public void advanceNavigationWaypoint()
+	{
+		if (navigationWaypointIndex < navigationWaypoints.size()) { navigationWaypointIndex++; }
+		if (navigationWaypointIndex >= navigationWaypoints.size()) { clearNavigationPath(); }
+	}
+
+	public int getNavigationAgeTicks() { return navigationAgeTicks; }
+
+	public int tickNavigationAge()
+	{
+		return ++navigationAgeTicks;
+	}
+
+	public @Nullable Vec3 getNavigationTargetPosition() { return navigationTargetPosition; }
 
 	public State getState() { return state; }
 	public void setState(State state) { this.state = state; }
@@ -94,5 +141,6 @@ public final class FightParticipant
 		attackCooldownTicks = 0;
 		movementBlockedTicks = 0;
 		movementRecoveryDirection = 1;
+		clearNavigationPath();
 	}
 }
