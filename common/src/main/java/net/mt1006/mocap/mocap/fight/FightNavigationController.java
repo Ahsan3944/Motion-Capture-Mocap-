@@ -61,7 +61,7 @@ public final class FightNavigationController
 			return moved;
 		}
 
-		if (participant.getNavigationStallTicks() < NAVIGATION_TRIGGER_STALL_TICKS)
+		if (waypoint == null && participant.getNavigationStallTicks() < NAVIGATION_TRIGGER_STALL_TICKS)
 		{
 			return false;
 		}
