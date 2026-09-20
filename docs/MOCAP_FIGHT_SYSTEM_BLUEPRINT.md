@@ -2334,3 +2334,31 @@ Deliberately not implemented in Phase 6G:
 - configurable food threshold persistence;
 - custom consumable priority tables.
 
+## Implementation Progress — Phase 6H
+
+Phase 6H adds the already-persisted Fight damage and knockback multipliers to runtime combat.
+
+Pre-implementation checks:
+1. Repository audit confirmed the FightDefinition already persists validated damageMultiplier and knockbackMultiplier values, but the runtime attack path was still using vanilla values unchanged.
+2. The concrete Swing implementation was inspected. Player and Mob attacks already funnel through vanilla attack mechanics, so the multiplier must wrap the existing attack call rather than replace it with synthetic damage.
+3. Minecraft 26.1 attribute API verification confirms transient AttributeModifier support and the ADD_MULTIPLIED_TOTAL operation. A temporary attack-damage modifier can therefore affect the existing vanilla attack calculation without persisting on the participant. LivingEntity also exposes the server-authoritative hurtServer and knockback paths. citeturn2search0turn3search0turn0search0
+
+Implemented scope:
+1. Fight melee attacks apply the configured damageMultiplier only for the duration of that individual attack.
+2. The multiplier uses a transient attack-damage attribute modifier, preserving vanilla Player/Mob attack calculation, armor, enchantments, critical behavior, shields, and other existing combat mechanics.
+3. Direct non-attribute fallback damage is scaled explicitly.
+4. Fight knockbackMultiplier scales only the knockback impulse produced by that individual Fight attack; existing velocity is preserved.
+5. Multipliers are finite, runtime-only, and never written into entity attributes permanently.
+6. Existing non-Fight Swing playback keeps its original behavior.
+7. Values below zero are already rejected by FightDefinition validation; no additional hidden scaling is introduced.
+8. Reset/stop requires no cleanup because the temporary modifier is removed in the same attack call's finally block.
+
+Deliberately not implemented in Phase 6H:
+- global damage event interception;
+- modification of damage received by fighters;
+- custom armor/shield formulas;
+- custom critical-hit formulas;
+- persistent entity attribute changes;
+- death/drop behavior;
+- synthetic inventory/loadouts.
+
