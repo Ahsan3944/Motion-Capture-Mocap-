@@ -4,8 +4,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public final class FightParticipant
@@ -41,6 +39,7 @@ public final class FightParticipant
 	private List<Vec3> navigationWaypoints = List.of();
 	private int navigationWaypointIndex = 0;
 	private int navigationAgeTicks = 0;
+	private int navigationStallTicks = 0;
 	private @Nullable Vec3 navigationTargetPosition;
 	private boolean active = true;
 
@@ -82,6 +81,7 @@ public final class FightParticipant
 		navigationWaypoints = waypoints.isEmpty() ? List.of() : List.copyOf(waypoints);
 		navigationWaypointIndex = 0;
 		navigationAgeTicks = 0;
+		navigationStallTicks = 0;
 		navigationTargetPosition = targetPosition;
 	}
 
@@ -90,6 +90,7 @@ public final class FightParticipant
 		navigationWaypoints = List.of();
 		navigationWaypointIndex = 0;
 		navigationAgeTicks = 0;
+		navigationStallTicks = 0;
 		navigationTargetPosition = null;
 	}
 
@@ -106,6 +107,12 @@ public final class FightParticipant
 	}
 
 	public int getNavigationAgeTicks() { return navigationAgeTicks; }
+
+	public int getNavigationStallTicks() { return navigationStallTicks; }
+
+	public int incrementNavigationStallTicks() { return ++navigationStallTicks; }
+
+	public void resetNavigationStallTicks() { navigationStallTicks = 0; }
 
 	public int tickNavigationAge()
 	{
@@ -141,6 +148,7 @@ public final class FightParticipant
 		attackCooldownTicks = 0;
 		movementBlockedTicks = 0;
 		movementRecoveryDirection = 1;
+		navigationStallTicks = 0;
 		clearNavigationPath();
 	}
 }
