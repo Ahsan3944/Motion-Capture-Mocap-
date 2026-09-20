@@ -2119,3 +2119,27 @@ Deliberately not implemented in Phase 5C:
 - combat inventory snapshots;
 - death/reset snapshot completion.
 
+## Implementation Progress — Phase 6A
+
+Phase 6A adds the first persistent team/faction relationship layer required for multi-team Fight targeting.
+
+Implemented scope:
+1. Every runtime Fight participant receives a stable runtime team ID.
+2. Source scenes, target scenes, and configured target players can each be assigned a team ID.
+3. If no explicit assignment exists, source entries default to SOURCE and target entries/player targets default to TARGET, preserving current two-side behavior.
+4. Target acquisition is no longer based only on SOURCE-vs-TARGET side separation; active participants from different teams are eligible hostile candidates, while same-team participants are treated as friendly and excluded.
+5. Multiple teams are therefore supported without changing the runtime participant ownership model.
+6. Team IDs are persisted as version-1-compatible additive Fight configuration using ordered assignment lists aligned with the existing scene/player reference lists.
+7. Team configuration changes are rejected while the Fight is running so active runtime participants cannot silently diverge from their saved configuration.
+8. Existing Fight files without team assignment properties remain valid and receive the default SOURCE/TARGET teams.
+9. Team assignment is administrative configuration only; it does not create new Minecraft scoreboard teams or modify vanilla player/team state.
+10. The command layer exposes explicit team assignment for source scenes, target scenes, and configured target players.
+
+Deliberately not implemented in Phase 6A:
+- FRIENDLY/HOSTILE/NEUTRAL relation matrices;
+- dynamic runtime team reassignment;
+- scoreboard/team integration;
+- team-specific combat modifiers;
+- ranged/shield/food behavior;
+- inventory snapshot/reset completion.
+
