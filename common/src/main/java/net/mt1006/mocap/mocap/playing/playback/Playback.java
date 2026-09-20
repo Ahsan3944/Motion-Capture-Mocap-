@@ -22,6 +22,7 @@ public abstract class Playback
 	public final MocapPlaybackConfig config;
 	protected boolean finished = false, stopped = false;
 	private boolean movementControlled = false;
+	private boolean equipmentControlled = false;
 	protected final MocapModifiers modifiers;
 	protected int tickCounter = 0; //TODO: StartContext?
 	protected int waitOnEnd = 0;
@@ -46,6 +47,17 @@ public abstract class Playback
 	public boolean isMovementControlled()
 	{
 		return movementControlled;
+	}
+
+	/** Internal Fight hook: when enabled, runtime combat owns recorded equipment state. */
+	public void setEquipmentControlled(boolean controlled)
+	{
+		equipmentControlled = controlled;
+	}
+
+	public boolean isEquipmentControlled()
+	{
+		return equipmentControlled;
 	}
 
 	public void tick()
