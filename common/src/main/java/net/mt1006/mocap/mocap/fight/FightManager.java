@@ -6,6 +6,7 @@ import net.mt1006.mocap.api.v1.io.CommandOutput;
 import net.mt1006.mocap.api.v1.controller.MocapPlaybackRoot;
 import net.mt1006.mocap.api.v1.controller.config.MocapPlaybackConfig;
 import net.mt1006.mocap.api.v1.controller.playable.MocapPlayable;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.mt1006.mocap.mocap.files.Files;
@@ -18,13 +19,11 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 public final class FightManager
@@ -121,6 +120,97 @@ public final class FightManager
 		if (!players.contains(player)) { players.add(player); }
 		definition.setTargetPlayers(players);
 		return save(definition) && out.sendSuccessLiteral("Added target player '%s' to Fight '%s'.", player, id);
+	}
+
+	public static boolean setTargetScene(CommandOutput out, String id, String scene)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (scene == null || scene.isBlank()) { return out.sendFailure("Target scene cannot be empty."); }
+		List<String> scenes = new ArrayList<>(definition.getTargetScenes());
+		if (!scenes.contains(scene)) { scenes.add(scene); }
+		definition.setTargetScenes(scenes);
+		return save(definition) && out.sendSuccessLiteral("Added target scene '%s' to Fight '%s'.", scene, id);
+	}
+
+	public static boolean setTargetMode(CommandOutput out, String id, String mode)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		try
+		{
+			definition.setTargetMode(FightDefinition.TargetMode.valueOf(mode.toUpperCase(java.util.Locale.ROOT)));
+		}
+		catch (IllegalArgumentException e)
+		{
+			return out.sendFailure("Unknown target mode: " + mode);
+		}
+		return save(definition) && out.sendSuccessLiteral("Set target mode for Fight '%s' to %s.", id, definition.getTargetMode());
+	}
+
+	public static boolean setPower(CommandOutput out, String id, int value)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (!definition.setPower(value)) { return out.sendFailure("Power must be between 1 and 10."); }
+		return save(definition) && out.sendSuccessLiteral("Set power for Fight '%s' to %d.", id, value);
+	}
+
+	public static boolean setAttackSpeed(CommandOutput out, String id, double value)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (!definition.setAttackSpeed(value)) { return out.sendFailure("Attack speed must be finite and greater than 0."); }
+		return save(definition) && out.sendSuccessLiteral("Set attack speed for Fight '%s' to %.3f.", id, value);
+	}
+
+	public static boolean setAttackRange(CommandOutput out, String id, double value)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (!definition.setAttackRange(value)) { return out.sendFailure("Attack range must be finite and greater than 0."); }
+		return save(definition) && out.sendSuccessLiteral("Set attack range for Fight '%s' to %.2f.", id, value);
+	}
+
+	public static boolean setDetectionRange(CommandOutput out, String id, double value)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (!definition.setDetectionRange(value)) { return out.sendFailure("Detection range must be finite and greater than 0."); }
+		return save(definition) && out.sendSuccessLiteral("Set detection range for Fight '%s' to %.2f.", id, value);
+	}
+
+	public static boolean setMovementSpeed(CommandOutput out, String id, double value)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (!definition.setMovementSpeed(value)) { return out.sendFailure("Movement speed must be finite and non-negative."); }
+		return save(definition) && out.sendSuccessLiteral("Set movement speed for Fight '%s' to %.2f.", id, value);
+	}
+
+	public static boolean setDamageMultiplier(CommandOutput out, String id, double value)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (!definition.setDamageMultiplier(value)) { return out.sendFailure("Damage multiplier must be finite and non-negative."); }
+		return save(definition) && out.sendSuccessLiteral("Set damage multiplier for Fight '%s' to %.2f.", id, value);
+	}
+
+	public static boolean setKnockbackMultiplier(CommandOutput out, String id, double value)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (!definition.setKnockbackMultiplier(value)) { return out.sendFailure("Knockback multiplier must be finite and non-negative."); }
+		return save(definition) && out.sendSuccessLiteral("Set knockback multiplier for Fight '%s' to %.2f.", id, value);
 	}
 
 	public static boolean clearTargets(CommandOutput out, String id)
