@@ -96,7 +96,6 @@ public class Swing implements MocapStateAction
 				target.hurtServer(level, level.damageSources().mobAttack(attacker), damage);
 			}
 		}
-		attacker.swing(InteractionHand.MAIN_HAND);
 		return true;
 	}
 
