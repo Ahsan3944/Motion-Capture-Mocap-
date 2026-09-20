@@ -31,6 +31,7 @@ public final class FightParticipant
 	private final String id;
 	private final Entity entity;
 	private final Side side;
+	private final String teamId;
 	private @Nullable Entity currentTarget;
 	private State state = State.IDLE;
 	private int attackCooldownTicks = 0;
@@ -45,14 +46,21 @@ public final class FightParticipant
 
 	public FightParticipant(String id, Entity entity, Side side)
 	{
+		this(id, entity, side, side == Side.SOURCE ? "SOURCE" : "TARGET");
+	}
+
+	public FightParticipant(String id, Entity entity, Side side, String teamId)
+	{
 		this.id = id;
 		this.entity = entity;
 		this.side = side;
+		this.teamId = teamId;
 	}
 
 	public String getId() { return id; }
 	public Entity getEntity() { return entity; }
 	public Side getSide() { return side; }
+	public String getTeamId() { return teamId; }
 
 	public @Nullable Entity getCurrentTarget() { return currentTarget; }
 	public void setCurrentTarget(@Nullable Entity target)
