@@ -48,6 +48,7 @@ public class ActionContext implements MocapActionContext
 	private Entity entity;
 	private Vec3 position;
 	private boolean movementSuppressed = false;
+	private boolean equipmentSuppressed = false;
 	private int repeatCounter = 0;
 
 	public ActionContext(MocapRecordingData recordingData, ServerPlayer owner, PlayerList packetTargets, Entity entity,
@@ -223,6 +224,16 @@ public class ActionContext implements MocapActionContext
 	public boolean isMovementSuppressed()
 	{
 		return movementSuppressed;
+	}
+
+	public void setEquipmentSuppressed(boolean suppressed)
+	{
+		equipmentSuppressed = suppressed;
+	}
+
+	public boolean isEquipmentSuppressed()
+	{
+		return equipmentSuppressed;
 	}
 
 	@Override public Vec3 getPosition()
