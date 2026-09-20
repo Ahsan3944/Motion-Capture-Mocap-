@@ -21,6 +21,7 @@ public abstract class Playback
 	public final @Nullable ServerPlayer owner;
 	public final MocapPlaybackConfig config;
 	protected boolean finished = false, stopped = false;
+	private boolean movementControlled = false;
 	protected final MocapModifiers modifiers;
 	protected int tickCounter = 0; //TODO: StartContext?
 	protected int waitOnEnd = 0;
@@ -35,6 +36,17 @@ public abstract class Playback
 
 	/** Runtime-controlled entities owned by this playback instance. */
 	public List<Entity> getControlledEntities() { return Collections.emptyList(); }
+
+	/** Internal Fight hook: when enabled, runtime movement owns the controlled actors. */
+	public void setMovementControlled(boolean controlled)
+	{
+		movementControlled = controlled;
+	}
+
+	public boolean isMovementControlled()
+	{
+		return movementControlled;
+	}
 
 	public void tick()
 	{
