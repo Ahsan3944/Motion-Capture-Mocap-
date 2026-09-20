@@ -76,8 +76,61 @@ public final class FightManager
 	public static boolean teleportGroup(String id, FightParticipant.Side side, Vec3 destination)
 	{
 		FightRuntime runtime = active.get(id);
-		if (runtime == null) { return false; }
+		if (runtime == null || side == null || destination == null) { return false; }
+		if (!Double.isFinite(destination.x) || !Double.isFinite(destination.y) || !Double.isFinite(destination.z)) { return false; }
 		return runtime.teleportGroup(side, destination);
+	}
+
+	public static boolean armFishingRod(CommandInfo out, String id, FightParticipant.Side side)
+	{
+		if (out.getSourcePlayer() == null)
+		{
+			return out.sendFailure("Fishing Rod control requires a player command source.");
+		}
+		if (id == null || id.isBlank() || !isRunning(id))
+		{
+			return out.sendFailure("Fight is not running: " + id);
+		}
+		if (side == null)
+		{
+			return out.sendFailure("Fight side is required.");
+		}
+		if (!FightFishingRodController.arm(out.getSourcePlayer(), id, side))
+		{
+			return out.sendFailure("Failed to arm Fishing Rod control for Fight '" + id + "'.");
+		}
+		return out.sendSuccessLiteral("Armed Fishing Rod control for Fight '%s' side %s.", id, side);
+	}
+
+	public static boolean disarmFishingRod(CommandInfo out)
+	{
+		if (out.getSourcePlayer() == null)
+		{
+			return out.sendFailure("Fishing Rod control requires a player command source.");
+		}
+		FightFishingRodController.disarm(out.getSourcePlayer());
+		return out.sendSuccessLiteral("Disarmed Fishing Rod control.");
+	}
+
+	public static boolean teleportGroup(CommandInfo out, String id, FightParticipant.Side side, Vec3 destination)
+	{
+		if (!isRunning(id))
+		{
+			return out.sendFailure("Fight is not running: " + id);
+		}
+		if (side == null)
+		{
+			return out.sendFailure("Fight side is required.");
+		}
+		if (destination == null || !Double.isFinite(destination.x) || !Double.isFinite(destination.y) || !Double.isFinite(destination.z))
+		{
+			return out.sendFailure("Teleport destination must contain finite coordinates.");
+		}
+		if (!teleportGroup(id, side, destination))
+		{
+			return out.sendFailure("Group teleport failed; no participants were moved.");
+		}
+		return out.sendSuccessLiteral("Teleported Fight '%s' side %s.", id, side);
 	}
 
 	public static boolean create(CommandOutput out, String id)
