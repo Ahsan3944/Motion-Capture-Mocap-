@@ -7,9 +7,9 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Small deterministic movement layer for Fight-controlled actors.
  *
- * Phase 4A intentionally handles direct horizontal chase only. Collision is
- * delegated to the normal entity movement implementation; this controller
- * never teleports through terrain or loads distant chunks.
+ * Phase 4A/4B handle bounded horizontal chase and local recovery only.
+ * Collision is delegated to the normal entity movement implementation; this
+ * controller never teleports through terrain or loads distant chunks.
  */
 public final class FightMovementController
 {
