@@ -6,6 +6,7 @@ import net.mt1006.mocap.api.v1.events.MocapEvents;
 import net.mt1006.mocap.command.CommandSuggestions;
 import net.mt1006.mocap.mocap.files.Files;
 import net.mt1006.mocap.mocap.playing.PlaybackManager;
+import net.mt1006.mocap.mocap.fight.FightFishingRodController;
 import net.mt1006.mocap.mocap.playing.skins.CustomClientSkinManager;
 import net.mt1006.mocap.mocap.recording.RecordingManager;
 import net.mt1006.mocap.mocap.settings.Settings;
@@ -25,6 +26,7 @@ public class LifecycleEvent
 
 	public static void onServerStop(MinecraftServer server)
 	{
+		FightFishingRodController.clearAll();
 		MocapEvents.SERVER_STOP_PRE.invoker.onServerStopPre(server);
 		PlaybackManager.onServerStop();
 		Settings.unload();
