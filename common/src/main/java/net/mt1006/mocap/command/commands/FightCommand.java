@@ -26,6 +26,18 @@ public final class FightCommand
 						.then(Commands.argument("name", StringArgumentType.word())
 								.suggests(FightCommand::suggestions)
 								.executes(CommandUtils.command(FightCommand::info))))
+				.then(Commands.literal("set")
+					.then(Commands.literal("scene")
+							.then(Commands.argument("name", StringArgumentType.word()).suggests(FightCommand::suggestions)
+								.then(Commands.argument("scene", StringArgumentType.string()).suggests(CommandSuggestions::scene)
+									.executes(CommandUtils.command(FightCommand::setScene))))))
+					.then(Commands.literal("target_player")
+							.then(Commands.argument("name", StringArgumentType.word()).suggests(FightCommand::suggestions)
+									.then(Commands.argument("player", StringArgumentType.word())
+										.executes(CommandUtils.command(FightCommand::setTargetPlayer)))))
+					.then(Commands.literal("clear_targets")
+							.then(Commands.argument("name", StringArgumentType.word()).suggests(FightCommand::suggestions)
+								.executes(CommandUtils.command(FightCommand::clearTargets))))
 				.then(Commands.literal("start")
 						.then(Commands.argument("name", StringArgumentType.word())
 								.suggests(FightCommand::suggestions)
@@ -64,6 +76,21 @@ public final class FightCommand
 		return definition != null
 				? info.sendSuccessLiteral(FightManager.describe(definition))
 				: info.sendFailure("Fight not found: " + info.getString("name"));
+	}
+
+	private static boolean setScene(CommandInfo info)
+	{
+		return FightManager.setSourceScene(info, info.getString("name"), info.getString("scene"));
+	}
+
+	private static boolean setTargetPlayer(CommandInfo info)
+	{
+		return FightManager.setTargetPlayer(info, info.getString("name"), info.getString("player"));
+	}
+
+	private static boolean clearTargets(CommandInfo info)
+	{
+		return FightManager.clearTargets(info, info.getString("name"));
 	}
 
 	private static boolean start(CommandInfo info)
