@@ -4,6 +4,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.mt1006.mocap.MocapMod;
 import net.mt1006.mocap.events.BlockInteractionEvent;
+import net.mt1006.mocap.mocap.fight.FightFishingRodController;
+import net.minecraft.world.InteractionResult;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
@@ -46,8 +48,25 @@ public class BlockInteractionNeoForgeEvent
 	{
 		Player player = event.getEntity();
 
+		if (FightFishingRodController.handleBlockUse(player, event.getHand(), event.getHitVec()))
+		{
+			event.setCancellationResult(InteractionResult.SUCCESS_SERVER);
+			event.setCanceled(true);
+			return;
+		}
+
 		BlockInteractionEvent.onRightClickBlock(player, event.getHand(), event.getHitVec(),
 				player.getMainHandItem().doesSneakBypassUse(player.level(), event.getPos(), player));
+	}
+
+	@SubscribeEvent
+	public static void onRightClickItem(PlayerInteractEvent.RightClickItem event)
+	{
+		if (FightFishingRodController.handleItemUse(event.getEntity(), event.getHand()))
+		{
+			event.setCancellationResult(InteractionResult.SUCCESS_SERVER);
+			event.setCanceled(true);
+		}
 	}
 
 	@SubscribeEvent
