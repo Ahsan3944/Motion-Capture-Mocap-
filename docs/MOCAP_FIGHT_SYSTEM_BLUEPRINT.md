@@ -2161,7 +2161,7 @@ Implemented scope:
 5. The participant can restore its Fight-owned equipment snapshot idempotently.
 6. Initial weapon selection is intentionally limited to the recorded/equipped main-hand and off-hand items because the current recording format exposes no complete inventory pool.
 7. Melee selection prefers a non-empty hand whose item exposes positive ATTACK_DAMAGE through the actor's equipped state; otherwise it preserves the recorded main-hand choice.
-8. Fight-owned equipment is restored before combat decisions if playback or another runtime action changes a controlled slot.
+8. Fight-owned equipment is not re-applied every tick; Fight-owned combat actions may legitimately change the runtime equipment state. The captured snapshot remains the reset/source baseline.
 9. Stop/reset releases equipment ownership before normal playback teardown; the source recording is never mutated.
 10. No battlefield pickup, loot transfer, generated item, or external inventory injection is introduced.
 
@@ -2177,3 +2177,34 @@ Deliberately not implemented in Phase 6B:
 
 A later full-inventory phase must extend the recording/runtime data model explicitly rather than pretending ChangeItem contains slots that it does not record.
 
+
+
+## Implementation Progress — Phase 6C
+
+Phase 6C adds deterministic melee-hand selection using only equipment already captured by the Phase 6B runtime snapshot.
+
+Repository/API verification:
+1. Minecraft 26.1 exposes resolved ItemStack attribute modifiers through the ItemStack modifier API; the Fight implementation must inspect the actual equipped ItemStack rather than infer weapons from item names.
+2. The existing Swing attack path ultimately uses the actor's normal main-hand combat mechanics.
+3. The current recording format exposes only the eight ChangeItem equipment slots, so Phase 6C does not invent a hidden hotbar/inventory.
+
+Implemented scope:
+1. Determine whether each hand contains a melee-capable item by inspecting the resolved ATTACK_DAMAGE modifier on the actual ItemStack.
+2. Prefer the current main-hand weapon when valid.
+3. If main hand is not melee-capable but off-hand is, swap the two equipped hand stacks at runtime so the valid weapon becomes main hand.
+4. If neither hand contains a verified melee weapon, preserve the current main-hand state and let normal attack execution handle the fallback.
+5. Selection is runtime-only and never changes the saved recording or the captured reset snapshot.
+6. The controller performs no world scan and does not generate, duplicate, or repair items.
+7. The same selection rule is applied immediately before a melee attack, not continuously every tick.
+
+Deliberately not implemented in Phase 6C:
+- ranged weapons/projectiles/ammunition;
+- shield timing/blocking;
+- food/consumables;
+- synthetic inventory/hotbar;
+- custom loadouts;
+- damage/knockback multipliers;
+- weapon durability restoration;
+- weapon switching based on target distance.
+
+This phase intentionally keeps weapon selection narrow so ranged, shield and consumable behavior can be added as separate state-machine decisions without coupling them to inventory assumptions.
