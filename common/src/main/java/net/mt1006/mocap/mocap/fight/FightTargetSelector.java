@@ -14,10 +14,10 @@ public final class FightTargetSelector
 	private FightTargetSelector() {}
 
 	public static @Nullable Entity select(FightParticipant participant, FightDefinition.TargetMode mode,
-			List<FightParticipant> participants, List<String> configuredPlayers, MinecraftServer server,
+			List<FightParticipant> participants, FightDefinition definition, MinecraftServer server,
 			double detectionRange)
 	{
-		List<Entity> candidates = collectCandidates(participant, participants, configuredPlayers, server, detectionRange);
+		List<Entity> candidates = collectCandidates(participant, participants, definition, server, detectionRange);
 
 		if (mode == FightDefinition.TargetMode.CURRENT_TARGET || mode == FightDefinition.TargetMode.FIXED_TARGET)
 		{
@@ -74,22 +74,24 @@ public final class FightTargetSelector
 	}
 
 	private static List<Entity> collectCandidates(FightParticipant participant, List<FightParticipant> participants,
-			List<String> configuredPlayers, MinecraftServer server, double detectionRange)
+			FightDefinition definition, MinecraftServer server, double detectionRange)
 	{
 		List<Entity> candidates = new ArrayList<>();
 		for (FightParticipant other : participants)
 		{
-			if (!other.isActive() || other.getSide() == participant.getSide()) { continue; }
+			if (!other.isActive() || other.getTeamId().equals(participant.getTeamId())) { continue; }
 			Entity entity = other.getEntity();
 			if (isValid(participant, entity, detectionRange)) { candidates.add(entity); }
 		}
 
 		if (participant.getSide() == FightParticipant.Side.SOURCE)
 		{
-			for (String playerName : configuredPlayers)
+			for (String playerName : definition.getTargetPlayers())
 			{
 				ServerPlayer player = server.getPlayerList().getPlayerByName(playerName);
-				if (player != null && isValid(participant, player, detectionRange) && !candidates.contains(player))
+				String playerTeam = definition.getTargetPlayerTeam(playerName);
+				if (player != null && !playerTeam.equals(participant.getTeamId())
+						&& isValid(participant, player, detectionRange) && !candidates.contains(player))
 				{
 					candidates.add(player);
 				}
