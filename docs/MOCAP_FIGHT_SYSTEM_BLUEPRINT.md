@@ -2208,3 +2208,37 @@ Deliberately not implemented in Phase 6C:
 - weapon switching based on target distance.
 
 This phase intentionally keeps weapon selection narrow so ranged, shield and consumable behavior can be added as separate state-machine decisions without coupling them to inventory assumptions.
+
+## Implementation Progress — Phase 6D
+
+Phase 6D adds the first real ranged-combat execution path using the existing Minecraft BowItem/ProjectileWeaponItem mechanics.
+
+Repository/API verification:
+1. The repository has no existing Fight projectile abstraction or ranged-action implementation, so no duplicate local projectile system is introduced.
+2. Minecraft 26.1 exposes BowItem.releaseUsing(ItemStack, Level, LivingEntity, int) and getDefaultProjectileRange(); BowItem remains a ProjectileWeaponItem.
+3. LivingEntity exposes getProjectile(ItemStack), allowing the runtime to verify ammunition availability without inventing an inventory source.
+4. The Fight actor is a ServerPlayer/FakePlayer, so the normal server-side item/projectile mechanics remain the authoritative execution path.
+
+Implemented scope:
+1. Bow is recognized as a ranged weapon only when it is actually equipped.
+2. Main-hand Bow is preferred; an off-hand Bow can be moved to main hand for the runtime shot.
+3. Ammunition is required through the actor's existing getProjectile() resolution. No arrows are generated.
+4. The target must be outside configured melee attack range but inside the bow's own default projectile range.
+5. The actor faces the live target before firing.
+6. The BowItem releaseUsing path is invoked server-side with a bounded full-draw charge, allowing vanilla projectile creation, trajectory and ammo handling to remain authoritative.
+7. Ranged execution uses the existing Fight attack cooldown instead of creating independent timers.
+8. If no valid bow/ammunition exists, the fighter falls back to normal chase/melee behavior.
+9. Runtime bow selection does not modify the saved recording or reset snapshot.
+
+Deliberately not implemented in Phase 6D:
+- Crossbow charging/loaded-projectile state machine;
+- synthetic inventory/hotbar;
+- generated ammunition;
+- projectile prediction/aim assistance;
+- wall/line-of-sight ray validation;
+- ranged damage/knockback multipliers;
+- shield blocking;
+- food/consumable behavior.
+
+Crossbow is deliberately deferred because its 26.1 runtime requires a distinct load/charged-projectile lifecycle rather than treating it as an instant Bow shot.
+
