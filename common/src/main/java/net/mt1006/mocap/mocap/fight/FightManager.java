@@ -538,7 +538,7 @@ public final class FightManager
 			int index = 0;
 			for (String source : definition.getSourceScenes())
 			{
-				startPlayable(info, source, baseConfig, FightParticipant.Side.SOURCE, "source-" + index++);
+				startPlayable(info, source, baseConfig, FightParticipant.Side.SOURCE, "source-" + index++, definition.getSourceSceneTeam(source));
 			}
 		}
 
@@ -547,12 +547,12 @@ public final class FightManager
 			int index = 0;
 			for (String target : definition.getTargetScenes())
 			{
-				startPlayable(info, target, baseConfig, FightParticipant.Side.TARGET, "target-" + index++);
+				startPlayable(info, target, baseConfig, FightParticipant.Side.TARGET, "target-" + index++, definition.getTargetSceneTeam(target));
 			}
 		}
 
 		private void startPlayable(CommandInfo info, String source, MocapPlaybackConfig baseConfig,
-				FightParticipant.Side side, String idPrefix)
+				FightParticipant.Side side, String idPrefix, String teamId)
 		{
 			MocapPlayable playable = MocapPlayable.get(info, source);
 			if (playable == null) { throw new IllegalArgumentException("Unknown Fight source/target: " + source); }
@@ -583,7 +583,7 @@ public final class FightManager
 				{
 					throw new IllegalStateException("Entity is already controlled by another Fight: " + entity.getUUID());
 				}
-				participants.add(new FightParticipant(idPrefix + "-" + i, entity, side));
+				participants.add(new FightParticipant(idPrefix + "-" + i, entity, side, teamId));
 			}
 		}
 
@@ -610,7 +610,7 @@ public final class FightManager
 
 				participant.tickAttackCooldown();
 				Entity target = FightTargetSelector.select(participant, definition.getTargetMode(), participants,
-						definition.getTargetPlayers(), server, definition.getDetectionRange());
+						definition, server, definition.getDetectionRange());
 				participant.setCurrentTarget(target);
 
 				if (target == null)
