@@ -548,7 +548,7 @@ public final class FightManager
 				if (entity.distanceToSqr(target) > attackRange * attackRange)
 				{
 					participant.setState(FightParticipant.State.CHASE);
-					FightMovementController.chase(entity, target, definition.getMovementSpeed(), attackRange);
+					FightMovementController.chase(participant, target, definition.getMovementSpeed(), attackRange);
 					continue;
 				}
 
