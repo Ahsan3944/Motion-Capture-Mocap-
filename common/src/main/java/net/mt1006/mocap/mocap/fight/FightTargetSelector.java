@@ -19,7 +19,7 @@ public final class FightTargetSelector
 	{
 		List<Entity> candidates = collectCandidates(participant, participants, configuredPlayers, server, detectionRange);
 
-		if (mode == FightDefinition.TargetMode.CURRENT_TARGET)
+		if (mode == FightDefinition.TargetMode.CURRENT_TARGET || mode == FightDefinition.TargetMode.FIXED_TARGET)
 		{
 			Entity current = participant.getCurrentTarget();
 			if (isValid(participant, current, detectionRange)) { return current; }
