@@ -681,6 +681,11 @@ public final class FightManager
 				}
 
 				double attackRange = definition.getAttackRange();
+				if (target instanceof LivingEntity livingTarget
+						&& FightDefenseController.tick(participant, livingTarget))
+				{
+					continue;
+				}
 				double targetDistanceSqr = entity.distanceToSqr(target);
 				double rangedRange = FightEquipmentController.getRangedRange(participant);
 				if (targetDistanceSqr > attackRange * attackRange && rangedRange > attackRange && targetDistanceSqr <= rangedRange * rangedRange)
