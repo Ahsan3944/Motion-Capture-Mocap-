@@ -154,6 +154,7 @@ public final class FightManager
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
 		if (runtime == null) { return out.sendFailure("Fight is not running: " + id); }
+		runtime.reset();
 
 		definition.setState(FightDefinition.State.STOPPED);
 		save(definition);
@@ -337,6 +338,7 @@ public final class FightManager
 			this.id = definition.getId();
 			MocapPlaybackConfig baseConfig = MocapPlaybackConfig.createFromSettings();
 			baseConfig.setInvulnerablePlayback(false);
+			try {
 			for (String source : definition.getSourceScenes())
 			{
 				MocapPlayable playable = MocapPlayable.get(info, source);
@@ -347,6 +349,11 @@ public final class FightManager
 				playbackRoots.add(root);
 				if (root instanceof PlaybackRoot playbackRoot) { actors.addAll(playbackRoot.getControlledEntities()); }
 				else { throw new IllegalStateException("Unsupported playback root implementation."); }
+			}
+			catch (RuntimeException e)
+			{
+				reset();
+				throw e;
 			}
 		}
 
