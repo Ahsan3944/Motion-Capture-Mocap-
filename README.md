@@ -1,5 +1,9 @@
 # Motion Capture (MoCap)
 
+[![Build & Verify](https://github.com/Ahsan3944/Motion-Capture-Mocap-/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/Ahsan3944/Motion-Capture-Mocap-/actions/workflows/build.yml)
+
+Every push and pull request is checked automatically by GitHub Actions. The workflow shows each build step separately and uploads the generated Fabric, NeoForge and common artifacts when the build succeeds.
+
 **Motion Capture** is a Minecraft mod for recording and replaying player movement and actions, and for composing reusable recordings into scenes. It is intended for creating complex Minecraft scenes without requiring the original real players to perform every take.
 
 ## Current capabilities
