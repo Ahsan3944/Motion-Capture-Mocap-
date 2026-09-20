@@ -68,6 +68,11 @@ public final class FightManager
 		return definitions.get(id);
 	}
 
+	public static boolean isRunning(String id)
+	{
+		return id != null && active.containsKey(id);
+	}
+
 	public static boolean teleportGroup(String id, FightParticipant.Side side, Vec3 destination)
 	{
 		FightRuntime runtime = active.get(id);
@@ -100,6 +105,7 @@ public final class FightManager
 		FightDefinition definition = definitions.remove(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
 
+		FightFishingRodController.clearFight(id);
 		if (!deleteFile(id))
 		{
 			definitions.put(id, definition);
@@ -267,6 +273,7 @@ public final class FightManager
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
 		if (runtime == null) { return out.sendFailure("Fight is not running: " + id); }
+		FightFishingRodController.clearFight(id);
 		runtime.reset();
 
 		definition.setState(FightDefinition.State.STOPPED);
@@ -282,6 +289,7 @@ public final class FightManager
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
 
 		if (runtime != null) { runtime.reset(); }
+		FightFishingRodController.clearFight(id);
 		definition.setState(FightDefinition.State.STOPPED);
 		save(definition);
 		return out.sendSuccessLiteral("Reset Fight '%s'.", id);
