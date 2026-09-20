@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ShieldItem;
+import net.minecraft.core.component.DataComponents;
 
 /**
  * Runtime-only combat equipment decisions for Fight participants.
@@ -76,6 +77,29 @@ public final class FightEquipmentController
 		living.setItemInHand(InteractionHand.MAIN_HAND, offHand.copy());
 		living.setItemInHand(InteractionHand.OFF_HAND, mainHand.copy());
 		return true;
+	}
+
+	public static boolean prepareFoodUse(FightParticipant participant)
+	{
+		if (participant == null || !participant.isActive()) { return false; }
+		if (!(participant.getEntity() instanceof LivingEntity living) || !living.isAlive()) { return false; }
+
+		ItemStack mainHand = living.getMainHandItem();
+		if (isUsableFood(mainHand)) { return true; }
+
+		ItemStack offHand = living.getOffhandItem();
+		if (!isUsableFood(offHand)) { return false; }
+
+		living.setItemInHand(InteractionHand.MAIN_HAND, offHand.copy());
+		living.setItemInHand(InteractionHand.OFF_HAND, mainHand.copy());
+		return true;
+	}
+
+	public static boolean isUsableFood(ItemStack stack)
+	{
+		return !stack.isEmpty()
+				&& stack.get(DataComponents.FOOD) != null
+				&& stack.get(DataComponents.CONSUMABLE) != null;
 	}
 
 	public static boolean prepareShieldUse(FightParticipant participant)
