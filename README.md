@@ -233,7 +233,7 @@ The runtime Fight System is being implemented incrementally on top of the existi
 - Added rollback of partially initialized Fight playback roots.
 - Added cleanup of owned playback roots on stop/reset/server shutdown.
 
-### Phase 3 completed
+### Phase 3A completed
 - Added independent runtime Fight participants for controlled living actors.
 - Added source/target side isolation.
 - Added entity ownership protection across simultaneous Fights.
@@ -242,7 +242,7 @@ The runtime Fight System is being implemented incrementally on top of the existi
 - Added persisted target/combat configuration setters for power, attack speed/range, detection range, movement speed, damage and knockback multipliers.
 - Revalidates live targets every runtime tick without scanning the full world.
 
-### Phase 3 intentionally does not yet provide
+### Phase 3A intentionally does not yet provide
 - Autonomous movement/navigation.
 - Runtime attack execution and hit validation.
 - Weapon/item switching.
