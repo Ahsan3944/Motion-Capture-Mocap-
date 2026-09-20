@@ -555,7 +555,7 @@ public final class FightManager
 					}
 
 					double beforeTargetDistance = entity.distanceToSqr(target);
-					boolean moved = FightMovementController.chase(participant, target, definition.getMovementSpeed(), attackRange);
+					FightMovementController.chase(participant, target, definition.getMovementSpeed(), attackRange);
 					double afterTargetDistance = entity.distanceToSqr(target);
 					if (afterTargetDistance + 1.0E-4 < beforeTargetDistance)
 					{
