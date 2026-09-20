@@ -2303,3 +2303,34 @@ Deliberately not implemented in Phase 6F:
 - food/consumables;
 - ranged damage/knockback modifiers.
 
+## Implementation Progress — Phase 6G
+
+Phase 6G adds runtime Food/Consumable behavior using Minecraft 26.1's DataComponents consumable lifecycle.
+
+Pre-implementation checks:
+1. Repository search found no existing Fight food/consumable controller or item-use implementation.
+2. Minecraft 26.1 moved consumption behavior into the DataComponents/Consumable system: edible items expose FOOD and CONSUMABLE components, and the consumable lifecycle eventually invokes Item.finishUsingItem. citeturn3search2turn1search3
+3. The existing Fight inventory boundary only exposes represented equipment slots, not a complete inventory. Therefore Phase 6G consumes only an actually equipped food item from main/off hand; it does not scan, generate, or inject hidden inventory items.
+4. Defensive Shield use already owns the immediate close-range defensive case, so Food use is only selected when the participant is sufficiently outside immediate melee pressure.
+
+Implemented scope:
+1. A valid food item must have both FOOD and CONSUMABLE components.
+2. Main hand is preferred; an off-hand food item may be moved to main hand at runtime.
+3. Food selection is health-driven with a bounded 50% maximum-health threshold.
+4. Immediate melee pressure takes priority over eating; the existing Shield controller handles close-range defense first.
+5. Food use enters USE_ITEM and delegates to the normal Item/Consumable use lifecycle.
+6. The server lets the normal consumable system complete the item and apply its own vanilla effects/remainder behavior.
+7. A bounded post-consumption cooldown prevents repeated immediate consumption loops.
+8. If food is unavailable, invalid, or the entity cannot continue using it, combat falls back to the existing ranged/melee movement decisions.
+9. Runtime food use never mutates saved Fight definitions or source recordings.
+
+Deliberately not implemented in Phase 6G:
+- hidden inventory/hotbar search;
+- generated food;
+- custom healing formulas;
+- manual potion/effect application;
+- custom hunger/saturation logic;
+- eating while an active Shield/Crossbow lifecycle owns the item-use state;
+- configurable food threshold persistence;
+- custom consumable priority tables.
+
