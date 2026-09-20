@@ -1963,3 +1963,33 @@ Movement contract for this phase:
 - A target in another dimension/world is never chased.
 - If collision prevents the requested displacement, the controller accepts the collision result and does not bypass blocks by teleporting through them.
 - The next navigation phase may add bounded local recovery/pathfinding without changing the ownership boundary.
+
+
+## Implementation Progress — Phase 4B
+
+Phase 4B adds bounded local obstacle recovery on top of the Phase 4A movement-ownership boundary.
+
+Implemented scope for this batch:
+1. Fight participants track short-lived movement obstruction state independently from combat state.
+2. A target change clears stale movement obstruction state.
+3. Direct chase movement measures actual horizontal displacement instead of assuming that a requested move succeeded.
+4. Repeated blocked movement enters bounded local recovery after a small number of ticks.
+5. Recovery uses one horizontal perpendicular probe per tick, alternating direction when necessary.
+6. Recovery remains collision-respecting and bounded; it never places, breaks, or replaces blocks and never teleports through obstacles.
+7. Successful forward or recovery movement clears the obstruction counter.
+8. Movement failure does not cancel target acquisition or combat; the participant remains in CHASE and can continue retrying on later ticks.
+
+Deliberately not implemented in Phase 4B:
+- full pathfinding/navigation meshes;
+- jumping, climbing, swimming, doors or ladders;
+- multi-node route planning;
+- formation/spacing logic;
+- weapon selection or item-use behavior;
+- damage/knockback modifiers;
+- inventory/death reset snapshots.
+
+Recovery contract:
+- obstruction detection is based on actual horizontal displacement after normal entity collision handling;
+- recovery displacement never exceeds the same per-tick movement cap as direct chase;
+- recovery is local and deterministic, with no world-wide or distant block search;
+- dimension mismatch and invalid entities still terminate movement for that tick.
