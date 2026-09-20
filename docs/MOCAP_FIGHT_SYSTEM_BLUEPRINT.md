@@ -1930,3 +1930,36 @@ Still deliberately not implemented in Phase 3B:
 - group formation teleport/Fishing Rod control.
 
 The next movement phase must explicitly define the ownership boundary between recorded playback movement and Fight-controlled movement before locomotion code is added.
+
+
+## Implementation Progress — Phase 4A
+
+Phase 4A establishes the movement-ownership boundary and the first bounded live chase controller.
+
+Implemented scope for this batch:
+1. Fight-controlled playback instances can explicitly suppress recorded Movement/legacy movement actions while preserving non-movement recorded actions.
+2. Scene playback propagates movement ownership to nested playback instances.
+3. Fight runtime claims movement ownership for every controlled playback root while the Fight is active.
+4. Fight-controlled actors follow a live valid target only while outside attack range.
+5. Movement uses bounded per-tick displacement and normal entity collision movement; no block placement, terrain destruction, teleport spam, or uncontrolled chunk loading is introduced.
+6. Fighters rotate toward their live target while chasing.
+7. Looping playback does not reapply the recorded start position while Fight movement ownership is active.
+8. Movement ownership is released when the Fight runtime is reset/stopped.
+
+Deliberately not implemented in Phase 4A:
+- full pathfinding;
+- jump/climb planning;
+- advanced obstacle navigation;
+- formation spacing;
+- group teleport/Fishing Rod control;
+- weapon selection;
+- shield/food behavior;
+- damage/knockback modifiers;
+- death snapshots/inventory reset snapshots.
+
+Movement contract for this phase:
+- movementSpeed is interpreted as blocks per second and converted to a bounded per-tick displacement.
+- A fighter stops translating once it is inside configured attack range.
+- A target in another dimension/world is never chased.
+- If collision prevents the requested displacement, the controller accepts the collision result and does not bypass blocks by teleporting through them.
+- The next navigation phase may add bounded local recovery/pathfinding without changing the ownership boundary.
