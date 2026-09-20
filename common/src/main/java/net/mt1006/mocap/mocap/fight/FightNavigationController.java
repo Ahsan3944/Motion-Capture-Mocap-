@@ -16,7 +16,7 @@ import java.util.PriorityQueue;
 
 public final class FightNavigationController
 {
-	private static final int NAVIGATION_TRIGGER_BLOCKED_TICKS = 8;
+	private static final int NAVIGATION_TRIGGER_STALL_TICKS = 8;
 	private static final int SEARCH_RADIUS = 8;
 	private static final int MAX_SEARCH_NODES = 96;
 	private static final int MAX_PATH_NODES = 12;
@@ -56,10 +56,12 @@ public final class FightNavigationController
 		if (!needsRepath && waypoint != null)
 		{
 			participant.tickNavigationAge();
-			return FightMovementController.moveToward(participant, waypoint, movementSpeed, 0.05);
+			boolean moved = FightMovementController.moveToward(participant, waypoint, movementSpeed, 0.05);
+			if (moved) { participant.resetNavigationStallTicks(); }
+			return moved;
 		}
 
-		if (participant.getMovementBlockedTicks() < NAVIGATION_TRIGGER_BLOCKED_TICKS)
+		if (participant.getNavigationStallTicks() < NAVIGATION_TRIGGER_STALL_TICKS)
 		{
 			return false;
 		}
@@ -75,8 +77,11 @@ public final class FightNavigationController
 		waypoint = participant.getNavigationWaypoint();
 		if (waypoint == null) { return false; }
 
+		participant.resetNavigationStallTicks();
 		participant.tickNavigationAge();
-		return FightMovementController.moveToward(participant, waypoint, movementSpeed, 0.05);
+		boolean moved = FightMovementController.moveToward(participant, waypoint, movementSpeed, 0.05);
+		if (moved) { participant.resetNavigationStallTicks(); }
+		return moved;
 	}
 
 	private static List<Vec3> findPath(ServerLevel level, Entity actor, Vec3 targetPosition, double attackRange)
@@ -138,13 +143,14 @@ public final class FightNavigationController
 	{
 		List<GridPos> cells = new ArrayList<>();
 		GridPos current = goal;
-		while (!current.equals(start) && cells.size() < MAX_PATH_NODES)
+		while (!current.equals(start))
 		{
 			cells.add(current);
 			current = cameFrom.get(current);
-			if (current == null) { return Collections.emptyList(); }
+			if (current == null || cells.size() > MAX_SEARCH_NODES) { return Collections.emptyList(); }
 		}
 		Collections.reverse(cells);
+		if (cells.size() > MAX_PATH_NODES) { cells = new ArrayList<>(cells.subList(0, MAX_PATH_NODES)); }
 
 		List<Vec3> waypoints = new ArrayList<>(cells.size());
 		for (GridPos cell : cells)
