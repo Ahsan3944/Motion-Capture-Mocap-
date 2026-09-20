@@ -42,7 +42,7 @@ public final class FightCommand
 						.then(Commands.literal("clear_targets")
 								.then(Commands.argument("name", StringArgumentType.word())
 										.suggests(FightCommand::suggestions)
-										.executes(CommandUtils.command(FightCommand::clearTargets))))
+										.executes(CommandUtils.command(FightCommand::clearTargets)))))
 				.then(Commands.literal("start")
 						.then(Commands.argument("name", StringArgumentType.word())
 								.suggests(FightCommand::suggestions)
