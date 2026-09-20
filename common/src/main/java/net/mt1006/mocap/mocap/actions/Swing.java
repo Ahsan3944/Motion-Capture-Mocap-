@@ -9,6 +9,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -78,23 +81,63 @@ public class Swing implements MocapStateAction
 	/** Executes the existing MoCap/vanilla-style attack mechanics against one explicit target. */
 	public static boolean attackTarget(LivingEntity attacker, Entity target, ServerLevel level)
 	{
+		return attackTarget(attacker, target, level, 1.0, 1.0);
+	}
+
+	/** Executes one vanilla attack while applying temporary Fight-only damage/knockback multipliers. */
+	public static boolean attackTarget(LivingEntity attacker, Entity target, ServerLevel level,
+			double damageMultiplier, double knockbackMultiplier)
+	{
 		if (!attacker.isAlive() || !target.isAlive() || attacker == target) { return false; }
-		if (attacker instanceof Player player)
+
+		double safeDamageMultiplier = Double.isFinite(damageMultiplier) ? Math.max(0.0, damageMultiplier) : 1.0;
+		double safeKnockbackMultiplier = Double.isFinite(knockbackMultiplier) ? Math.max(0.0, knockbackMultiplier) : 1.0;
+		Vec3 oldVelocity = target.getDeltaMovement();
+		AttributeInstance attackDamage = attacker.getAttributes().hasAttribute(Attributes.ATTACK_DAMAGE)
+				? attacker.getAttribute(Attributes.ATTACK_DAMAGE) : null;
+		AttributeModifier modifier = null;
+
+		try
 		{
-			player.attack(target);
-		}
-		else
-		{
-			boolean hasAttackDamage = attacker.getAttributes().hasAttribute(Attributes.ATTACK_DAMAGE);
-			if (attacker instanceof Mob mob && hasAttackDamage)
+			if (attackDamage != null && safeDamageMultiplier != 1.0)
 			{
-				mob.doHurtTarget(level, target);
+				modifier = new AttributeModifier(
+						Identifier.parse("mocap:fight_damage_multiplier"),
+						safeDamageMultiplier - 1.0,
+						AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+				attackDamage.removeModifier(modifier);
+				attackDamage.addTransientModifier(modifier);
+			}
+
+			if (attacker instanceof Player player)
+			{
+				player.attack(target);
 			}
 			else
 			{
-				float damage = (float)getAttribValueOrDef(attacker, Attributes.ATTACK_DAMAGE, 1.0f);
-				target.hurtServer(level, level.damageSources().mobAttack(attacker), damage);
+				boolean hasAttackDamage = attacker.getAttributes().hasAttribute(Attributes.ATTACK_DAMAGE);
+				if (attacker instanceof Mob mob && hasAttackDamage)
+				{
+					mob.doHurtTarget(level, target);
+				}
+				else
+				{
+					float damage = (float)getAttribValueOrDef(attacker, Attributes.ATTACK_DAMAGE, 1.0f);
+					target.hurtServer(level, level.damageSources().mobAttack(attacker),
+							(float)(damage * safeDamageMultiplier));
+				}
 			}
+		}
+		finally
+		{
+			if (modifier != null && attackDamage != null) { attackDamage.removeModifier(modifier); }
+		}
+
+		if (safeKnockbackMultiplier != 1.0 && target.isAlive())
+		{
+			Vec3 newVelocity = target.getDeltaMovement();
+			Vec3 impulse = newVelocity.subtract(oldVelocity);
+			target.setDeltaMovement(oldVelocity.add(impulse.scale(safeKnockbackMultiplier)));
 		}
 		return true;
 	}
