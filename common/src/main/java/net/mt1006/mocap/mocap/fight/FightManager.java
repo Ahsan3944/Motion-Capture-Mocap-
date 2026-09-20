@@ -670,6 +670,7 @@ public final class FightManager
 				}
 
 				participant.tickAttackCooldown();
+				participant.tickFoodCooldown();
 				Entity target = FightTargetSelector.select(participant, definition.getTargetMode(), participants,
 						definition, server, definition.getDetectionRange());
 				participant.setCurrentTarget(target);
@@ -688,6 +689,11 @@ public final class FightManager
 				double attackRange = definition.getAttackRange();
 				if (target instanceof LivingEntity livingTarget
 						&& FightDefenseController.tick(participant, livingTarget))
+				{
+					continue;
+				}
+				if (target instanceof LivingEntity livingTarget
+						&& FightFoodController.tick(participant, livingTarget, attackRange))
 				{
 					continue;
 				}
@@ -798,6 +804,7 @@ public final class FightManager
 			for (FightParticipant participant : participants)
 			{
 				FightDefenseController.stop(participant);
+				FightFoodController.stop(participant);
 				participant.deactivate();
 				releaseParticipant(participant.getEntity().getUUID(), id);
 			}
