@@ -47,6 +47,7 @@ public class ActionContext implements MocapActionContext
 	private @Nullable EntityData currentEntityData = null;
 	private Entity entity;
 	private Vec3 position;
+	private boolean movementSuppressed = false;
 	private int repeatCounter = 0;
 
 	public ActionContext(MocapRecordingData recordingData, ServerPlayer owner, PlayerList packetTargets, Entity entity,
@@ -212,6 +213,16 @@ public class ActionContext implements MocapActionContext
 		if (playerToRemove != ghostPlayer) { broadcast(new ClientboundPlayerInfoRemovePacket(List.of(uuid))); }
 		playerToRemove.remove(Entity.RemovalReason.KILLED);
 		playerToRemove.getAdvancements().stopListening();
+	}
+
+	public void setMovementSuppressed(boolean suppressed)
+	{
+		movementSuppressed = suppressed;
+	}
+
+	public boolean isMovementSuppressed()
+	{
+		return movementSuppressed;
 	}
 
 	@Override public Vec3 getPosition()
