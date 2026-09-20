@@ -7,6 +7,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.ShieldItem;
 
 /**
  * Runtime-only combat equipment decisions for Fight participants.
@@ -75,6 +76,24 @@ public final class FightEquipmentController
 		living.setItemInHand(InteractionHand.MAIN_HAND, offHand.copy());
 		living.setItemInHand(InteractionHand.OFF_HAND, mainHand.copy());
 		return true;
+	}
+
+	public static boolean prepareShieldUse(FightParticipant participant)
+	{
+		if (participant == null || !participant.isActive()) { return false; }
+		if (!(participant.getEntity() instanceof LivingEntity living) || !living.isAlive()) { return false; }
+
+		ItemStack offHand = living.getOffhandItem();
+		if (offHand.getItem() instanceof ShieldItem) { return true; }
+
+		ItemStack mainHand = living.getMainHandItem();
+		return mainHand.getItem() instanceof ShieldItem;
+	}
+
+	public static boolean hasShield(LivingEntity living)
+	{
+		return living.getMainHandItem().getItem() instanceof ShieldItem
+				|| living.getOffhandItem().getItem() instanceof ShieldItem;
 	}
 
 	public static boolean isUsableCrossbow(LivingEntity living, ItemStack stack)
