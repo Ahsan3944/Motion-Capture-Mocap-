@@ -190,6 +190,19 @@ public final class FightManager
 		return save(definition) && out.sendSuccessLiteral("Added target player '%s' to Fight '%s'.", player, id);
 	}
 
+	public static boolean setSourceSceneTeam(CommandOutput out, String id, String scene, String team)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (active.containsKey(id)) { return out.sendFailure("Stop the Fight before changing team assignments: " + id); }
+		if (!definition.setSourceSceneTeam(scene, team))
+		{
+			return out.sendFailure("Invalid source scene or team ID for Fight '" + id + "'.");
+		}
+		return save(definition) && out.sendSuccessLiteral("Set source scene '%s' team to '%s'.", scene, team);
+	}
+
 	public static boolean setTargetScene(CommandOutput out, String id, String scene)
 	{
 		ensureLoaded();
@@ -200,6 +213,32 @@ public final class FightManager
 		if (!scenes.contains(scene)) { scenes.add(scene); }
 		definition.setTargetScenes(scenes);
 		return save(definition) && out.sendSuccessLiteral("Added target scene '%s' to Fight '%s'.", scene, id);
+	}
+
+	public static boolean setTargetSceneTeam(CommandOutput out, String id, String scene, String team)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (active.containsKey(id)) { return out.sendFailure("Stop the Fight before changing team assignments: " + id); }
+		if (!definition.setTargetSceneTeam(scene, team))
+		{
+			return out.sendFailure("Invalid target scene or team ID for Fight '" + id + "'.");
+		}
+		return save(definition) && out.sendSuccessLiteral("Set target scene '%s' team to '%s'.", scene, team);
+	}
+
+	public static boolean setTargetPlayerTeam(CommandOutput out, String id, String player, String team)
+	{
+		ensureLoaded();
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (active.containsKey(id)) { return out.sendFailure("Stop the Fight before changing team assignments: " + id); }
+		if (!definition.setTargetPlayerTeam(player, team))
+		{
+			return out.sendFailure("Invalid target player or team ID for Fight '" + id + "'.");
+		}
+		return save(definition) && out.sendSuccessLiteral("Set target player '%s' team to '%s'.", player, team);
 	}
 
 	public static boolean setTargetMode(CommandOutput out, String id, String mode)
@@ -398,9 +437,9 @@ public final class FightManager
 
 	public static String describe(FightDefinition definition)
 	{
-		return String.format("Fight '%s': state=%s, sourceScenes=%s, targetPlayers=%s, targetScenes=%s, power=%d, attackSpeed=%.3f, attackRange=%.2f, detectionRange=%.2f, movementSpeed=%.2f, damage=%.2f, knockback=%.2f, targetMode=%s",
+		return String.format("Fight '%s': state=%s, sourceScenes=%s, sourceTeams=%s, targetPlayers=%s, targetPlayerTeams=%s, targetScenes=%s, targetTeams=%s, power=%d, attackSpeed=%.3f, attackRange=%.2f, detectionRange=%.2f, movementSpeed=%.2f, damage=%.2f, knockback=%.2f, targetMode=%s",
 				definition.getId(), definition.getState(), definition.getSourceScenes(), definition.getTargetPlayers(),
-				definition.getTargetScenes(), definition.getPower(), definition.getAttackSpeed(), definition.getAttackRange(),
+				definition.getTargetScenes(), definition.getSourceSceneTeams(), definition.getTargetSceneTeams(), definition.getTargetPlayerTeams(), definition.getPower(), definition.getAttackSpeed(), definition.getAttackRange(),
 				definition.getDetectionRange(), definition.getMovementSpeed(), definition.getDamageMultiplier(),
 				definition.getKnockbackMultiplier(), definition.getTargetMode());
 	}
@@ -414,6 +453,9 @@ public final class FightManager
 		p.setProperty("source_scenes", String.join(",", definition.getSourceScenes()));
 		p.setProperty("target_players", String.join(",", definition.getTargetPlayers()));
 		p.setProperty("target_scenes", String.join(",", definition.getTargetScenes()));
+		p.setProperty("source_scene_teams", String.join(",", definition.getSourceSceneTeams()));
+		p.setProperty("target_scene_teams", String.join(",", definition.getTargetSceneTeams()));
+		p.setProperty("target_player_teams", String.join(",", definition.getTargetPlayerTeams()));
 		p.setProperty("power", Integer.toString(definition.getPower()));
 		p.setProperty("attack_speed", Double.toString(definition.getAttackSpeed()));
 		p.setProperty("attack_range", Double.toString(definition.getAttackRange()));
@@ -462,6 +504,9 @@ public final class FightManager
 			definition.setSourceScenes(splitList(p.getProperty("source_scenes", "")));
 			definition.setTargetPlayers(splitList(p.getProperty("target_players", "")));
 			definition.setTargetScenes(splitList(p.getProperty("target_scenes", "")));
+			definition.setSourceSceneTeams(splitList(p.getProperty("source_scene_teams", "")));
+			definition.setTargetSceneTeams(splitList(p.getProperty("target_scene_teams", "")));
+			definition.setTargetPlayerTeams(splitList(p.getProperty("target_player_teams", "")));
 			if (!definition.setPower(Integer.parseInt(p.getProperty("power", "5")))) { return null; }
 			if (!definition.setAttackSpeed(Double.parseDouble(p.getProperty("attack_speed", "1.0")))) { return null; }
 			if (!definition.setAttackRange(Double.parseDouble(p.getProperty("attack_range", "3.0")))) { return null; }
