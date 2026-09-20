@@ -3,6 +3,10 @@ package net.mt1006.mocap.mocap.fight;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -14,6 +18,65 @@ import net.minecraft.world.item.ItemStack;
 public final class FightRangedController
 {
 	private FightRangedController() {}
+
+
+	/**
+	 * Advances the vanilla Crossbow lifecycle by one Fight tick.
+	 *
+	 * @return true only when a charged Crossbow was actually fired.
+	 */
+	public static boolean tickCrossbow(FightParticipant participant)
+	{
+		if (!FightEquipmentController.prepareCrossbowAttack(participant)) {
+			participant.clearCrossbowCharge();
+			return false;
+		}
+		if (!(participant.getEntity() instanceof Player player) || !(player.level() instanceof ServerLevel level)) {
+			participant.clearCrossbowCharge();
+			return false;
+		}
+
+		ItemStack stack = player.getMainHandItem();
+		if (!(stack.getItem() instanceof CrossbowItem crossbow)) {
+			participant.clearCrossbowCharge();
+			return false;
+		}
+
+		if (CrossbowItem.isCharged(stack))
+		{
+			participant.clearCrossbowCharge();
+			InteractionResult result = crossbow.use(level, player, InteractionHand.MAIN_HAND);
+			return result.consumesAction() && !CrossbowItem.isCharged(stack);
+		}
+
+		if (player.getProjectile(stack).isEmpty())
+		{
+			participant.clearCrossbowCharge();
+			return false;
+		}
+
+		int chargeDuration = Math.max(1, CrossbowItem.getChargeDuration(stack, player));
+		int chargeTicks = participant.getCrossbowChargeTicks();
+		if (chargeTicks <= 0)
+		{
+			player.startUsingItem(InteractionHand.MAIN_HAND);
+			chargeTicks = 1;
+			participant.setCrossbowChargeTicks(chargeTicks);
+		}
+
+		int ticksRemaining = Math.max(0, crossbow.getUseDuration(stack, player) - chargeTicks);
+		crossbow.onUseTick(level, player, stack, ticksRemaining);
+		if (chargeTicks >= chargeDuration)
+		{
+			crossbow.releaseUsing(stack, level, player, ticksRemaining);
+			participant.clearCrossbowCharge();
+		}
+		else
+		{
+			participant.setCrossbowChargeTicks(chargeTicks + 1);
+		}
+		return false;
+	}
 
 	public static boolean canFireBow(FightParticipant participant)
 	{
