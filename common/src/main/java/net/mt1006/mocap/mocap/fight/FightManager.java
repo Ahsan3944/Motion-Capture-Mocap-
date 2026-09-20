@@ -438,8 +438,8 @@ public final class FightManager
 	public static String describe(FightDefinition definition)
 	{
 		return String.format("Fight '%s': state=%s, sourceScenes=%s, sourceTeams=%s, targetPlayers=%s, targetPlayerTeams=%s, targetScenes=%s, targetTeams=%s, power=%d, attackSpeed=%.3f, attackRange=%.2f, detectionRange=%.2f, movementSpeed=%.2f, damage=%.2f, knockback=%.2f, targetMode=%s",
-				definition.getId(), definition.getState(), definition.getSourceScenes(), definition.getTargetPlayers(),
-				definition.getTargetScenes(), definition.getSourceSceneTeams(), definition.getTargetSceneTeams(), definition.getTargetPlayerTeams(), definition.getPower(), definition.getAttackSpeed(), definition.getAttackRange(),
+				definition.getId(), definition.getState(), definition.getSourceScenes(), definition.getSourceSceneTeams(),
+				definition.getTargetPlayers(), definition.getTargetPlayerTeams(), definition.getTargetScenes(), definition.getTargetSceneTeams(), definition.getPower(), definition.getAttackSpeed(), definition.getAttackRange(),
 				definition.getDetectionRange(), definition.getMovementSpeed(), definition.getDamageMultiplier(),
 				definition.getKnockbackMultiplier(), definition.getTargetMode());
 	}
