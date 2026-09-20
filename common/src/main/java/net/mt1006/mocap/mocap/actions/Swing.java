@@ -5,6 +5,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -67,30 +68,36 @@ public class Swing implements MocapStateAction
 		if (hitRange > 0.0)
 		{
 			Entity entityToHit = getEntityToHit(entity, hitRange);
-			if (entityToHit != null)
-			{
-				if (entity instanceof Player player)
-				{
-					player.attack(entityToHit);
-				}
-				else
-				{
-					boolean hasAttackDamage = entity.getAttributes().hasAttribute(Attributes.ATTACK_DAMAGE);
-					if (entity instanceof Mob mob && hasAttackDamage)
-					{
-						mob.doHurtTarget(ctx.getLevel(), entityToHit);
-					}
-					else
-					{
-						float damage = (float)getAttribValueOrDef(entity, Attributes.ATTACK_DAMAGE, 1.0f);
-						entityToHit.hurtServer(ctx.getLevel(), ctx.getLevel().damageSources().mobAttack(entity), damage);
-					}
-				}
-			}
+			if (entityToHit != null) { attackTarget(entity, entityToHit, ctx.getLevel()); }
 		}
 
 		entity.swing(hand); // resets attackStrengthTicker for players
 		return Result.OK;
+	}
+
+	/** Executes the existing MoCap/vanilla-style attack mechanics against one explicit target. */
+	public static boolean attackTarget(LivingEntity attacker, Entity target, ServerLevel level)
+	{
+		if (!attacker.isAlive() || !target.isAlive() || attacker == target) { return false; }
+		if (attacker instanceof Player player)
+		{
+			player.attack(target);
+		}
+		else
+		{
+			boolean hasAttackDamage = attacker.getAttributes().hasAttribute(Attributes.ATTACK_DAMAGE);
+			if (attacker instanceof Mob mob && hasAttackDamage)
+			{
+				mob.doHurtTarget(level, target);
+			}
+			else
+			{
+				float damage = (float)getAttribValueOrDef(attacker, Attributes.ATTACK_DAMAGE, 1.0f);
+				target.hurtServer(level, level.damageSources().mobAttack(attacker), damage);
+			}
+		}
+		attacker.swing(InteractionHand.MAIN_HAND);
+		return true;
 	}
 
 	private static @Nullable Entity getEntityToHit(LivingEntity entity, double rangeMultiplier)
