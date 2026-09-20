@@ -1,5 +1,7 @@
 package net.mt1006.mocap.command.commands;
 
+import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandBuildContext;
@@ -40,6 +42,52 @@ public final class FightCommand
 										.suggests(FightCommand::suggestions)
 										.then(Commands.argument("player", StringArgumentType.word())
 												.executes(CommandUtils.command(FightCommand::setTargetPlayer)))))
+						.then(Commands.literal("target_scene")
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("scene", StringArgumentType.string())
+												.suggests(CommandSuggestions::scene)
+												.executes(CommandUtils.command(FightCommand::setTargetScene)))))
+						.then(Commands.literal("target_mode")
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("mode", StringArgumentType.word())
+												.executes(CommandUtils.command(FightCommand::setTargetMode)))))
+						.then(Commands.literal("power")
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("value", IntegerArgumentType.integer(1, 10))
+												.executes(CommandUtils.command(FightCommand::setPower)))))
+						.then(Commands.literal("attack_speed")
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("value", DoubleArgumentType.doubleArg())
+												.executes(CommandUtils.command(FightCommand::setAttackSpeed)))))
+						.then(Commands.literal("attack_range")
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("value", DoubleArgumentType.doubleArg())
+												.executes(CommandUtils.command(FightCommand::setAttackRange)))))
+						.then(Commands.literal("detection_range")
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("value", DoubleArgumentType.doubleArg())
+												.executes(CommandUtils.command(FightCommand::setDetectionRange)))))
+						.then(Commands.literal("movement_speed")
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("value", DoubleArgumentType.doubleArg())
+												.executes(CommandUtils.command(FightCommand::setMovementSpeed)))))
+						.then(Commands.literal("damage_multiplier")
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("value", DoubleArgumentType.doubleArg())
+												.executes(CommandUtils.command(FightCommand::setDamageMultiplier)))))
+						.then(Commands.literal("knockback_multiplier")
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("value", DoubleArgumentType.doubleArg())
+												.executes(CommandUtils.command(FightCommand::setKnockbackMultiplier)))))
 						.then(Commands.literal("clear_targets")
 								.then(Commands.argument("name", StringArgumentType.word())
 										.suggests(FightCommand::suggestions)
@@ -92,6 +140,51 @@ public final class FightCommand
 	private static boolean setTargetPlayer(FullCommandInfo info)
 	{
 		return FightManager.setTargetPlayer(info, info.getString("name"), info.getString("player"));
+	}
+
+	private static boolean setTargetScene(FullCommandInfo info)
+	{
+		return FightManager.setTargetScene(info, info.getString("name"), info.getString("scene"));
+	}
+
+	private static boolean setTargetMode(FullCommandInfo info)
+	{
+		return FightManager.setTargetMode(info, info.getString("name"), info.getString("mode"));
+	}
+
+	private static boolean setPower(FullCommandInfo info)
+	{
+		return FightManager.setPower(info, info.getString("name"), info.getInteger("value"));
+	}
+
+	private static boolean setAttackSpeed(FullCommandInfo info)
+	{
+		return FightManager.setAttackSpeed(info, info.getString("name"), info.getDouble("value"));
+	}
+
+	private static boolean setAttackRange(FullCommandInfo info)
+	{
+		return FightManager.setAttackRange(info, info.getString("name"), info.getDouble("value"));
+	}
+
+	private static boolean setDetectionRange(FullCommandInfo info)
+	{
+		return FightManager.setDetectionRange(info, info.getString("name"), info.getDouble("value"));
+	}
+
+	private static boolean setMovementSpeed(FullCommandInfo info)
+	{
+		return FightManager.setMovementSpeed(info, info.getString("name"), info.getDouble("value"));
+	}
+
+	private static boolean setDamageMultiplier(FullCommandInfo info)
+	{
+		return FightManager.setDamageMultiplier(info, info.getString("name"), info.getDouble("value"));
+	}
+
+	private static boolean setKnockbackMultiplier(FullCommandInfo info)
+	{
+		return FightManager.setKnockbackMultiplier(info, info.getString("name"), info.getDouble("value"));
 	}
 
 	private static boolean clearTargets(FullCommandInfo info)
