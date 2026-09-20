@@ -40,6 +40,7 @@ public final class FightGroupController
 	public static boolean teleportFormation(List<FightParticipant> participants, Vec3 destination, double requestedSpacing)
 	{
 		if (participants == null || participants.isEmpty() || destination == null) { return false; }
+		if (!Double.isFinite(destination.x) || !Double.isFinite(destination.y) || !Double.isFinite(destination.z)) { return false; }
 
 		List<FightParticipant> group = new ArrayList<>();
 		Set<Entity> groupEntities = new HashSet<>();
@@ -56,7 +57,9 @@ public final class FightGroupController
 		}
 		if (level == null) { return false; }
 
-		double spacing = Math.max(MIN_SPACING, Math.min(requestedSpacing, MAX_SPACING));
+		double spacing = Double.isFinite(requestedSpacing)
+			? Math.max(MIN_SPACING, Math.min(requestedSpacing, MAX_SPACING))
+			: DEFAULT_SPACING;
 		List<FormationSlot> slots = buildSlots(group, destination, spacing);
 		if (slots.size() != group.size() || !validateSlots(level, group, slots, groupEntities))
 		{
