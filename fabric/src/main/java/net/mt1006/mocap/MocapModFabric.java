@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -37,6 +38,7 @@ public class MocapModFabric implements ModInitializer, MocapModLoaderInterface
 
 		PlayerBlockBreakEvents.BEFORE.register(BlockInteractionFabricEvent::onBlockBreak);
 		UseBlockCallback.EVENT.register(BlockInteractionFabricEvent::onRightClickBlock);
+		UseItemCallback.EVENT.register(FightFishingRodFabricEvent::onUseItem);
 
 		ServerLivingEntityEvents.AFTER_DAMAGE.register(EntityFabricEvent::onEntityHurt);
 		ServerPlayerEvents.AFTER_RESPAWN.register(EntityFabricEvent::onPlayerRespawn);
