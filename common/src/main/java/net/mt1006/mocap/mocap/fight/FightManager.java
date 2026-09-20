@@ -665,6 +665,8 @@ public final class FightManager
 				Entity entity = participant.getEntity();
 				if (!entity.isAlive())
 				{
+					FightDefenseController.stop(participant);
+					FightFoodController.stop(participant);
 					participant.deactivate();
 					continue;
 				}
@@ -678,12 +680,14 @@ public final class FightManager
 				if (target == null)
 				{
 					FightDefenseController.stop(participant);
+					FightFoodController.stop(participant);
 					participant.setState(FightParticipant.State.SEARCH_TARGET);
 					continue;
 				}
 				if (!(target instanceof LivingEntity))
 				{
 					FightDefenseController.stop(participant);
+					FightFoodController.stop(participant);
 				}
 
 				double attackRange = definition.getAttackRange();
