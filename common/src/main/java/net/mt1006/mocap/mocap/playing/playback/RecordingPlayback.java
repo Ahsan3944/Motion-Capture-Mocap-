@@ -190,6 +190,12 @@ public class RecordingPlayback extends Playback
 		return java.util.List.of(ctx.getMainEntity());
 	}
 
+	@Override public void setMovementControlled(boolean controlled)
+	{
+		super.setMovementControlled(controlled);
+		ctx.setMovementSuppressed(controlled);
+	}
+
 	@Override public void executeTick()
 	{
 		int startDelay = modifiers.getTimeModifiers().getStartDelay().ticks;
@@ -280,7 +286,10 @@ public class RecordingPlayback extends Playback
 	@Override protected void loop()
 	{
 		boolean delayedStart = (modifiers.getTimeModifiers().getStartDelay().ticks != 0);
-		recording.initEntityPosition(ctx.getEntity(), ctx.getTransformer(), delayedStart);
+		if (!isMovementControlled())
+		{
+			recording.initEntityPosition(ctx.getEntity(), ctx.getTransformer(), delayedStart);
+		}
 
 		ctx.removeAdditionalEntities();
 		pos = 0;
