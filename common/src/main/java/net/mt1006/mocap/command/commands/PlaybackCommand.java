@@ -48,6 +48,7 @@ public class PlaybackCommand
 				then(Commands.argument("to_add", StringArgumentType.string()).suggests(CommandSuggestions::playable).
 					executes(CommandUtils.command(PlaybackCommand::modifiersAddTo))))));
 		commandBuilder.then(Commands.literal("list").executes(CommandUtils.command(PlaybackManager::list)));
+		FightCommand.add(commandBuilder, buildContext);
 
 		return commandBuilder;
 	}
