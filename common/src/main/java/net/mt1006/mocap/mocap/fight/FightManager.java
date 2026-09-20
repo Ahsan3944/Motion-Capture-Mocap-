@@ -96,6 +96,7 @@ public final class FightManager
 
 	public static boolean setSourceScene(CommandOutput out, String id, String scene)
 	{
+		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
 		if (scene == null || scene.isBlank()) { return out.sendFailure("Source scene cannot be empty."); }
@@ -107,6 +108,7 @@ public final class FightManager
 
 	public static boolean setTargetPlayer(CommandOutput out, String id, String player)
 	{
+		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
 		List<String> players = new ArrayList<>(definition.getTargetPlayers());
@@ -117,6 +119,7 @@ public final class FightManager
 
 	public static boolean clearTargets(CommandOutput out, String id)
 	{
+		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
 		definition.setTargetPlayers(List.of());
@@ -140,7 +143,11 @@ public final class FightManager
 		FightRuntime runtime;
 		try { runtime = new FightRuntime(definition, out); }
 		catch (Exception e) { MocapMod.LOGGER.error("Failed to initialize Fight '{}' .", id, e); return out.sendFailure("Failed to initialize Fight '" + id + "'."); }
-		if (runtime.isEmpty()) { return out.sendFailure("Fight has no runtime actors: " + id); }
+		if (runtime.isEmpty())
+		{
+			runtime.reset();
+			return out.sendFailure("Fight has no runtime actors: " + id);
+		}
 		active.put(id, runtime);
 		definition.setState(FightDefinition.State.RUNNING);
 		save(definition);
@@ -195,7 +202,12 @@ public final class FightManager
 
 		for (String id : failed)
 		{
-			active.remove(id);
+			FightRuntime runtime = active.remove(id);
+			if (runtime != null)
+			{
+				try { runtime.reset(); }
+				catch (Exception e) { MocapMod.LOGGER.error("Failed to reset isolated Fight runtime '{}'.", id, e); }
+			}
 			FightDefinition definition = definitions.get(id);
 			if (definition != null) { definition.setState(FightDefinition.State.STOPPED); save(definition); }
 		}
@@ -338,8 +350,9 @@ public final class FightManager
 			this.id = definition.getId();
 			MocapPlaybackConfig baseConfig = MocapPlaybackConfig.createFromSettings();
 			baseConfig.setInvulnerablePlayback(false);
-			try {
-			for (String source : definition.getSourceScenes())
+			try
+			{
+				for (String source : definition.getSourceScenes())
 			{
 				MocapPlayable playable = MocapPlayable.get(info, source);
 				if (playable == null) { throw new IllegalArgumentException("Unknown source: " + source); }
@@ -348,7 +361,8 @@ public final class FightManager
 				if (root == null) { throw new IllegalStateException("Playback failed: " + source); }
 				playbackRoots.add(root);
 				if (root instanceof PlaybackRoot playbackRoot) { actors.addAll(playbackRoot.getControlledEntities()); }
-				else { throw new IllegalStateException("Unsupported playback root implementation."); }
+					else { throw new IllegalStateException("Unsupported playback root implementation."); }
+				}
 			}
 			catch (RuntimeException e)
 			{
