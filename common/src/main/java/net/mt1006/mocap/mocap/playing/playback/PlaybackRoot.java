@@ -73,6 +73,8 @@ public class PlaybackRoot implements MocapPlaybackRoot
 
 	public void setMovementControlled(boolean controlled) { instance.setMovementControlled(controlled); }
 
+	public void setEquipmentControlled(boolean controlled) { instance.setEquipmentControlled(controlled); }
+
 	public void tick()
 	{
 		instance.tick();
