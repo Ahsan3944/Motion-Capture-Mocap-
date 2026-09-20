@@ -118,6 +118,12 @@ public class ScenePlayback extends Playback
 		for (Playback playback : subscenes) { playback.setMovementControlled(controlled); }
 	}
 
+	@Override public void setEquipmentControlled(boolean controlled)
+	{
+		super.setEquipmentControlled(controlled);
+		for (Playback playback : subscenes) { playback.setEquipmentControlled(controlled); }
+	}
+
 	@Override public void executeTick()
 	{
 		boolean subscenesInactive = true, subscenesStopped = true;
