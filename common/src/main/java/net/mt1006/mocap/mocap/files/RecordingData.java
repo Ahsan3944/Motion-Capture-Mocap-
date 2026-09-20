@@ -31,6 +31,8 @@ import net.mt1006.mocap.api.v1.extension.actions.MocapTickAction;
 import net.mt1006.mocap.api.v1.io.CommandOutput;
 import net.mt1006.mocap.mocap.actions.ActionType;
 import net.mt1006.mocap.mocap.actions.BlockStateData;
+import net.mt1006.mocap.mocap.actions.Movement;
+import net.mt1006.mocap.mocap.actions.deprecated.MovementLegacy;
 import net.mt1006.mocap.mocap.playing.playable.RecordingFile;
 import net.mt1006.mocap.mocap.playing.playback.ActionContext;
 import net.mt1006.mocap.mocap.playing.playback.PreExecuteContext;
@@ -303,6 +305,10 @@ public class RecordingData implements MocapRecordingData
 		try
 		{
 			MocapAction nextAction = actions.get(pos);
+			if (ctx.isMovementSuppressed() && (nextAction instanceof Movement || nextAction instanceof MovementLegacy))
+			{
+				return MocapAction.Result.OK;
+			}
 			if (!config.getBlockActionsPlayback() && nextAction instanceof BlockStateData) { return MocapAction.Result.OK; }
 			if (initialAction)
 			{
