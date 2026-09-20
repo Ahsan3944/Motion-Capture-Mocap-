@@ -196,6 +196,12 @@ public class RecordingPlayback extends Playback
 		ctx.setMovementSuppressed(controlled);
 	}
 
+	@Override public void setEquipmentControlled(boolean controlled)
+	{
+		super.setEquipmentControlled(controlled);
+		ctx.setEquipmentSuppressed(controlled);
+	}
+
 	@Override public void executeTick()
 	{
 		int startDelay = modifiers.getTimeModifiers().getStartDelay().ticks;
