@@ -31,6 +31,8 @@ public final class FightParticipant
 	private @Nullable Entity currentTarget;
 	private State state = State.IDLE;
 	private int attackCooldownTicks = 0;
+	private int movementBlockedTicks = 0;
+	private int movementRecoveryDirection = 1;
 	private boolean active = true;
 
 	public FightParticipant(String id, Entity entity, Side side)
@@ -45,7 +47,25 @@ public final class FightParticipant
 	public Side getSide() { return side; }
 
 	public @Nullable Entity getCurrentTarget() { return currentTarget; }
-	public void setCurrentTarget(@Nullable Entity target) { currentTarget = target; }
+	public void setCurrentTarget(@Nullable Entity target)
+	{
+		if (currentTarget != target)
+		{
+			movementBlockedTicks = 0;
+			movementRecoveryDirection = 1;
+		}
+		currentTarget = target;
+	}
+
+	public int getMovementBlockedTicks() { return movementBlockedTicks; }
+
+	public int incrementMovementBlockedTicks() { return ++movementBlockedTicks; }
+
+	public void resetMovementBlockedTicks() { movementBlockedTicks = 0; }
+
+	public int getMovementRecoveryDirection() { return movementRecoveryDirection; }
+
+	public void flipMovementRecoveryDirection() { movementRecoveryDirection = -movementRecoveryDirection; }
 
 	public State getState() { return state; }
 	public void setState(State state) { this.state = state; }
@@ -72,5 +92,7 @@ public final class FightParticipant
 		currentTarget = null;
 		state = State.DEAD;
 		attackCooldownTicks = 0;
+		movementBlockedTicks = 0;
+		movementRecoveryDirection = 1;
 	}
 }
