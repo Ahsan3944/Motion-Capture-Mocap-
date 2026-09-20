@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.mt1006.mocap.events.BlockInteractionEvent;
+import net.mt1006.mocap.mocap.fight.FightFishingRodController;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockInteractionFabricEvent
@@ -21,6 +22,10 @@ public class BlockInteractionFabricEvent
 
 	public static InteractionResult onRightClickBlock(Player player, Level level, InteractionHand hand, BlockHitResult hitResult)
 	{
+		if (FightFishingRodController.handleBlockUse(player, hand, hitResult.getLocation()))
+		{
+			return InteractionResult.SUCCESS_SERVER;
+		}
 		BlockInteractionEvent.onRightClickBlock(player, hand, hitResult, false);
 		return InteractionResult.PASS;
 	}
