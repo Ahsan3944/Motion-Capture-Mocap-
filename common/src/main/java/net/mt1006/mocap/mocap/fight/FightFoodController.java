@@ -77,7 +77,8 @@ public final class FightFoodController
 		}
 
 		participant.setState(FightParticipant.State.USE_ITEM);
-		participant.setFoodCooldownTicks(POST_CONSUME_COOLDOWN_TICKS);
+		int useDuration = Math.max(1, food.getUseDuration(food, player));
+		participant.setFoodCooldownTicks(useDuration + POST_CONSUME_COOLDOWN_TICKS);
 		return true;
 	}
 
