@@ -1,125 +1,400 @@
-# MoCap Fight System — Architecture & Implementation Blueprint
+# MoCap Fight System — Master Architecture & Implementation Blueprint
 
-Status: DESIGN LOCKED / IMPLEMENTATION PENDING
+**Status:** DESIGN LOCKED / IMPLEMENTATION PLANNING  
+**Repository:** `Ahsan3944/Motion-Capture-Mocap-`  
+**Purpose:** Master source of truth for the runtime Fight feature built on top of the existing MoCap recording, scene and playback systems.
 
-Repository: Ahsan3944/Motion-Capture-Mocap-
-Base system: Existing Motion Capture recording, recordings, scenes, playback, actions, events and commands.
-Current project target: Minecraft 26.1 / Java 25 / Fabric + NeoForge.
+> This document is intentionally more detailed than the README. Implementation must follow this document unless a new architectural decision is explicitly recorded here first.
 
-## 1. Goal
+---
 
-Add a native Fight system inside MoCap Playback.
+# 0. Absolute Design Contract
 
-The Fight system is a runtime/on-field combat controller. It does NOT pre-generate, simulate, record, or pre-calculate a complete fight.
+The Fight system is a **runtime combat controller**.
 
-A recorded MoCap remains a reusable recorded character. During playback it can become a combat-capable NPC-like Mocap actor.
+It is NOT:
 
-Pipeline:
+- a prerecorded combat animation;
+- an AI that generates a fight and saves it;
+- an offline simulator;
+- a replacement for MoCap recording;
+- a replacement for MoCap scenes;
+- a replacement for MoCap playback;
+- a general-purpose Minecraft AI framework.
 
-Recording -> Scene -> Playback -> Mocap Actors -> Runtime Fight Controller
+The fundamental pipeline is:
 
-## 2. Core Rules
+```
+Existing Recording
+        ↓
+Existing Scene
+        ↓
+Existing Playback
+        ↓
+Runtime Mocap Actor(s)
+        ↓
+Fight Runtime Controller
+        ↓
+Live Target / Live World
+        ↓
+Live Movement + Combat Decisions
+```
 
-- Existing recording/playback behavior must remain intact.
-- Fight is controlled from MoCap Playback.
-- Fight must be configured and saved before it is started.
-- A saved Fight has a name/ID and references its source scene and target(s).
-- Fight starts only when explicitly selected and started.
-- No prerecorded combat path.
-- No AI-generated fight recording.
-- No offline fight simulation.
-- All target selection, movement, range checks, attacks, inventory decisions and combat reactions happen on-field at runtime.
-- A fighter continues trying to complete its objective until its target is dead, the fight is stopped/reset, or the fighter itself dies.
-- A hardcoded fighter-count limit must not be introduced. Practical capacity is governed by server performance.
+The recording provides the character's available identity/state/inventory/animation material. The Fight runtime decides what happens **after the Fight is started**.
 
-## 3. Fight Participants
+No complete future fight is calculated in advance.
 
-Supported relationships:
+---
 
-1. Mocap Scene -> Real Player
-2. Mocap Scene -> Multiple Real Players
-3. Mocap Scene -> Mocap Scene
-4. Mocap Actors -> Mocap Actors
-5. Multiple fighters engaging multiple nearby opponents
+# 1. Existing-System Preservation Contract
 
-A target may be one player, multiple players, or another selected scene.
+The first priority is not breaking existing MoCap.
 
-For free combat, a fighter can select a valid nearby opponent using runtime distance/availability rules. It is not pre-assigned to a prerecorded attack path.
+The following existing capabilities must remain functional:
 
-## 4. Fight Configuration
+- Recording
+- Saving/loading recordings
+- Recording playback
+- Scene creation
+- Nested scenes
+- Scene playback
+- Playback offsets
+- Playback delays
+- Player naming/skin handling
+- Existing action data
+- Existing settings
+- Existing commands
+- Existing API/event behavior
+- Fabric build
+- NeoForge build, unless a clearly documented platform-specific limitation exists
 
-A Fight definition should contain, at minimum:
+The Fight feature must be additive.
 
-- Fight ID/name
-- Source scene(s)
-- Target player(s) and/or target scene(s)
-- Power level: 1–10
-- Attack speed
-- Attack range
-- Detection/engagement range
-- Movement/combat speed
-- Optional damage/knockback modifiers
-- Targeting mode
-- Runtime combat rules
-- Reset/start state reference
+### Forbidden architectural shortcut
 
-Do not hardcode values that should be configurable.
+Do not rewrite the entire playback engine merely because Fight needs additional runtime control.
 
-## 5. Mocap Actor Model
+First inspect and reuse the current playback/entity lifecycle.
 
-A scene instance becomes a runtime Mocap Actor.
+---
 
-It must preserve the recorded character's:
+# 2. Runtime vs Recording Separation
 
-- Position/orientation baseline
-- Skin/player appearance
-- Armor
-- Main-hand item
-- Off-hand item
-- Inventory contents
-- Recorded playback/animation state
+This is the most important boundary in the entire project.
 
-The actor may be duplicated many times from one recording.
+## Recording layer
 
-Each duplicate is an independent runtime entity/state instance.
+Responsible for:
 
-## 6. Inventory Rules
+- What was recorded
+- Recorded movement
+- Recorded actions
+- Recorded equipment
+- Recorded states
+- Playback source data
 
-The actor may only use items that exist in its recorded/assigned combat inventory.
+## Fight layer
 
-It must NOT:
+Responsible for:
 
-- Pick up dropped items from the battlefield
-- Loot another dead fighter
-- Automatically add newly found equipment
-- Gain external items during combat unless an explicit future feature allows it
+- Current target
+- Current target position
+- Current combat state
+- Current combat distance
+- Current attack cooldown
+- Current health/combat status
+- Runtime movement
+- Runtime item choice
+- Runtime attack decisions
+- Runtime death/reset handling
 
-Possible runtime choices from its own inventory include:
+### Rule
 
-- Sword/axe/melee weapon
-- Bow/ranged weapon
-- Shield/off-hand
-- Food
-- Golden Apple or other edible item
-- Other usable recorded items
+Fight runtime state must never silently mutate the original recording.
 
-Weapon/item switching is runtime-driven by simple combat calculations and available inventory, not prerecorded.
+A Fight can use the same recording multiple times.
 
-Examples:
+Example:
 
-- Close target -> melee weapon
-- Target far away -> ranged weapon if available
-- Low health -> usable food if available
-- Defensive situation -> shield/off-hand if available
+```
+WarriorRecording
+   ├── Fighter A
+   ├── Fighter B
+   ├── Fighter C
+   └── Fighter D
+```
 
-Exact decision rules should remain deterministic, configurable and lightweight rather than introducing a general-purpose AI planner.
+Every fighter gets independent runtime state.
 
-## 7. Runtime Combat State
+---
 
-Use a lightweight state machine, not a fight generator.
+# 3. Fight Definition
 
-Suggested states:
+A saved Fight is a configuration object, not a recording.
 
+Minimum conceptual fields:
+
+- `id/name`
+- `version`
+- `source scene reference(s)`
+- `target reference(s)`
+- `team/faction information`
+- `power` (1–10)
+- `attack speed`
+- `attack range`
+- `detection range`
+- `movement speed`
+- `damage modifier`
+- `knockback modifier`
+- `targeting mode`
+- `combat mode`
+- `inventory policy`
+- `death policy`
+- `reset policy`
+- `spacing policy`
+- `terrain/recovery policy`
+- `start configuration`
+- `runtime flags`
+
+Only fields actually needed by the final implementation should be serialized.
+
+Do not serialize live entity references that become invalid after restart.
+
+---
+
+# 4. Fight Lifecycle
+
+A Fight must have an explicit lifecycle.
+
+Recommended states:
+
+```
+UNLOADED
+   ↓
+LOADED
+   ↓
+READY
+   ↓
+STARTING
+   ↓
+RUNNING
+   ↓
+STOPPING
+   ↓
+STOPPED
+   ↓
+RESETTING
+   ↓
+READY
+```
+
+Possible terminal/error states:
+
+```
+FAILED
+INVALID_CONFIGURATION
+MISSING_SOURCE
+MISSING_TARGET
+```
+
+A stopped Fight must not continue ticking.
+
+A completed Fight must not continue attacking.
+
+A reset must clear all runtime combat state.
+
+---
+
+# 5. Start Semantics
+
+Starting a Fight must be deterministic.
+
+Before entering RUNNING:
+
+1. Validate Fight exists.
+2. Validate source scene(s).
+3. Validate target definition.
+4. Validate required playback/source data.
+5. Resolve runtime participants.
+6. Capture reset state.
+7. Apply initial inventory/armor/state.
+8. Place actors safely.
+9. Initialize target selection.
+10. Initialize combat state.
+11. Register runtime tick processing.
+12. Enter RUNNING.
+
+If any required step fails, do not start a partially initialized fight.
+
+---
+
+# 6. Stop Semantics
+
+Stopping a Fight must:
+
+- stop combat decisions;
+- stop target chasing;
+- stop attack scheduling;
+- unregister/disable runtime processing;
+- preserve enough state for reset;
+- not corrupt the source recording;
+- not silently delete saved Fight configuration.
+
+Stopping is different from resetting.
+
+---
+
+# 7. Reset Semantics
+
+Reset must restore the Fight to its configured initial state.
+
+Reset should:
+
+- stop the Fight;
+- remove/disable active combat behavior;
+- clear targets;
+- clear attack cooldowns;
+- clear combat states;
+- restore actor positions;
+- restore orientation;
+- restore inventory;
+- restore armor;
+- restore held items;
+- restore health/state;
+- restore playback baseline;
+- clear dead flags;
+- clear temporary runtime data;
+- prepare the Fight to start again.
+
+Repeated:
+
+```
+START → STOP → RESET → START
+```
+
+must remain safe.
+
+Also test:
+
+```
+START → DEATH → RESET → START
+```
+
+---
+
+# 8. Participant Model
+
+A runtime fighter should conceptually contain:
+
+- Stable runtime ID
+- Source recording/scene reference
+- Runtime entity reference
+- Team/faction
+- Current target
+- Current state
+- Health snapshot
+- Inventory snapshot
+- Armor snapshot
+- Main-hand snapshot
+- Off-hand snapshot
+- Initial position
+- Initial rotation
+- Movement parameters
+- Combat parameters
+- Attack cooldown
+- Recovery timer
+- Last known target position
+- Death flag
+- Active/inactive flag
+
+Do not store mutable runtime state inside immutable source recording data.
+
+---
+
+# 9. Participant Independence
+
+Every scene instance must be independent.
+
+If one recording is used ten times:
+
+- one fighter dying must not kill the others;
+- one fighter changing item must not change the others;
+- one fighter changing target must not change the others;
+- one fighter moving must not alter another fighter's reset position;
+- one fighter's runtime state must not mutate the original recording.
+
+This is a mandatory isolation requirement.
+
+---
+
+# 10. Target System
+
+Target selection happens at runtime.
+
+A valid target must satisfy all applicable rules:
+
+- Exists
+- Is alive
+- Is available
+- Is an enemy according to the configured relationship
+- Is inside the allowed search/detection rules
+- Is not the fighter itself
+- Is not a dead/stale runtime reference
+
+Target selection modes should be extensible.
+
+Initial modes can include:
+
+- NEAREST
+- CURRENT_TARGET
+- LOWEST_HEALTH
+- ATTACKER
+- RANDOM_VALID
+- FIXED_TARGET
+- TEAM_PRIORITY
+
+Do not implement every possible mode immediately if the existing command/config architecture would become unnecessarily complex. Start with the modes required by the feature and keep the selector extensible.
+
+---
+
+# 11. Target Validation
+
+A target must be revalidated whenever:
+
+- it dies;
+- it disappears;
+- it becomes invalid;
+- it changes dimension/world;
+- the Fight is reset/stopped;
+- the target becomes unavailable;
+- configured range/relationship rules invalidate it.
+
+Do not keep attacking a stale UUID/entity reference.
+
+---
+
+# 12. Target Acquisition Strategy
+
+Do not scan the entire world every tick.
+
+Preferred order:
+
+1. Existing Fight participant list
+2. Known configured targets
+3. Nearby candidate search
+4. Target selector evaluation
+
+Use squared-distance checks where possible.
+
+Cache a valid target until it becomes invalid or a configured retarget condition occurs.
+
+---
+
+# 13. Combat State Machine
+
+Initial states:
+
+```
 IDLE
 SEARCH_TARGET
 CHASE
@@ -127,388 +402,1446 @@ POSITION
 ATTACK
 RECOVER
 USE_ITEM
+RETREAT
 DEAD
+DISABLED
+```
 
-State transitions are evaluated during live ticks.
+### Example transitions
 
-The actor continuously reacts to the current battlefield state.
+```
+IDLE → SEARCH_TARGET
 
-## 8. Targeting
+SEARCH_TARGET → CHASE
+SEARCH_TARGET → IDLE
 
-Targeting is calculated at runtime.
+CHASE → POSITION
+CHASE → SEARCH_TARGET
+CHASE → DEAD
 
-Rules can include:
+POSITION → ATTACK
+POSITION → CHASE
+POSITION → SEARCH_TARGET
 
-- Valid enemy/team
-- Target availability
-- Distance
-- Current target
-- Target alive/dead
-- Engagement range
-- Nearest valid opponent
+ATTACK → RECOVER
+ATTACK → DEAD
 
-When multiple valid opponents exist, the configured targeting mode may select the nearest/eligible target.
+RECOVER → CHASE
+RECOVER → POSITION
+RECOVER → USE_ITEM
+RECOVER → DEAD
 
-Target movement must be followed dynamically.
+USE_ITEM → CHASE
+USE_ITEM → POSITION
+USE_ITEM → DEAD
 
-No target movement is baked into the recording.
+Any active state → DEAD
+```
 
-## 9. Movement and Navigation
+State transitions must have timeout/failsafe behavior.
 
-Combat movement must be live.
+No state may become permanently stuck.
 
-The fighter:
+---
 
-- Moves toward the current target
-- Recalculates target position while moving
-- Stops/positions at a valid attack distance
-- Repositions when the target moves
-- Avoids entering another actor's body/hitbox where possible
-- Maintains configurable spacing between fighters
+# 14. Combat Decision Model
 
-Terrain handling is part of the runtime rules.
+Do not build a general-purpose AI planner.
 
-If a fighter falls into a hole or encounters an obstacle, it should attempt to recover and continue toward the target.
+Use deterministic lightweight rules.
 
-Where supported by the implementation:
+A combat decision may consider:
 
-- Basic path/step navigation
-- Gravity-aware movement
-- Obstacle handling
-- Block placement/recovery rules
+- Target distance
+- Target health
+- Fighter health
+- Available weapons
+- Available food
+- Shield availability
+- Attack cooldown
+- Current state
+- Power level
+- Terrain
+- Target visibility/availability
 
-These must be implemented safely and must not corrupt the world or cause uncontrolled block placement.
+Decision priority should be explicit so behavior is reproducible and debuggable.
 
-## 10. Spacing / Anti-Overlap
+---
 
-Group teleport and combat both require spacing.
+# 15. Power System
 
-When many actors are teleported to a target location, do not place every actor on exactly one block.
+Power is a normalized configuration from 1 to 10.
 
-Instead:
+Power must not secretly mean "unlimited intelligence".
 
-- Determine a nearby placement area around the destination
-- Generate valid positions with configurable spacing
-- Avoid placing actors inside each other
-- Spread the group naturally after teleport
-- Preserve each actor's reset position/state
+It should influence selected combat parameters such as:
 
-The same separation concept should be reusable during combat.
+- reaction delay;
+- attack timing;
+- target retention;
+- movement aggressiveness;
+- attack precision;
+- recovery behavior;
+- decision frequency;
+- optional damage modifier if configured.
 
-## 11. Group Teleport / Fishing Rod Control
+Do not multiply every statistic blindly by Power.
 
-A playback/group control should allow the whole selected Mocap group to be moved to a location.
+Power must have documented formulas or bounded mappings.
 
-A Fishing Rod interaction can be used as a runtime location marker/control:
+No value should become zero, negative, NaN, infinite, or unreasonably large.
 
-- Detect the rod landing/target position
-- Select the configured Mocap group
-- Teleport the group into a small area around that position
-- Use automatic spacing instead of a single-block stack
-- Keep actors separated by roughly 1–2 blocks where terrain permits
-- Preserve the reset/start state
+---
 
-This is a playback control, not a new recording.
+# 16. Attack Model
 
-## 12. Death
+Separate:
 
-When a Mocap fighter dies:
+1. Decision to attack
+2. Attack execution
+3. Hit validation
+4. Damage application
+5. Knockback
+6. Recovery/cooldown
 
-- Remove it from active combat participation
-- Stop target chasing/attacking
-- Do not let other Mocap fighters loot its dropped equipment
-- Preferably prevent its combat inventory/armor from becoming normal loot if the intended scene system requires clean cinematic behavior
-- Preserve enough state to reset the scene
+Never treat "animation started" as proof that damage happened.
 
-On Fight/Scene reset:
+A hit must be validated against the live target.
 
-- Recreate/reactivate the actor
-- Restore its saved inventory/armor
-- Restore its configured position
-- Restore its baseline playback state
-- Clear dead/combat state
+---
 
-## 13. Real Player vs Mocap
+# 17. Attack Range
 
-Real players remain real players.
+Attack range must be configurable but bounded by safe minimum/maximum values.
 
-Mocap actors are controlled by the Fight runtime layer.
+The system should account for:
+
+- distance;
+- target hitbox;
+- fighter reach;
+- weapon type;
+- line/visibility rules where applicable.
+
+A fighter should not repeatedly attack a target that is clearly outside the valid hit range.
+
+---
+
+# 18. Attack Speed
+
+Attack speed is a runtime cooldown.
+
+It must not bypass Minecraft/server combat safety indefinitely.
+
+The implementation must define:
+
+- minimum legal cooldown;
+- recovery duration;
+- behavior when target leaves range;
+- behavior when target dies during cooldown.
+
+Avoid scheduling thousands of independent timers. Prefer centralized runtime state/tick evaluation.
+
+---
+
+# 19. Damage
+
+Damage must be calculated from actual runtime combat state.
+
+Potential inputs:
+
+- Base weapon damage
+- Power modifier
+- Configured damage modifier
+- Armor
+- Target state
+- Attack type
+
+Do not manually duplicate Minecraft's entire damage system unless required.
+
+Prefer invoking the appropriate existing game/entity damage mechanics so armor, effects and other normal rules remain coherent.
+
+---
+
+# 20. Knockback
+
+Knockback should be applied only after a valid hit.
+
+It must be configurable and bounded.
+
+Repeated attacks must not create runaway velocity.
+
+Special handling may be needed for:
+
+- air targets;
+- edges;
+- walls;
+- multiple simultaneous hits.
+
+---
+
+# 21. Weapon Selection
+
+The fighter can only choose from its allowed combat inventory.
+
+Initial runtime priorities:
+
+### Melee
+Use when target is inside melee engagement range.
+
+### Ranged
+Use when target is outside melee range and a valid ranged weapon/ammunition setup exists.
+
+### Shield
+Use according to defensive rules and available off-hand configuration.
+
+### Food
+Use when health is below the configured threshold and a valid consumable exists.
+
+The final implementation must verify actual item availability rather than assuming an item exists.
+
+---
+
+# 22. Inventory Isolation
+
+Fight must use a private runtime inventory snapshot.
+
+Rules:
+
+- Battlefield pickups are ignored.
+- Dead fighter drops are ignored as loot.
+- Another fighter's inventory cannot be consumed.
+- Runtime switching cannot mutate the original recording.
+- Reset restores the original combat inventory.
+
+If the underlying playback implementation has no true inventory container for a Mocap actor, create the smallest safe runtime abstraction required rather than weakening these rules.
+
+---
+
+# 23. Death Handling
+
+Death is an explicit runtime transition.
+
+On death:
+
+1. Mark fighter DEAD.
+2. Stop target selection.
+3. Stop attack scheduling.
+4. Stop movement decisions.
+5. Remove from active combat candidate list.
+6. Prevent further combat actions.
+7. Apply configured death presentation.
+8. Preserve reset snapshot.
+
+Other fighters must immediately invalidate the dead fighter as a target.
+
+---
+
+# 24. Death Drops / Loot Policy
+
+The default Fight policy should prevent combat participants from gaining equipment through battlefield looting.
+
+The implementation must explicitly decide how drops are handled.
+
+Preferred cinematic-safe behavior:
+
+- No automatic pickup.
+- No automatic loot transfer.
+- Optional suppression/cleanup of Mocap death drops if required by the existing actor implementation.
+- Real player drops must remain governed by normal Minecraft behavior unless the user explicitly configures a separate future rule.
+
+Do not globally change vanilla player loot behavior.
+
+---
+
+# 25. Real Player Combat
+
+Real players are live entities.
 
 For Mocap vs Real Player:
 
-- Mocap follows the real player's current position
-- Real player's movement is never prerecorded by the Fight system
-- Combat calculations use live player state
+- Mocap reads the player's live position/state.
+- Fight does not control the player's movement.
+- Fight does not record the player's future movement.
+- Targeting follows the player dynamically.
+- Damage must respect the configured combat rules.
+
+The system must avoid unexpectedly changing unrelated players outside the active Fight.
+
+---
+
+# 26. Mocap vs Mocap Combat
 
 For Mocap vs Mocap:
 
-- Both sides are runtime-controlled
-- Their fight is not predetermined
-- Each actor reacts to the current positions/states of the others
+- Both participants are runtime-controlled.
+- Neither participant has a prerecorded combat path.
+- Each participant evaluates the other live.
+- Target changes are possible.
+- Death removes a participant from active combat.
 
-## 14. Playback Integration
+This is the primary fully autonomous cinematic use case.
 
-Fight must be a native Playback feature.
+---
 
-Conceptual command tree:
+# 27. Multiple Teams
 
-/mocap playing ...
+The architecture should support more than two teams.
 
-    fight
-        list
-        create <fight_name> ...
-        info <fight_name>
-        start <fight_name>
-        stop <fight_name>
-        reset <fight_name>
-        remove <fight_name>
+Conceptually:
 
-Exact command syntax must follow the existing command architecture and suggestion system.
+```
+Team A
+Team B
+Team C
+Team D
+...
+```
 
-The final implementation must not create a parallel command system outside MoCap.
+Target validity should be based on team relationship rather than hardcoded "red vs blue".
 
-## 15. Existing Systems to Reuse
+Possible relationships:
 
-Before adding new infrastructure, reuse existing:
+- FRIENDLY
+- HOSTILE
+- NEUTRAL
 
-- RecordingManager
-- RecordingContext / RecordingId / RecordingSource
-- Scene system
-- Playback system
-- Action system
-- Server tick events
-- Entity events
-- Command suggestions/utilities
-- Settings system
-- Existing file/persistence layer
-- API/event infrastructure where appropriate
+Initial implementation may only expose the relationships actually needed by the first release.
 
-Do not replace existing recording or playback formats unless technically unavoidable.
+---
 
-## 16. Proposed Package Boundary
+# 28. Group Teleport
 
-Primary common-layer concept:
+A selected Mocap group can be moved to a runtime destination.
 
-net.mt1006.mocap.mocap.fight
+Requirements:
 
-Suggested responsibilities:
+- Never stack all actors at one exact position.
+- Find safe nearby positions.
+- Check collision/space where practical.
+- Respect terrain.
+- Keep approximately 1–2 block spacing where possible.
+- Preserve actor orientation unless configured otherwise.
+- Do not overwrite reset positions unless explicitly requested.
 
-- FightManager
-- FightDefinition / FightId
-- FightRuntime
-- FightParticipant
-- FightTarget
-- FightState
-- CombatRules
-- CombatController
-- CombatNavigator
-- CombatSpacing
-- CombatInventory
-- CombatAction
+---
 
-Names are provisional. Existing project conventions take priority during implementation.
+# 29. Fishing Rod Destination Control
 
-## 17. Command Layer
+Fishing Rod control is a proposed playback convenience feature.
 
-Extend the existing command architecture instead of creating a separate command handler.
+Flow:
 
-The command layer should provide:
+```
+Cast Rod
+   ↓
+Detect Valid Landing
+   ↓
+Resolve Destination
+   ↓
+Resolve Selected Mocap Group
+   ↓
+Generate Formation
+   ↓
+Validate Positions
+   ↓
+Teleport Group
+```
 
-- Fight creation
-- Fight editing
-- Fight listing
-- Fight information
-- Fight start
-- Fight stop
-- Fight reset
-- Target assignment
-- Scene assignment
-- Combat parameter configuration
+Important:
 
-Command suggestions should use existing CommandSuggestions infrastructure.
+- A rod cast must not accidentally teleport unrelated players.
+- Invalid destinations must be rejected safely.
+- The system must handle unloaded/invalid chunks appropriately.
+- The destination must not overwrite each actor's saved reset location.
 
-## 18. Persistence
+If the existing event system cannot reliably identify the intended rod interaction, use the project's available event hooks rather than adding fragile polling.
 
-Fight definitions must be persistent.
+---
 
-A saved Fight should survive server/mod restart and contain only configuration/state references necessary to recreate the runtime fight.
+# 30. Formation / Spacing Algorithm
 
-Do not store a generated combat timeline.
+Formation placement should be deterministic.
 
-Do not store a prerecorded fight result.
+Preferred strategy:
 
-Store configuration, participant references, target references and reset/start information.
+1. Start from destination.
+2. Generate candidate offsets in rings/spiral/grid order.
+3. Validate each candidate.
+4. Reject occupied/unsafe positions.
+5. Assign the first valid position.
+6. Continue until all actors are placed.
+7. If insufficient valid positions exist, place as many safely as possible and report the failure.
 
-## 19. Runtime Tick Design
+Do not silently teleport actors into blocks or into each other.
 
-Use server tick events already present in the project.
+---
 
-Do not perform expensive full-world searches every tick.
+# 31. Movement
 
-Runtime work should be staged:
+Movement is runtime-controlled.
 
-- Frequent: movement/position correction and active combat timing
-- Periodic: target validation/reselection
-- Event-driven where possible: damage/death/item-use/entity events
+Minimum behavior:
 
-The exact intervals must be benchmarked rather than guessed.
+- Follow live target position.
+- Stop within combat range.
+- Recalculate when target moves.
+- Recover after small displacement/obstruction.
+- Avoid permanent oscillation.
 
-## 20. Performance
+Movement must not fight against the normal playback system indefinitely.
 
-No artificial fighter-count cap should be imposed by design.
+Therefore the implementation must define when Fight owns movement and when normal playback movement is temporarily suspended/overridden.
 
-However, 500+ active actors can be expensive.
+This ownership boundary must be explicit in code.
 
-Implementation must therefore:
+---
 
-- Avoid unnecessary scans
-- Avoid repeated object allocation
-- Cache active participants
-- Use squared-distance checks where appropriate
-- Reuse target information until invalid
-- Avoid full-world entity searches when a local participant list is available
-- Separate active and inactive/dead participants
-- Keep combat calculations lightweight
+# 32. Navigation
 
-Performance testing is required before claiming a practical maximum.
+Navigation should start simple.
 
-## 21. Multiplayer / Synchronization
+Initial priority:
 
-Combat authority should remain server-side.
+1. Direct movement if path is clear.
+2. Small obstacle/step handling.
+3. Local recovery.
+4. Optional bounded pathfinding if required.
 
-The server owns:
+Do not immediately implement a full Minecraft pathfinding engine if a simpler controller is sufficient.
 
-- Fighter state
+Pathfinding must have:
+
+- timeout;
+- maximum search cost;
+- failure fallback;
+- target revalidation.
+
+---
+
+# 33. Hole / Trap Recovery
+
+If an actor falls into a small hole:
+
+- detect abnormal vertical displacement;
+- determine whether the target remains valid;
+- attempt bounded recovery;
+- prevent infinite recovery loops;
+- return to CHASE when recovered.
+
+Do not place arbitrary blocks everywhere.
+
+If block placement is implemented later, it must be explicitly permission/configuration controlled.
+
+---
+
+# 34. Terrain Safety
+
+Fight must never unintentionally:
+
+- destroy large areas;
+- place unlimited blocks;
+- modify protected areas;
+- bypass world protections;
+- create permanent terrain damage.
+
+World modification must be isolated behind a clearly defined policy.
+
+Default should be **no destructive world modification**.
+
+---
+
+# 35. Playback Ownership
+
+During normal playback:
+
+```
+Playback Controller → Actor movement/state
+```
+
+During Fight-controlled movement:
+
+```
+Fight Controller → Actor combat movement/state
+```
+
+During Fight-controlled combat animation:
+
+```
+Fight Controller → Combat action
+Playback/Actor Layer → Visual representation
+```
+
+The implementation must avoid two controllers writing contradictory state at the same time.
+
+This is a critical integration point.
+
+---
+
+# 36. Action Integration
+
+Where the existing Action system can represent a combat action, reuse it.
+
+Candidate action concepts:
+
+- ATTACK
+- HIT
+- BLOCK
+- USE_ITEM
+- SWITCH_ITEM
+- KNOCKBACK
+- TARGET_CHANGE
+- CHASE
+- RETREAT
+- DEATH
+
+Do not create duplicate action types if an existing generic action model can represent the same event safely.
+
+Combat runtime state and visual/action events are separate concepts.
+
+---
+
+# 37. Animation vs Combat Logic
+
+Never couple damage directly to a visual animation frame unless the existing engine guarantees deterministic synchronization.
+
+Preferred model:
+
+```
+Combat Decision
+      ↓
+Attack Start
+      ↓
+Attack Window
+      ↓
+Live Hit Validation
+      ↓
+Damage
+      ↓
+Recovery
+```
+
+This keeps cinematic visuals and actual game mechanics synchronized without making animation data responsible for authoritative damage.
+
+---
+
+# 38. Scene vs Scene
+
+A Fight can reference scenes on both sides.
+
+Important:
+
+- Nested scenes must resolve correctly.
+- Each scene instance must remain independent.
+- Player names must not collide in a way that breaks runtime identification.
+- Offsets must be applied before combat initialization.
+- Runtime entity IDs must be used for active combat references.
+
+Do not use display names as the sole identity of a fighter.
+
+---
+
+# 39. Duplicate Names
+
+Two fighters may visually have the same player name/skin.
+
+Therefore:
+
+- display name ≠ runtime identity;
+- runtime UUID/entity identity must be used internally;
+- command names must resolve to the configured Fight/scene/recording identifier;
+- name collisions must not cause one fighter to control another.
+
+---
+
+# 40. Persistence Format
+
+Fight files must be versioned.
+
+Conceptually:
+
+```
+{
+  "formatVersion": 1,
+  "fightId": "...",
+  "sources": [...],
+  "targets": [...],
+  "rules": {...},
+  "reset": {...}
+}
+```
+
+The exact serialization format must follow the repository's existing file conventions.
+
+Never invent a second persistence mechanism without checking the existing file system first.
+
+Future format migration must be possible.
+
+---
+
+# 41. Persistence Validation
+
+When loading a Fight:
+
+- validate format version;
+- validate required fields;
+- reject malformed values;
+- clamp safe numeric ranges;
+- report missing recording/scene references;
+- do not crash the entire server because one Fight file is malformed.
+
+A malformed Fight should fail independently.
+
+---
+
+# 42. Configuration Validation
+
+Before Fight start:
+
+### Required
+- Fight exists
+- Source exists
+- Target exists when required
+- At least one valid participant exists
+
+### Numeric validation
+- Power: 1–10
+- Ranges: positive
+- Speeds: bounded positive values
+- Damage modifier: bounded
+- Knockback modifier: bounded
+- Timers: non-negative
+
+### Runtime validation
+- No duplicate runtime participant IDs
+- No self-target
+- No invalid dimension reference
+- No stale runtime entity reference
+
+---
+
+# 43. Commands
+
+Fight must extend the existing command architecture.
+
+Conceptual structure:
+
+```
+/mocap playing fight list
+/mocap playing fight create <name>
+/mocap playing fight info <name>
+/mocap playing fight start <name>
+/mocap playing fight stop <name>
+/mocap playing fight reset <name>
+/mocap playing fight remove <name>
+```
+
+Additional edit commands may be required:
+
+```
+... setScene
+... addScene
+... setTarget
+... setPower
+... setAttackSpeed
+... setAttackRange
+... setDetectionRange
+... setMovementSpeed
+... setTargetMode
+... setTeam
+... setDamage
+... setKnockback
+... setSpacing
+... setInventoryPolicy
+... setDeathPolicy
+```
+
+These are conceptual commands. Exact syntax must follow the existing command tree and parser conventions.
+
+---
+
+# 44. Command Safety
+
+Commands must:
+
+- provide suggestions;
+- validate names;
+- provide clear errors;
+- avoid silently overwriting existing Fight definitions;
+- refuse invalid configurations;
+- distinguish saved configuration from active runtime state.
+
+Removing a Fight must stop its active runtime instance first or explicitly refuse removal while active.
+
+---
+
+# 45. Permissions / Authority
+
+Fight control is an administrative/cinematic operation.
+
+The implementation must use the existing command permission model.
+
+Do not create a new incompatible permission framework unless required by the current project.
+
+---
+
+# 46. Tick Architecture
+
+Use existing server tick events.
+
+Do not create one independent scheduled task per fighter.
+
+Prefer:
+
+```
+FightManager
+   ↓
+Active Fight Registry
+   ↓
+Active Participants
+   ↓
+Per-tick lightweight update
+```
+
+Within a tick:
+
+1. Remove invalid/dead participants.
+2. Process due combat timers.
+3. Update target validity.
+4. Update movement where required.
+5. Process attack/use-item decisions.
+6. Apply bounded state transitions.
+
+Expensive operations should be throttled.
+
+---
+
+# 47. Tick Scheduling
+
+Different work can use different frequencies.
+
+Example strategy:
+
+- Position/combat timing: frequent
+- Target validation: periodic
+- Target discovery: less frequent
+- Expensive navigation: only when needed
+- Formation calculation: only on teleport/start
+- Persistence: only on configuration changes or explicit save
+
+Exact tick intervals must be benchmarked.
+
+Do not treat example intervals as permanent constants without testing.
+
+---
+
+# 48. Performance Rules
+
+No arbitrary fighter-count cap is part of the design.
+
+However, the system must be performance-conscious.
+
+Required optimizations:
+
+- Active participant registries
+- No repeated full-world scans
+- Squared distance calculations
+- Cached targets
+- Reusable collections where appropriate
+- Minimal temporary allocation in tick loops
+- Dead/inactive participant removal
+- Lazy navigation
+- Event-driven invalidation where possible
+
+---
+
+# 49. Performance Testing
+
+Test progressively:
+
+- 1 fighter
+- 2 fighters
+- 10 fighters
+- 25 fighters
+- 50 fighters
+- 100 fighters
+- 250 fighters
+- 500 fighters where hardware permits
+
+Measure:
+
+- server tick time;
+- memory;
+- entity count;
+- target-search cost;
+- navigation cost;
+- network traffic where relevant;
+- playback impact;
+- combat update cost.
+
+Do not publish a hard maximum based on assumption.
+
+---
+
+# 50. Multiplayer Synchronization
+
+Server authority owns:
+
 - Target state
+- Combat state
 - Movement decisions
 - Attack timing
 - Damage
 - Death
-- Inventory restrictions
-- Reset state
+- Inventory rules
+- Reset
 
-Clients receive the resulting entity/player state normally.
+Clients only render the resulting state.
 
-No client-side fight simulation should be required for correctness.
+Do not require clients to run the Fight AI for correctness.
 
-## 22. Safety Rules
+---
 
-Fight implementation must not:
+# 51. Dimension / World Handling
 
-- Break normal recording/playback
-- Modify saved recordings destructively
-- Modify existing scene definitions destructively
-- Give Mocap actors unauthorized inventory
-- Allow automatic battlefield looting
-- Leave dead actors permanently broken after reset
-- Place blocks uncontrollably
-- Create an infinite combat loop after the target is dead
-- Keep attacking invalid/dead targets
-- Cause actors to permanently overlap
-- Introduce a hardcoded 50-player/100-player/500-player cap
+The Fight system must account for world identity.
 
-## 23. Implementation Order
+A fighter and target in different dimensions cannot be treated as ordinary nearby combat targets.
 
-Phase 0 — Documentation
-- Lock this blueprint
-- Update README
-- Keep this document as the implementation source of truth
+Required handling:
 
-Phase 1 — Fight Data Model
-- Fight definition
-- Persistence
-- Participant/target references
-- Combat settings
+- dimension mismatch;
+- unloaded world;
+- invalid entity;
+- teleport between dimensions;
+- reset to original dimension.
 
-Phase 2 — Playback Integration
-- Add Fight to Playback
-- Fight selection
-- Start/stop/reset lifecycle
+Default behavior should be safe termination/reselection rather than invalid cross-dimension movement.
 
-Phase 3 — Mocap Combat Actor
-- Runtime actor state
-- Inventory/armor restrictions
-- Combat state machine
+---
 
-Phase 4 — Targeting + Movement
-- Runtime target acquisition
-- Target following
-- Combat spacing
-- Obstacle/terrain recovery
+# 52. Chunk / Loading Safety
 
-Phase 5 — Combat
-- Attack
-- Damage
-- Range
-- Cooldown
-- Weapon switching
-- Food/use-item behavior
-- Death handling
+Do not force uncontrolled chunk loading.
 
-Phase 6 — Group Controls
-- Group teleport
-- Fishing Rod destination control
-- Formation/spacing
+When navigation or target tracking requires a location:
 
-Phase 7 — Scale/Optimization
-- Large scene testing
-- 50/100/250/500+ stress tests where practical
-- Tick/load profiling
+- check whether the relevant area is available;
+- avoid repeatedly loading distant chunks;
+- fail/retry with bounded behavior;
+- do not create an infinite chunk-loading loop.
 
-Phase 8 — Validation
-- Existing MoCap regression tests
-- Fight vs Player
-- Fight vs Mocap
-- Scene vs Scene
+---
+
+# 53. Entity Lifetime
+
+Every runtime fighter reference must be invalidated when its entity disappears.
+
+Never assume:
+
+```
+UUID exists → entity is still valid
+```
+
+Resolve/validate runtime entities safely.
+
+---
+
+# 54. Concurrency / Re-entrancy
+
+The Fight manager must tolerate:
+
+- Fight start called twice;
+- Fight stop called twice;
+- Reset during combat;
+- Target death during attack processing;
+- Fighter death during target selection;
+- Scene removal while Fight is active;
+- Server shutdown/reload.
+
+No duplicate runtime registration may occur.
+
+No Fight may tick twice in the same manager cycle.
+
+---
+
+# 55. Error Isolation
+
+A failure in one Fight must not crash:
+
+- the server;
+- another Fight;
+- normal MoCap playback;
+- recording;
+- unrelated scenes.
+
+Catch and report recoverable Fight-specific failures at the correct boundary.
+
+Do not hide programming errors with broad silent exception handling.
+
+---
+
+# 56. Logging / Debugging
+
+Provide useful debug information.
+
+Potential categories:
+
+- Fight lifecycle
+- Participant lifecycle
+- Target selection
+- State transition
+- Attack decision
+- Item switch
 - Death/reset
-- Inventory isolation
-- Terrain recovery
-- Restart persistence
-- Command/suggestion validation
+- Navigation failure
+- Persistence failure
 
-## 24. Definition of Done
+Debug logging must be disabled or appropriately throttled by default.
 
-The Fight feature is considered complete only when:
+Avoid logging every fighter every tick in normal mode.
 
-- A Fight can be created and saved.
-- A scene can be assigned to it.
-- One or more targets can be assigned.
-- Playback can select and start the Fight.
-- Fighters move toward live targets.
-- Fighters fight using only their assigned inventory.
-- Weapon/item switching works at runtime.
-- Fighters do not loot battlefield items.
-- Fighters handle basic terrain obstacles/recovery.
-- Fighters maintain reasonable spacing.
-- Death removes a fighter from active combat.
-- Reset restores the complete initial state.
-- Fight vs real player works.
-- Fight vs Mocap scene works.
-- Multiple simultaneous fighters work.
-- No prerecorded fight timeline is generated.
-- Existing MoCap recording/playback behavior remains functional.
-- Build and tests pass on the repository's configured target.
+---
 
-## 25. Non-Goals
+# 57. Debug / Inspection Command
 
-Do NOT implement as part of this feature:
+An information/debug view should be able to report:
 
-- General-purpose autonomous AI
-- AI-generated fight choreography
-- Precomputed fight recordings
-- Offline combat simulation
-- A separate replacement for MoCap Playback
-- A separate unrelated command framework
-- A forced maximum fighter count
+- Fight state
+- Number of participants
+- Active/dead count
+- Current targets
+- Current combat state
+- Target distance
+- Current held item
+- Attack cooldown
+- Last error
 
-## 26. Source-of-Truth Rule
+This is especially important for diagnosing cinematic scenes.
 
-When implementation decisions conflict with this document:
+---
 
-1. Preserve existing MoCap behavior.
-2. Preserve the runtime/on-field nature of Fight.
-3. Never convert Fight into a prerecorded/generated combat sequence.
-4. Reuse existing MoCap architecture before adding duplicate infrastructure.
-5. Update this blueprint whenever an approved architectural change is made.
+# 58. API Boundary
 
-This file is the working source of truth for the Fight implementation.
+The existing public API must not be broken.
+
+If Fight functionality is exposed publicly, use a new additive API surface.
+
+Do not silently change existing API contracts.
+
+Internal Fight classes should remain internal unless there is a clear API use case.
+
+---
+
+# 59. Fabric / NeoForge Separation
+
+Common logic should stay in the common module where possible.
+
+Loader-specific code should be isolated.
+
+Do not put Fabric-only classes into common.
+
+Do not force NeoForge-specific APIs into common abstractions.
+
+Fight core should depend on shared abstractions where the project architecture allows it.
+
+---
+
+# 60. Version Discipline
+
+The repository currently declares:
+
+- Minecraft 26.1
+- Java 25
+- Fabric
+- NeoForge
+
+Implementation must use the repository's actual Gradle configuration as the authority.
+
+Do not assume compatibility with 1.20.1, 1.21.x, or another Minecraft version without explicitly porting and validating it.
+
+Do not change the target Minecraft version merely to simplify Fight implementation.
+
+---
+
+# 61. Testing Matrix
+
+Every major feature requires tests for:
+
+## Basic
+- Create Fight
+- Save Fight
+- Load Fight
+- Start
+- Stop
+- Reset
+- Remove
+
+## Combat
+- Melee
+- Ranged
+- Shield
+- Food
+- Target movement
+- Target death
+- Fighter death
+- Retargeting
+
+## Relationships
+- Mocap vs Player
+- Mocap vs Mocap
+- Scene vs Scene
+- Multiple teams
+- Multiple simultaneous fights
+
+## Runtime
+- Moving target
+- Hole
+- Obstacle
+- Unloaded area
+- Dimension mismatch
+- Missing entity
+- Server restart
+
+## Regression
+- Existing recording
+- Existing playback
+- Existing scenes
+- Nested scenes
+- Existing commands
+- Existing settings
+- Existing API behavior
+
+---
+
+# 62. Manual Cinematic Test Scenario
+
+Before declaring the feature complete, run a complete real-world scenario:
+
+1. Record a fighter.
+2. Save recording.
+3. Build a scene.
+4. Duplicate the scene several times.
+5. Assign teams.
+6. Create Fight.
+7. Set power.
+8. Set target.
+9. Start playback/Fight.
+10. Move target.
+11. Verify fighters follow target.
+12. Verify item switching.
+13. Kill one fighter.
+14. Verify dead fighter stops acting.
+15. Verify remaining fighters retarget correctly.
+16. Stop.
+17. Reset.
+18. Verify all actors return to initial state.
+19. Start again.
+20. Verify the second run works independently.
+
+---
+
+# 63. Failure Cases That Must Be Explicitly Handled
+
+The implementation must have a defined result for:
+
+- Fight does not exist
+- Fight file corrupted
+- Scene does not exist
+- Recording does not exist
+- Target does not exist
+- Target dies before Fight starts
+- All targets die
+- Fighter dies before acquiring target
+- Fighter entity disappears
+- World unloads
+- Dimension changes
+- Destination invalid
+- No safe formation positions
+- No valid weapon
+- No valid food
+- Target unreachable
+- Navigation timeout
+- Fight started twice
+- Fight reset while attacking
+- Server stops during Fight
+
+---
+
+# 64. Security / Abuse Prevention
+
+Fight must not become an unintended griefing mechanism.
+
+Administrative configuration should prevent:
+
+- unauthorized world modification;
+- unlimited item duplication;
+- inventory duplication through reset;
+- infinite damage loops;
+- uncontrolled entity creation;
+- accidental targeting of unrelated players;
+- cross-world targeting bugs.
+
+Reset must not duplicate items.
+
+---
+
+# 65. Inventory Duplication Prevention
+
+This requires explicit attention.
+
+When restoring inventory:
+
+1. Determine whether the actor already owns its runtime inventory.
+2. Clear/replace only the Fight-owned runtime inventory.
+3. Restore from the saved snapshot exactly once.
+4. Do not add the snapshot on top of an existing copy.
+5. On repeated reset, the result must remain identical.
+
+Test:
+
+```
+START → RESET → RESET → RESET
+```
+
+Inventory count must not increase.
+
+---
+
+# 66. Target Isolation
+
+A Fight must only affect configured targets.
+
+For a Fight targeting Player A:
+
+- Player B must not accidentally become target merely because Player B is closer unless the targeting mode explicitly permits it.
+- Unrelated players must not receive damage.
+- Unrelated Mocap actors must not be pulled into the Fight.
+
+This is a critical safety invariant.
+
+---
+
+# 67. Fight Isolation
+
+Multiple Fights may exist at the same time.
+
+Fight A must not:
+
+- control Fight B's actors;
+- change Fight B's targets;
+- reset Fight B;
+- consume Fight B's inventory;
+- modify Fight B's state.
+
+Runtime ownership must be explicit.
+
+---
+
+# 68. Runtime Ownership Registry
+
+Every active actor should have one authoritative owner:
+
+```
+Runtime Actor → Fight ID
+```
+
+This prevents two active Fight controllers from issuing contradictory commands to the same actor.
+
+If an actor is already owned by another active Fight, the second Fight should reject or explicitly transfer ownership according to a defined policy.
+
+Default should be reject.
+
+---
+
+# 69. Reset Snapshot Ownership
+
+Reset data belongs to the runtime Fight instance.
+
+Do not overwrite the source recording.
+
+Do not overwrite the permanent scene definition unless the user explicitly edits and saves it.
+
+---
+
+# 70. Backward Compatibility
+
+Existing recording files must remain readable.
+
+Existing scene files must remain readable.
+
+Fight data is additive.
+
+If Fight configuration changes format later:
+
+```
+Old Fight → Migration → New Fight
+```
+
+Do not silently reinterpret old values.
+
+---
+
+# 71. Migration Strategy
+
+Every persisted Fight format must include a format version.
+
+When loading an older version:
+
+- migrate if supported;
+- otherwise provide a clear error;
+- never partially load dangerous data.
+
+Migration code must be isolated from runtime combat code.
+
+---
+
+# 72. Documentation Discipline
+
+Whenever implementation changes one of these:
+
+- command syntax;
+- persistence schema;
+- package ownership;
+- lifecycle;
+- combat rules;
+- target rules;
+- inventory rules;
+- compatibility;
+- reset semantics;
+
+update this blueprint before continuing.
+
+The implementation and blueprint must not drift apart.
+
+---
+
+# 73. Implementation Order
+
+## Phase 0 — Architecture and documentation
+- Blueprint
+- README
+- Existing code audit
+- Exact playback lifecycle mapping
+- Existing persistence mapping
+- Existing entity implementation mapping
+
+## Phase 1 — Data model
+- Fight definition
+- IDs
+- persistence
+- validation
+- lifecycle
+
+## Phase 2 — Playback integration
+- Fight registry
+- Playback ownership
+- Start/stop/reset
+- Runtime participant creation
+
+## Phase 3 — Combat runtime
+- Fighter state
+- Target system
+- Runtime inventory
+- Weapon selection
+- Attack/cooldown
+- Damage/death
+
+## Phase 4 — Movement
+- Follow target
+- Combat positioning
+- Spacing
+- Recovery
+- Bounded navigation
+
+## Phase 5 — Group controls
+- Group teleport
+- Formation
+- Fishing Rod destination control
+
+## Phase 6 — Commands
+- Creation
+- Editing
+- Info
+- Start/stop/reset/remove
+- Suggestions
+- Validation
+
+## Phase 7 — Performance
+- Tick profiling
+- Entity scaling
+- Target search optimization
+- Navigation optimization
+
+## Phase 8 — Regression
+- Existing MoCap tests
+- Existing scene/playback behavior
+- Existing command behavior
+- Loader builds
+
+## Phase 9 — Final hardening
+- Failure cases
+- Inventory duplication
+- ownership isolation
+- persistence migration
+- restart recovery
+- multiplayer testing
+
+---
+
+# 74. Implementation Method
+
+The work must proceed in small technically coherent changes, but the overall feature should be implemented as quickly as practical.
+
+For every implementation step:
+
+1. Inspect the existing code first.
+2. Identify the exact integration point.
+3. Reuse existing infrastructure.
+4. Make the smallest safe change.
+5. Compile.
+6. Run relevant tests.
+7. Inspect errors.
+8. Fix before moving to the next subsystem.
+9. Update this blueprint/checklist.
+10. Continue.
+
+Do not make a large blind rewrite of unrelated files.
+
+---
+
+# 75. No-GUESS Rule
+
+If an implementation decision depends on an existing MoCap behavior that has not yet been inspected:
+
+**STOP AND INSPECT THE CODE.**
+
+Do not guess:
+
+- class ownership;
+- method names;
+- file format;
+- entity implementation;
+- playback lifecycle;
+- command registration;
+- API contracts;
+- loader-specific behavior.
+
+The repository is the source of truth for implementation details.
+
+---
+
+# 76. Change-Control Rule
+
+A change is allowed when it is:
+
+- required by the Fight feature;
+- compatible with existing behavior;
+- validated against the current architecture.
+
+A change is not allowed merely because it is "cleaner" if it risks unrelated regressions.
+
+If an architectural change becomes necessary:
+
+1. Document the reason.
+2. Update this blueprint.
+3. Identify affected existing systems.
+4. Implement the change.
+5. Run regression validation.
+
+---
+
+# 77. Completion Checklist
+
+The following must all be true before final completion:
+
+- [ ] Existing MoCap recording still works
+- [ ] Existing MoCap playback still works
+- [ ] Existing scenes still work
+- [ ] Fight can be created
+- [ ] Fight can be saved
+- [ ] Fight can be loaded
+- [ ] Fight can be started
+- [ ] Fight can be stopped
+- [ ] Fight can be reset
+- [ ] Fight can be removed safely
+- [ ] Scene participants resolve correctly
+- [ ] Runtime actor identity is isolated
+- [ ] Targets resolve correctly
+- [ ] Targets update dynamically
+- [ ] Target death is handled
+- [ ] Fighter death is handled
+- [ ] Melee works
+- [ ] Ranged behavior works where supported
+- [ ] Shield behavior works where supported
+- [ ] Food behavior works where supported
+- [ ] Inventory is isolated
+- [ ] Battlefield looting is disabled for Mocap fighters
+- [ ] Inventory reset does not duplicate items
+- [ ] Movement follows live targets
+- [ ] Combat range is respected
+- [ ] Spacing works
+- [ ] Group teleport works
+- [ ] Formation placement is safe
+- [ ] Fishing Rod control works if enabled
+- [ ] Terrain recovery works within defined limits
+- [ ] No uncontrolled world modification occurs
+- [ ] Multiple Fights are isolated
+- [ ] Duplicate Fight starts are rejected/safely handled
+- [ ] Server restart does not corrupt saved Fight data
+- [ ] Malformed Fight data does not crash the server
+- [ ] No stale target references remain active
+- [ ] No runtime fight loop remains after completion
+- [ ] Performance has been measured
+- [ ] Fabric build passes
+- [ ] NeoForge build passes, where applicable
+- [ ] Existing regression checks pass
+- [ ] Documentation matches the final implementation
+
+---
+
+# 78. Final Architectural Invariants
+
+These statements must remain true throughout implementation:
+
+1. **Fight is runtime, not prerecorded.**
+2. **The source recording is immutable during combat.**
+3. **Every runtime fighter is independently stateful.**
+4. **Target selection is live.**
+5. **Movement is live.**
+6. **Combat is server-authoritative.**
+7. **Inventory is isolated.**
+8. **Dead fighters cannot continue attacking.**
+9. **Reset is deterministic and cannot duplicate inventory.**
+10. **One Fight cannot control another Fight's actors.**
+11. **Existing MoCap behavior has priority over new convenience features.**
+12. **No artificial fighter-count limit is hardcoded.**
+13. **Expensive work is bounded and profiled.**
+14. **Invalid configuration fails safely.**
+15. **The implementation never guesses about unseen existing code.**
+16. **This blueprint is updated whenever an approved architectural decision changes.**
+
+---
+
+# 79. Final Definition of Done
+
+The feature is complete only when a creator can:
+
+1. Record or reuse a MoCap character.
+2. Put that character into a scene.
+3. Create a Fight.
+4. Assign one or more source scenes.
+5. Assign targets/teams.
+6. Configure power and combat parameters.
+7. Save the Fight.
+8. Start it through MoCap Playback.
+9. Watch fighters locate and follow live targets.
+10. Watch fighters choose available combat items at runtime.
+11. Watch attacks, damage, knockback and death happen on the live battlefield.
+12. Move targets and have fighters react.
+13. Run multiple fighters without a hardcoded artificial cap.
+14. Teleport a selected group to a safe formation.
+15. Stop and reset the Fight.
+16. Start the same Fight again without state corruption or inventory duplication.
+17. Run the feature without breaking the original MoCap recording/scene/playback system.
+
+**This document remains the master implementation contract until the Fight feature is complete.**
