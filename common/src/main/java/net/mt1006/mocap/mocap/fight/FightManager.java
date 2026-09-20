@@ -1,7 +1,12 @@
 package net.mt1006.mocap.mocap.fight;
 
 import net.mt1006.mocap.MocapMod;
+import net.mt1006.mocap.api.v1.io.CommandInfo;
 import net.mt1006.mocap.api.v1.io.CommandOutput;
+import net.mt1006.mocap.api.v1.controller.MocapPlaybackRoot;
+import net.mt1006.mocap.api.v1.controller.config.MocapPlaybackConfig;
+import net.mt1006.mocap.api.v1.controller.playable.MocapPlayable;
+import net.minecraft.world.entity.Entity;
 import net.mt1006.mocap.mocap.files.Files;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,7 +123,7 @@ public final class FightManager
 		return save(definition) && out.sendSuccessLiteral("Cleared targets for Fight '%s'.", id);
 	}
 
-	public static boolean start(CommandOutput out, String id)
+	public static boolean start(CommandInfo out, String id)
 	{
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
@@ -131,7 +136,11 @@ public final class FightManager
 
 		// Runtime participants are deliberately not created in this phase.
 		// The next runtime phase will bind scene playback instances here.
-		active.put(id, new FightRuntime(id));
+		FightRuntime runtime;
+		try { runtime = new FightRuntime(definition, out); }
+		catch (Exception e) { MocapMod.LOGGER.error("Failed to initialize Fight '{}' .", id, e); return out.sendFailure("Failed to initialize Fight '" + id + "'."); }
+		if (runtime.isEmpty()) { return out.sendFailure("Fight has no runtime actors: " + id); }
+		active.put(id, runtime);
 		definition.setState(FightDefinition.State.RUNNING);
 		save(definition);
 		return out.sendSuccessLiteral("Started Fight '%s'.", id);
@@ -319,20 +328,37 @@ public final class FightManager
 	private static final class FightRuntime
 	{
 		private final String id;
+		private final List<MocapPlaybackRoot> playbackRoots = new ArrayList<>();
+		private final List<Entity> actors = new ArrayList<>();
 
-		private FightRuntime(String id)
+		private FightRuntime(FightDefinition definition, CommandInfo info)
 		{
-			this.id = id;
+			this.id = definition.getId();
+			MocapPlaybackConfig config = MocapPlaybackConfig.createFromSettings();
+			config.setInvulnerablePlayback(false);
+			for (String source : definition.getSourceScenes())
+			{
+				MocapPlayable playable = MocapPlayable.get(info, source);
+				if (playable == null) { throw new IllegalArgumentException("Unknown source: " + source); }
+				MocapPlaybackRoot root = playable.startPlayback(info, net.mt1006.mocap.api.v1.modifiers.MocapModifiers.DEFAULT, config, true);
+				if (root == null) { throw new IllegalStateException("Playback failed: " + source); }
+				playbackRoots.add(root);
+				actors.addAll(root.getControlledEntities());
+			}
 		}
+
+		private boolean isEmpty() { return actors.isEmpty(); }
 
 		private void tick()
 		{
-			// Runtime actor/target controller is implemented in the next phase.
+			actors.removeIf(entity -> !entity.isAlive());
 		}
 
 		private void reset()
 		{
-			// Reset snapshot ownership is implemented with runtime participants.
+			for (MocapPlaybackRoot root : playbackRoots) { root.stop(); }
+			playbackRoots.clear();
+			actors.clear();
 		}
 	}
 }
