@@ -37,11 +37,35 @@ jobs:
       - name: 3. Make Gradle executable
         run: chmod +x ./gradlew
 
-      - name: 4. Check Gradle wrapper
-        run: ./gradlew --version
+      - name: 4. Check Gradle wrapper (retry transient download failures)
+        shell: bash
+        run: |
+          set -u
+          for attempt in 1 2 3 4 5; do
+            echo "Gradle wrapper check attempt ${attempt}/5"
+            if ./gradlew --version; then
+              exit 0
+            fi
+            if [ "${attempt}" -lt 5 ]; then
+              sleep $((attempt * 5))
+            fi
+          done
+          exit 1
 
-      - name: 5. Compile & build all loaders
-        run: ./gradlew build --no-daemon --stacktrace
+      - name: 5. Compile & build all loaders (retry transient download failures)
+        shell: bash
+        run: |
+          set -u
+          for attempt in 1 2 3; do
+            echo "Gradle build attempt ${attempt}/3"
+            if ./gradlew build --no-daemon --stacktrace; then
+              exit 0
+            fi
+            if [ "${attempt}" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          exit 1
 
       - name: 6. Upload build artifacts
         if: ${{ success() }}
