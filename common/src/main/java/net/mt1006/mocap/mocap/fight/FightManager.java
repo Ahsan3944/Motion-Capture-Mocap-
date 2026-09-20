@@ -692,7 +692,9 @@ public final class FightManager
 						continue;
 					}
 
-					if (entity instanceof LivingEntity living && living.getMainHandItem().getItem() instanceof net.minecraft.world.item.CrossbowItem)
+					if (entity instanceof LivingEntity living
+							&& FightEquipmentController.prepareCrossbowAttack(participant)
+							&& living.getMainHandItem().getItem() instanceof net.minecraft.world.item.CrossbowItem)
 					{
 						participant.setState(FightParticipant.State.ATTACK);
 						boolean fired = FightRangedController.tickCrossbow(participant);
