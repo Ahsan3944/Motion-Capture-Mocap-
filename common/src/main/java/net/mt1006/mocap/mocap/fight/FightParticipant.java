@@ -1,10 +1,15 @@
 package net.mt1006.mocap.mocap.fight;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 public final class FightParticipant
 {
@@ -32,6 +37,7 @@ public final class FightParticipant
 	private final Entity entity;
 	private final Side side;
 	private final String teamId;
+	private final Map<EquipmentSlot, ItemStack> equipmentSnapshot = new EnumMap<>(EquipmentSlot.class);
 	private @Nullable Entity currentTarget;
 	private State state = State.IDLE;
 	private int attackCooldownTicks = 0;
@@ -61,6 +67,48 @@ public final class FightParticipant
 	public Entity getEntity() { return entity; }
 	public Side getSide() { return side; }
 	public String getTeamId() { return teamId; }
+
+	public void captureEquipmentSnapshot()
+	{
+		equipmentSnapshot.clear();
+		if (!(entity instanceof LivingEntity living)) { return; }
+		for (EquipmentSlot slot : combatEquipmentSlots())
+		{
+			equipmentSnapshot.put(slot, living.getItemBySlot(slot).copy());
+		}
+	}
+
+	public void restoreEquipmentSnapshot()
+	{
+		if (!(entity instanceof LivingEntity living)) { return; }
+		for (Map.Entry<EquipmentSlot, ItemStack> entry : equipmentSnapshot.entrySet())
+		{
+			ItemStack current = living.getItemBySlot(entry.getKey());
+			ItemStack expected = entry.getValue();
+			if (!ItemStack.matches(current, expected))
+			{
+				living.setItemSlot(entry.getKey(), expected.copy());
+			}
+		}
+	}
+
+	public ItemStack getRecordedMainHandItem()
+	{
+		return equipmentSnapshot.getOrDefault(EquipmentSlot.MAINHAND, ItemStack.EMPTY).copy();
+	}
+
+	public ItemStack getRecordedOffHandItem()
+	{
+		return equipmentSnapshot.getOrDefault(EquipmentSlot.OFFHAND, ItemStack.EMPTY).copy();
+	}
+
+	private static EquipmentSlot[] combatEquipmentSlots()
+	{
+		return new EquipmentSlot[] {
+				EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND, EquipmentSlot.FEET, EquipmentSlot.LEGS,
+				EquipmentSlot.CHEST, EquipmentSlot.HEAD, EquipmentSlot.BODY, EquipmentSlot.SADDLE
+		};
+	}
 
 	public @Nullable Entity getCurrentTarget() { return currentTarget; }
 	public void setCurrentTarget(@Nullable Entity target)
