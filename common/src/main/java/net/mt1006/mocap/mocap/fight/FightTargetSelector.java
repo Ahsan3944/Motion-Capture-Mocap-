@@ -35,6 +35,21 @@ public final class FightTargetSelector
 			return candidates.get(0);
 		}
 
+		if (mode == FightDefinition.TargetMode.LOWEST_HEALTH)
+		{
+			Entity lowest = null;
+			float lowestHealth = Float.MAX_VALUE;
+			for (Entity candidate : candidates)
+			{
+				if (candidate instanceof LivingEntity living && living.getHealth() < lowestHealth)
+				{
+					lowestHealth = living.getHealth();
+					lowest = candidate;
+				}
+			}
+			return lowest;
+		}
+
 		Entity nearest = null;
 		double nearestDistance = Double.MAX_VALUE;
 		for (Entity candidate : candidates)
