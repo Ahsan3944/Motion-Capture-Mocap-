@@ -95,26 +95,13 @@ public final class FightCommand
 										.suggests(FightCommand::suggestions)
 										.executes(CommandUtils.command(FightCommand::clearTargets))))
 						.then(Commands.literal("team")
-								.then(Commands.literal("source_scene")
-										.then(Commands.argument("name", StringArgumentType.word())
-												.suggests(FightCommand::suggestions)
-												.then(Commands.argument("scene", StringArgumentType.string())
-														.suggests(CommandSuggestions::scene)
+								.then(Commands.argument("name", StringArgumentType.word())
+										.suggests(FightCommand::suggestions)
+										.then(Commands.argument("kind", StringArgumentType.word())
+												.suggests(FightCommand::teamKindSuggestions)
+												.then(Commands.argument("reference", StringArgumentType.string())
 														.then(Commands.argument("team", StringArgumentType.word())
-																.executes(CommandUtils.command(FightCommand::setSourceSceneTeam))))))
-							.then(Commands.literal("target_scene")
-									.then(Commands.argument("name", StringArgumentType.word())
-											.suggests(FightCommand::suggestions)
-											.then(Commands.argument("scene", StringArgumentType.string())
-													.suggests(CommandSuggestions::scene)
-													.then(Commands.argument("team", StringArgumentType.word())
-														.executes(CommandUtils.command(FightCommand::setTargetSceneTeam)))))
-							.then(Commands.literal("target_player")
-									.then(Commands.argument("name", StringArgumentType.word())
-											.suggests(FightCommand::suggestions)
-											.then(Commands.argument("player", StringArgumentType.word())
-													.then(Commands.argument("team", StringArgumentType.word())
-															.executes(CommandUtils.command(FightCommand::setTargetPlayerTeam)))))))))
+																.executes(CommandUtils.command(FightCommand::setTeam))))))));
 				.then(Commands.literal("start")
 						.then(Commands.argument("name", StringArgumentType.word())
 								.suggests(FightCommand::suggestions)
@@ -191,19 +178,29 @@ public final class FightCommand
 		return FightManager.setTargetScene(info, info.getString("name"), info.getString("scene"));
 	}
 
-	private static boolean setSourceSceneTeam(FullCommandInfo info)
+	private static boolean setTeam(FullCommandInfo info)
 	{
-		return FightManager.setSourceSceneTeam(info, info.getString("name"), info.getString("scene"), info.getString("team"));
+		String kind = info.getString("kind").toUpperCase(java.util.Locale.ROOT);
+		String name = info.getString("name");
+		String reference = info.getString("reference");
+		String team = info.getString("team");
+		return switch (kind)
+		{
+			case "SOURCE_SCENE" -> FightManager.setSourceSceneTeam(info, name, reference, team);
+			case "TARGET_SCENE" -> FightManager.setTargetSceneTeam(info, name, reference, team);
+			case "TARGET_PLAYER" -> FightManager.setTargetPlayerTeam(info, name, reference, team);
+			default -> info.sendFailure("Unknown team assignment kind: " + kind + ". Use SOURCE_SCENE, TARGET_SCENE, or TARGET_PLAYER.");
+		};
 	}
 
-	private static boolean setTargetSceneTeam(FullCommandInfo info)
+	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> teamKindSuggestions(
+			com.mojang.brigadier.context.CommandContext<?> ctx,
+			com.mojang.brigadier.suggestion.SuggestionsBuilder builder)
 	{
-		return FightManager.setTargetSceneTeam(info, info.getString("name"), info.getString("scene"), info.getString("team"));
-	}
-
-	private static boolean setTargetPlayerTeam(FullCommandInfo info)
-	{
-		return FightManager.setTargetPlayerTeam(info, info.getString("name"), info.getString("player"), info.getString("team"));
+		builder.suggest("SOURCE_SCENE");
+		builder.suggest("TARGET_SCENE");
+		builder.suggest("TARGET_PLAYER");
+		return builder.buildFuture();
 	}
 
 	private static boolean setTargetMode(FullCommandInfo info)
