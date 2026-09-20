@@ -40,6 +40,7 @@ public final class FightParticipant
 	private @Nullable Entity currentTarget;
 	private State state = State.IDLE;
 	private int attackCooldownTicks = 0;
+	private int crossbowChargeTicks = 0;
 	private int movementBlockedTicks = 0;
 	private int movementRecoveryDirection = 1;
 	private List<Vec3> navigationWaypoints = List.of();
@@ -182,6 +183,10 @@ public final class FightParticipant
 
 	public int getAttackCooldownTicks() { return attackCooldownTicks; }
 
+	public int getCrossbowChargeTicks() { return crossbowChargeTicks; }
+	public void setCrossbowChargeTicks(int ticks) { crossbowChargeTicks = Math.max(0, ticks); }
+	public void clearCrossbowCharge() { crossbowChargeTicks = 0; }
+
 	public boolean tickAttackCooldown()
 	{
 		if (attackCooldownTicks <= 0) { return true; }
@@ -202,6 +207,7 @@ public final class FightParticipant
 		currentTarget = null;
 		state = State.DEAD;
 		attackCooldownTicks = 0;
+		crossbowChargeTicks = 0;
 		movementBlockedTicks = 0;
 		movementRecoveryDirection = 1;
 		navigationStallTicks = 0;
