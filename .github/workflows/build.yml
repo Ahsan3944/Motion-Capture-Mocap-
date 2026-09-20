@@ -1,0 +1,56 @@
+name: Build & Verify
+
+on:
+  push:
+    branches:
+      - main
+      - "**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Verify (Java 25)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 1. Checkout source
+        uses: actions/checkout@v5
+
+      - name: 2. Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: gradle
+
+      - name: 3. Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: 4. Check Gradle wrapper
+        run: ./gradlew --version
+
+      - name: 5. Compile & build all loaders
+        run: ./gradlew build --no-daemon --stacktrace
+
+      - name: 6. Upload build artifacts
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: mocap-build-${{ github.sha }}
+          path: |
+            common/build/libs/*
+            fabric/build/libs/*
+            neoforge/build/libs/*
+          if-no-files-found: error
+          retention-days: 14
