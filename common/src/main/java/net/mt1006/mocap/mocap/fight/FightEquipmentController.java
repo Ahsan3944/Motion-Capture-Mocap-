@@ -6,6 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
 
 /**
  * Runtime-only combat equipment decisions for Fight participants.
@@ -60,6 +61,28 @@ public final class FightEquipmentController
 		return true;
 	}
 
+	public static boolean prepareCrossbowAttack(FightParticipant participant)
+	{
+		if (participant == null || !participant.isActive()) { return false; }
+		if (!(participant.getEntity() instanceof LivingEntity living) || !living.isAlive()) { return false; }
+
+		ItemStack mainHand = living.getMainHandItem();
+		if (isUsableCrossbow(living, mainHand)) { return true; }
+
+		ItemStack offHand = living.getOffhandItem();
+		if (!isUsableCrossbow(living, offHand)) { return false; }
+
+		living.setItemInHand(InteractionHand.MAIN_HAND, offHand.copy());
+		living.setItemInHand(InteractionHand.OFF_HAND, mainHand.copy());
+		return true;
+	}
+
+	public static boolean isUsableCrossbow(LivingEntity living, ItemStack stack)
+	{
+		if (!(stack.getItem() instanceof CrossbowItem)) { return false; }
+		return CrossbowItem.isCharged(stack) || !living.getProjectile(stack).isEmpty();
+	}
+
 	public static double getRangedRange(FightParticipant participant)
 	{
 		if (participant == null || !(participant.getEntity() instanceof LivingEntity living)) { return 0.0; }
@@ -68,10 +91,18 @@ public final class FightEquipmentController
 		{
 			return bow.getDefaultProjectileRange();
 		}
+		if (mainHand.getItem() instanceof CrossbowItem crossbow && isUsableCrossbow(living, mainHand))
+		{
+			return crossbow.getDefaultProjectileRange();
+		}
 		ItemStack offHand = living.getOffhandItem();
 		if (offHand.getItem() instanceof BowItem bow && !living.getProjectile(offHand).isEmpty())
 		{
 			return bow.getDefaultProjectileRange();
+		}
+		if (offHand.getItem() instanceof CrossbowItem crossbow && isUsableCrossbow(living, offHand))
+		{
+			return crossbow.getDefaultProjectileRange();
 		}
 		return 0.0;
 	}
