@@ -7,9 +7,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public final class FightParticipant
 {
@@ -37,7 +36,7 @@ public final class FightParticipant
 	private final Entity entity;
 	private final Side side;
 	private final String teamId;
-	private final Map<EquipmentSlot, ItemStack> equipmentSnapshot = new EnumMap<>(EquipmentSlot.class);
+	private final List<ItemStack> equipmentSnapshot = new ArrayList<>();
 	private @Nullable Entity currentTarget;
 	private State state = State.IDLE;
 	private int attackCooldownTicks = 0;
@@ -74,32 +73,33 @@ public final class FightParticipant
 		if (!(entity instanceof LivingEntity living)) { return; }
 		for (EquipmentSlot slot : combatEquipmentSlots())
 		{
-			equipmentSnapshot.put(slot, living.getItemBySlot(slot).copy());
+			equipmentSnapshot.add(living.getItemBySlot(slot).copy());
 		}
 	}
 
 	public void restoreEquipmentSnapshot()
 	{
 		if (!(entity instanceof LivingEntity living)) { return; }
-		for (Map.Entry<EquipmentSlot, ItemStack> entry : equipmentSnapshot.entrySet())
+		EquipmentSlot[] slots = combatEquipmentSlots();
+		for (int i = 0; i < slots.length && i < equipmentSnapshot.size(); i++)
 		{
-			ItemStack current = living.getItemBySlot(entry.getKey());
-			ItemStack expected = entry.getValue();
+			ItemStack current = living.getItemBySlot(slots[i]);
+			ItemStack expected = equipmentSnapshot.get(i);
 			if (!ItemStack.matches(current, expected))
 			{
-				living.setItemSlot(entry.getKey(), expected.copy());
+				living.setItemSlot(slots[i], expected.copy());
 			}
 		}
 	}
 
 	public ItemStack getRecordedMainHandItem()
 	{
-		return equipmentSnapshot.getOrDefault(EquipmentSlot.MAINHAND, ItemStack.EMPTY).copy();
+		return equipmentSnapshot.isEmpty() ? ItemStack.EMPTY : equipmentSnapshot.get(0).copy();
 	}
 
 	public ItemStack getRecordedOffHandItem()
 	{
-		return equipmentSnapshot.getOrDefault(EquipmentSlot.OFFHAND, ItemStack.EMPTY).copy();
+		return equipmentSnapshot.size() < 2 ? ItemStack.EMPTY : equipmentSnapshot.get(1).copy();
 	}
 
 	private static EquipmentSlot[] combatEquipmentSlots()
