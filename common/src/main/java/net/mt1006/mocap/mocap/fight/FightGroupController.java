@@ -113,7 +113,7 @@ public final class FightGroupController
 			double y = requestedY + offset;
 			AABB movedBox = entity.getBoundingBox().move(x - entity.getX(), y - entity.getY(), z - entity.getZ());
 			if (!isLoaded(level, movedBox)) { continue; }
-			if (!level.noBlockCollision(movedBox) || !level.noBorderCollision(entity, movedBox)) { continue; }
+			if (!level.noBlockCollision(entity, movedBox) || !level.noBorderCollision(entity, movedBox)) { continue; }
 			AABB supportBox = new AABB(
 					x - 0.20, y - 0.15, z - 0.20,
 				x + 0.20, y, z + 0.20);
@@ -134,12 +134,12 @@ public final class FightGroupController
 					slots.get(i).position().y - entity.getY(),
 					slots.get(i).position().z - entity.getZ());
 
-			if (!isLoaded(level, box) || !level.noBlockCollision(box) || !level.noBorderCollision(entity, box))
+			if (!isLoaded(level, box) || !level.noBlockCollision(entity, box) || !level.noBorderCollision(entity, box))
 			{
 				return false;
 			}
 
-			for (Entity nearby : level.getEntities(null, box.inflate(0.001), candidate ->
+			for (Entity nearby : level.getEntities(entity, box.inflate(0.001), candidate ->
 					candidate.isAlive() && !groupEntities.contains(candidate)))
 			{
 				return false;
