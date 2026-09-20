@@ -165,11 +165,6 @@ public final class FightDefinition
 		}
 	}
 
-	private static String defaultTeam(List<String> references, int index)
-	{
-		return references == sourceScenes ? "SOURCE" : "TARGET";
-	}
-
 	private static boolean isValidTeamId(String value)
 	{
 		return value != null && value.matches("[A-Za-z0-9_.-]{1,32}");
