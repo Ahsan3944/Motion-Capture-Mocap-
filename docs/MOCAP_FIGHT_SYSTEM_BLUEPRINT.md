@@ -2063,3 +2063,35 @@ Group-control contract:
 - formation placement is collision-aware and support-aware;
 - no saved recording or Fight configuration is mutated by the operation;
 - later Fishing Rod/command layers must call this same group-control boundary rather than implementing separate teleport logic.
+
+## Implementation Progress — Phase 5B
+
+Phase 5B adds the server-authoritative Fishing Rod destination-control layer on top of the Phase 5A group-control boundary.
+
+Implemented scope for this batch:
+1. A runtime Fishing Rod binding can be armed for an already-running Fight and a specific participant side.
+2. The binding is keyed to the controlling server player and is runtime-only; it is never serialized into a Fight definition or recording.
+3. A Fishing Rod interaction is recognized only for the bound server player and the triggering hand actually holding a Fishing Rod.
+4. Block-targeted interactions use the server-provided block hit location; air/item interactions use the server-side entity raycast and only accept a real block hit as a destination.
+5. Destination selection is server-authoritative and bounded to the existing raycast distance.
+6. A valid destination delegates to the existing `FightManager.teleportGroup(...)` / `FightGroupController.teleportFormation(...)` path; no duplicate teleport logic is introduced.
+7. The vanilla Fishing Rod action is consumed only when the bound control successfully performs the group teleport.
+8. Invalid destinations, missing fights, stopped fights, wrong items, client-side callbacks, and unarmed interactions fall through without mutating the world.
+9. Bindings are cleared when the associated Fight stops/resets/removes and when the server stops.
+10. Loader-specific interaction hooks remain in Fabric/NeoForge modules; the runtime binding and destination logic remain in common.
+
+Deliberately not implemented in Phase 5B:
+- command/UI exposure for arming/disarming a Fishing Rod binding;
+- persistent control bindings;
+- visual destination markers;
+- cross-dimension teleport;
+- dynamic formation spacing;
+- item/weapon combat behavior.
+
+Fishing Rod control contract:
+- the Rod is a destination-control input, not a replacement for the Fight group teleport implementation;
+- no fishing hook entity is spawned by the control layer;
+- no block is placed/broken and no distant chunk is loaded by destination capture;
+- the selected group remains limited to active runtime participants already owned by the Fight;
+- successful movement remains subject to Phase 5A atomic safety validation.
+
