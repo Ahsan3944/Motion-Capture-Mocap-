@@ -12,6 +12,7 @@ public final class FightDefinition
 	{
 		NEAREST,
 		CURRENT_TARGET,
+		LOWEST_HEALTH,
 		FIXED_TARGET
 	}
 
