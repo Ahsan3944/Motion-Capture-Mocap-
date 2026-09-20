@@ -681,7 +681,30 @@ public final class FightManager
 				}
 
 				double attackRange = definition.getAttackRange();
-				if (entity.distanceToSqr(target) > attackRange * attackRange)
+				double targetDistanceSqr = entity.distanceToSqr(target);
+				double rangedRange = FightEquipmentController.getRangedRange(participant);
+				if (targetDistanceSqr > attackRange * attackRange && rangedRange > attackRange && targetDistanceSqr <= rangedRange * rangedRange)
+				{
+					FightMovementController.faceTarget(entity, target.getX() - entity.getX(), target.getZ() - entity.getZ());
+					if (participant.getAttackCooldownTicks() > 0)
+					{
+						participant.setState(FightParticipant.State.RECOVER);
+						continue;
+					}
+
+					participant.setState(FightParticipant.State.ATTACK);
+					if (FightRangedController.fireBow(participant))
+					{
+						participant.setAttackCooldownTicks(calculateAttackCooldown(definition.getAttackSpeed()));
+					}
+					else
+					{
+						participant.setState(FightParticipant.State.CHASE);
+					}
+					continue;
+				}
+
+				if (targetDistanceSqr > attackRange * attackRange)
 				{
 					participant.setState(FightParticipant.State.CHASE);
 					if (participant.getNavigationWaypoint() != null)
