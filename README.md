@@ -19,13 +19,13 @@ MoCap recordings can contain:
 - Per-instance player name, position offset and start delay
 - Playback of recordings and scenes
 
-## New: Runtime Fight System
+## Runtime Fight System
 
-MoCap Playback now has a planned native **Fight** layer.
+MoCap Playback is being extended with a native **Fight** runtime layer.
 
-The Fight system turns scene recordings into runtime-controlled Mocap combat actors. It does **not** generate or record a fight in advance.
+The Fight system turns scene instances into runtime-controlled combat actors. It does **not** generate a fight in advance and does not store a prerecorded combat path.
 
-### Core idea
+### Core pipeline
 
 ```
 Recording
@@ -34,75 +34,81 @@ Scene
    ↓
 MoCap Playback
    ↓
-Mocap Actors
+Runtime Mocap Actors
    ↓
-Runtime Fight
+Fight Controller
    ↓
-Live Target / Live Battlefield
+Live Targets / Live Battlefield
 ```
 
-The recording supplies the character's recorded appearance, movement/animation baseline, armor and inventory. The Fight controller decides what the actor does **on the field** after Fight Start.
+The source recording remains the reusable source. Combat decisions, target tracking, movement, item selection, attacks, damage and death handling happen at runtime.
 
-### Fight rules
+### Fight principles
 
-- Fight is configured and saved before starting.
-- Fight is started from MoCap Playback.
-- A Fight can use one or more scenes and one or more targets.
-- Supported concepts include Mocap vs Player, Mocap vs Mocap and Scene vs Scene.
+- Fight is configured and saved before it starts.
+- Fight starts from MoCap Playback.
+- A Fight can use one or more scenes and targets.
+- Mocap vs Player, Mocap vs Mocap and Scene vs Scene are supported design targets.
 - Target movement is followed live.
-- Attack range, attack speed, power and other combat rules are configurable.
-- Power uses a 1–10 scale.
-- Combat is not prerecorded.
-- No generated fight timeline is stored.
-- Fighters continue pursuing/attacking until the target is dead, the fight is stopped/reset, or the fighter dies.
-- Fighters use lightweight runtime calculations rather than a general-purpose AI planner.
-- A hardcoded 50/100/500 fighter limit is not part of the design; practical capacity depends on server performance.
+- Power is configurable on a 1–10 scale.
+- Combat is never converted into a prerecorded/generated fight timeline.
+- Fighters continue pursuing valid objectives until the target is dead, the Fight is stopped/reset, or the fighter dies.
+- Fighters use only their assigned/recorded combat inventory.
+- Battlefield pickups and automatic looting are not allowed.
+- No artificial 50/100/500 fighter limit is part of the design; practical capacity depends on measured server performance.
+- Existing recording, scene and playback behavior remains the foundation.
 
 ### Combat inventory
 
-A Mocap fighter can only use its assigned/recorded inventory.
+A Mocap fighter has an isolated runtime combat inventory derived from its assigned source state.
 
-It cannot:
+Runtime decisions can select available:
 
-- Pick up battlefield drops
-- Loot dead fighters
-- Automatically gain new equipment
+- Melee weapons
+- Ranged weapons
+- Shields/off-hand items
+- Food/consumables
+- Other explicitly allowed recorded items
 
-Runtime combat can switch between available items such as melee weapons, bows, shields and food when those items exist in the fighter's inventory.
+The fighter cannot automatically loot dead fighters or battlefield drops.
+
+Reset must restore the initial inventory without duplicating items.
 
 ### Movement and terrain
 
 Combat movement is calculated live.
 
-Fighters can pursue moving targets, maintain combat distance and attempt basic terrain/obstacle recovery. If a fighter falls into a hole or encounters terrain, the runtime movement system can attempt to recover and continue the fight according to the configured rules.
+Fighters can:
 
-Mocap actors must not intentionally overlap each other's bodies. Group movement and combat use spacing logic.
+- Follow moving targets
+- Maintain combat distance
+- Reposition when targets move
+- Avoid permanent overlap
+- Attempt bounded recovery from basic obstacles or holes
+
+The default design does not permit uncontrolled terrain destruction or unlimited block placement.
 
 ### Group teleport
 
-Playback will support moving a selected Mocap group to a runtime location.
+Playback can move a selected Mocap group to a runtime destination.
 
-A Fishing Rod destination control can be used to select a landing position. The group is placed around the destination with spacing instead of stacking every actor on one block.
-
-The group can then spread into nearby valid positions while preserving its reset state.
+The group is placed using safe spacing instead of stacking every actor on one block. A Fishing Rod destination control is part of the planned group-control workflow.
 
 ### Fight command concept
 
-The exact syntax follows the existing MoCap command architecture, but the intended command structure is:
+The exact command syntax follows the existing MoCap command architecture. The intended structure is:
 
 ```
-/mocap playing ...
-    fight
-        list
-        create <fight_name> ...
-        info <fight_name>
-        start <fight_name>
-        stop <fight_name>
-        reset <fight_name>
-        remove <fight_name>
+/mocap playing fight list
+/mocap playing fight create <name>
+/mocap playing fight info <name>
+/mocap playing fight start <name>
+/mocap playing fight stop <name>
+/mocap playing fight reset <name>
+/mocap playing fight remove <name>
 ```
 
-The final command names and arguments will follow the repository's existing command/suggestion conventions.
+Additional configuration commands will be added only where they fit the existing command tree and validation system.
 
 ## Existing commands
 
@@ -162,33 +168,33 @@ The final command names and arguments will follow the repository's existing comm
 
 A dot before the name identifies a scene in the existing command design. Scenes can also contain other scenes.
 
-## Architecture direction
+## Architecture
 
-The existing MoCap recording and playback systems remain the foundation.
+The Fight layer is an additive runtime extension of MoCap Playback.
 
-The Fight layer is intended to reuse:
+It is designed to reuse:
 
 - Recording system
 - Scene system
 - Playback system
-- Actions
+- Action system
 - Server tick events
 - Entity events
 - Command suggestions/utilities
-- Settings/persistence
+- Settings and persistence
 - Existing API/event infrastructure where appropriate
 
-The Fight system will be implemented as a runtime extension of Playback rather than as a replacement for MoCap.
+The Fight layer must not replace the existing recording or playback architecture merely to add combat.
 
-## Implementation tracking
+## Implementation source of truth
 
-Detailed architecture, rules, package boundaries, command design, persistence, performance requirements, implementation phases and Definition of Done are maintained in:
+The complete Fight architecture, lifecycle, runtime rules, persistence model, inventory isolation, target system, movement rules, group teleport, performance requirements, failure handling, testing matrix and implementation checklist are maintained in:
 
 ```
 docs/MOCAP_FIGHT_SYSTEM_BLUEPRINT.md
 ```
 
-That file is the implementation source of truth for the Fight feature.
+That document is the master implementation contract for the feature.
 
 ## Compatibility
 
@@ -199,9 +205,4 @@ The repository currently declares:
 - Fabric
 - NeoForge
 
-Do not assume compatibility with another Minecraft version without updating and validating the build configuration.
-
-## References
-
-- CurseForge: https://www.curseforge.com/minecraft/mc-mods/motion-capture-mod-mocap
-- Modrinth: https://modrinth.com/mod/motion-capture
+Do not assume compatibility with another Minecraft version without explicitly updating and validating the build configuration.
