@@ -185,6 +185,11 @@ public class RecordingPlayback extends Playback
 		return ProfileUtils.createGameProfile(name, skinProperty, customSkinProperty);
 	}
 
+	@Override public java.util.List<Entity> getControlledEntities()
+	{
+		return java.util.List.of(ctx.getMainEntity());
+	}
+
 	@Override public void executeTick()
 	{
 		int startDelay = modifiers.getTimeModifiers().getStartDelay().ticks;
