@@ -1904,3 +1904,29 @@ Still deliberately not implemented:
 ### Phase 2 invariant
 
 Fight does not directly create or replace Mocap actors. It asks the existing Playback system to create them, then records ownership of those runtime instances. This preserves normal recording/scene playback behavior and gives the future combat controller a deterministic actor set.
+
+
+## Implementation Progress — Phase 3B
+
+Phase 3B establishes the first authoritative runtime combat decision/execution layer on top of the Phase 3A participant and target infrastructure.
+
+Planned/implemented scope for this batch:
+1. Explicit per-participant combat state.
+2. Runtime attack cooldown derived from configured attack speed.
+3. Live target validation before attack execution.
+4. Melee attack execution against the selected target only.
+5. Reuse of the existing MoCap attack/swing mechanics instead of duplicating the attack implementation.
+6. Dead/invalid participants leave combat immediately.
+7. No movement/navigation is introduced in this phase; targets outside attack range remain in the chase/positioning state until the movement phase owns locomotion.
+
+Still deliberately not implemented in Phase 3B:
+- autonomous movement/navigation;
+- runtime weapon selection;
+- shield/food logic;
+- damage/knockback multiplier application;
+- inventory/reset snapshots;
+- death presentation/drop policy;
+- multi-team relationships;
+- group formation teleport/Fishing Rod control.
+
+The next movement phase must explicitly define the ownership boundary between recorded playback movement and Fight-controlled movement before locomotion code is added.
