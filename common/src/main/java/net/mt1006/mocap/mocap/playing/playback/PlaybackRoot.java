@@ -71,6 +71,8 @@ public class PlaybackRoot implements MocapPlaybackRoot
 
 	public List<Entity> getControlledEntities() { return instance.getControlledEntities(); }
 
+	public void setMovementControlled(boolean controlled) { instance.setMovementControlled(controlled); }
+
 	public void tick()
 	{
 		instance.tick();
