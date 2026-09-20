@@ -548,11 +548,16 @@ public final class FightManager
 				if (entity.distanceToSqr(target) > attackRange * attackRange)
 				{
 					participant.setState(FightParticipant.State.CHASE);
-					FightMovementController.chase(participant, target, definition.getMovementSpeed(), attackRange);
+					boolean moved = FightMovementController.chase(participant, target, definition.getMovementSpeed(), attackRange);
+					if (!moved && participant.getMovementBlockedTicks() >= 8)
+					{
+						FightNavigationController.navigate(participant, target, definition.getMovementSpeed(), attackRange);
+					}
 					continue;
 				}
 
 				participant.setState(FightParticipant.State.POSITION);
+				participant.clearNavigationPath();
 				FightMovementController.faceTarget(entity, target.getX() - entity.getX(), target.getZ() - entity.getZ());
 				if (participant.getAttackCooldownTicks() > 0)
 				{
