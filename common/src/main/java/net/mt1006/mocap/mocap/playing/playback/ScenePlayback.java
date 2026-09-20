@@ -112,6 +112,12 @@ public class ScenePlayback extends Playback
 		return entities;
 	}
 
+	@Override public void setMovementControlled(boolean controlled)
+	{
+		super.setMovementControlled(controlled);
+		for (Playback playback : subscenes) { playback.setMovementControlled(controlled); }
+	}
+
 	@Override public void executeTick()
 	{
 		boolean subscenesInactive = true, subscenesStopped = true;
