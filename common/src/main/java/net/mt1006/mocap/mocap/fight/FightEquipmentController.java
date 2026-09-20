@@ -5,6 +5,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.BowItem;
 
 /**
  * Runtime-only combat equipment decisions for Fight participants.
@@ -37,6 +38,47 @@ public final class FightEquipmentController
 		living.setItemInHand(InteractionHand.MAIN_HAND, offHand.copy());
 		living.setItemInHand(InteractionHand.OFF_HAND, mainHand.copy());
 		return true;
+	}
+
+	/**
+	 * Puts an equipped Bow into the main hand and verifies that the actor can resolve
+	 * compatible ammunition through the normal LivingEntity projectile lookup.
+	 */
+	public static boolean prepareBowAttack(FightParticipant participant)
+	{
+		if (participant == null || !participant.isActive()) { return false; }
+		if (!(participant.getEntity() instanceof LivingEntity living) || !living.isAlive()) { return false; }
+
+		ItemStack mainHand = living.getMainHandItem();
+		if (isUsableBow(living, mainHand)) { return true; }
+
+		ItemStack offHand = living.getOffhandItem();
+		if (!isUsableBow(living, offHand)) { return false; }
+
+		living.setItemInHand(InteractionHand.MAIN_HAND, offHand.copy());
+		living.setItemInHand(InteractionHand.OFF_HAND, mainHand.copy());
+		return true;
+	}
+
+	public static double getRangedRange(FightParticipant participant)
+	{
+		if (participant == null || !(participant.getEntity() instanceof LivingEntity living)) { return 0.0; }
+		ItemStack mainHand = living.getMainHandItem();
+		if (mainHand.getItem() instanceof BowItem bow && !living.getProjectile(mainHand).isEmpty())
+		{
+			return bow.getDefaultProjectileRange();
+		}
+		ItemStack offHand = living.getOffhandItem();
+		if (offHand.getItem() instanceof BowItem bow && !living.getProjectile(offHand).isEmpty())
+		{
+			return bow.getDefaultProjectileRange();
+		}
+		return 0.0;
+	}
+
+	public static boolean isUsableBow(LivingEntity living, ItemStack stack)
+	{
+		return stack.getItem() instanceof BowItem && !living.getProjectile(stack).isEmpty();
 	}
 
 	private static boolean isMeleeWeapon(ItemStack stack, EquipmentSlot slot)
