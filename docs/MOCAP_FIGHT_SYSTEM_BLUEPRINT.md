@@ -1845,3 +1845,30 @@ The feature is complete only when a creator can:
 17. Run the feature without breaking the original MoCap recording/scene/playback system.
 
 **This document remains the master implementation contract until the Fight feature is complete.**
+
+
+## Implementation Progress — Phase 1
+
+Phase 1 establishes the Fight control/data plane without pretending that runtime combat already exists.
+
+Implemented:
+1. Versioned Fight definition model.
+2. Persistent Fight directory and `.mcmocap_fight` files.
+3. Defensive loading: unsupported/malformed Fight files are ignored and logged.
+4. CRUD lifecycle manager.
+5. Runtime active-Fight registry with duplicate-start protection.
+6. Server tick integration.
+7. Server-stop cleanup.
+8. Playback command registration.
+9. Source-scene and target-player configuration primitives.
+
+Not implemented yet:
+- runtime scene-instance ownership/binding;
+- actor snapshots;
+- live target acquisition;
+- navigation/movement;
+- attack/item logic;
+- death/retarget;
+- deterministic reset.
+
+The next phase must inspect and reuse the existing `PlaybackRoot`, `RecordingPlayback`, and `ScenePlayback` entity lifecycle before adding runtime actor ownership. No entity-control code should be guessed or added without that inspection.
