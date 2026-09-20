@@ -1910,7 +1910,7 @@ Fight does not directly create or replace Mocap actors. It asks the existing Pla
 
 Phase 3B establishes the first authoritative runtime combat decision/execution layer on top of the Phase 3A participant and target infrastructure.
 
-Planned/implemented scope for this batch:
+Implemented scope:
 1. Explicit per-participant combat state.
 2. Runtime attack cooldown derived from configured attack speed.
 3. Live target validation before attack execution.
