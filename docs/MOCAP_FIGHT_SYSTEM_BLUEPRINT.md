@@ -1993,3 +1993,37 @@ Recovery contract:
 - recovery displacement never exceeds the same per-tick movement cap as direct chase;
 - recovery is local and deterministic, with no world-wide or distant block search;
 - dimension mismatch and invalid entities still terminate movement for that tick.
+
+## Implementation Progress — Phase 4C
+
+Phase 4C adds a bounded local waypoint navigator after the Phase 4B direct-chase and recovery layers.
+
+Implemented scope for this batch:
+1. Fight participants can own a short-lived navigation waypoint path independently from combat state.
+2. Target changes clear stale navigation state, including the current waypoint/path.
+3. Navigation is only attempted after direct movement/local recovery has remained blocked for a bounded number of ticks.
+4. A bounded A* search evaluates a small horizontal grid around the fighter and stops when it reaches a collision-safe position inside combat range or the best reachable progress point within the search budget.
+5. Candidate nodes use normal entity collision checks and require local block support; unloaded chunks are rejected through a non-loading chunk residency check.
+6. The resulting route is bounded by maximum node count, search radius, path length, and navigation timeout.
+7. Navigation only moves through already-loaded terrain and never places/breaks/replaces blocks, teleports actors, or requests distant chunks.
+8. The navigator feeds waypoints back through the existing Fight movement controller, preserving the Phase 4A/4B movement-ownership boundary.
+9. A failed/expired route falls back to normal CHASE behavior without cancelling target acquisition or combat.
+10. Replanning is throttled and target movement invalidates stale routes.
+
+Deliberately not implemented in Phase 4C:
+- vanilla PathNavigation/Goal integration for Mob entities;
+- jumping, climbing, swimming, doors or ladders;
+- vertical multi-level route planning;
+- formation/spacing logic;
+- weapon selection or item-use behavior;
+- damage/knockback modifiers;
+- inventory/death reset snapshots;
+- group teleport/Fishing Rod control.
+
+Navigation contract:
+- the search is horizontal and bounded; it is not a general-purpose pathfinding engine;
+- only already-loaded chunks are inspected;
+- node collision is checked against the actual actor bounding box;
+- a route never bypasses collision by teleporting;
+- navigation state is runtime-only and never mutates recordings or saved Fight definitions;
+- pathfinding failure is recoverable and returns control to the existing chase/recovery loop.
