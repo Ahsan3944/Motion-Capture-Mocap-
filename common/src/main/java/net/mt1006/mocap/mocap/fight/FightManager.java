@@ -629,14 +629,16 @@ public final class FightManager
 				{
 					throw new IllegalStateException("Entity is already controlled by another Fight: " + entity.getUUID());
 				}
-				FightParticipant participant = new FightParticipant(idPrefix + "-" + i, entity, side, teamId);
-				participant.captureEquipmentSnapshot();
-				participants.add(participant);
+				participants.add(new FightParticipant(idPrefix + "-" + i, entity, side, teamId));
 			}
 		}
 
 		private void takeEquipmentOwnership()
 		{
+			// Execute the first playback tick before suppressing ChangeItem so each participant
+			// captures the recording's initialized equipment rather than an empty spawn state.
+			for (MocapPlaybackRoot root : playbackRoots) { root.tick(); }
+			for (FightParticipant participant : participants) { participant.captureEquipmentSnapshot(); }
 			for (MocapPlaybackRoot root : playbackRoots)
 			{
 				if (root instanceof PlaybackRoot playbackRoot) { playbackRoot.setEquipmentControlled(true); }
