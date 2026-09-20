@@ -2095,3 +2095,27 @@ Fishing Rod control contract:
 - the selected group remains limited to active runtime participants already owned by the Fight;
 - successful movement remains subject to Phase 5A atomic safety validation.
 
+## Implementation Progress — Phase 5C
+
+Phase 5C exposes the existing Fight group-control runtime through the existing /mocap playback fight command layer.
+
+Implemented scope:
+1. control rod arm <fight> <side> arms the already implemented runtime Fishing Rod destination controller for the command source player.
+2. control rod disarm removes that player's runtime rod binding.
+3. control group teleport <fight> <side> <x> <y> <z> invokes the same Phase 5A atomic group-teleport boundary directly.
+4. Commands require a real server player where player-bound control is required; console sources cannot arm/disarm a player's rod binding.
+5. Fight must already be running before a rod binding or runtime group teleport is accepted.
+6. Side is explicit (SOURCE or TARGET); no implicit team inference is introduced.
+7. Coordinates are interpreted in the running Fight's participant dimension. This phase does not perform cross-dimension transfer.
+8. Command execution never mutates Fight definitions, recordings, or persistent control bindings.
+9. The command layer does not duplicate formation/collision logic; all movement delegates to FightManager and the existing FightGroupController.
+10. Invalid fight IDs, sides, non-running fights, non-player sources, invalid numeric values, unsafe destinations, and empty/inactive groups fail without partial movement.
+
+Deliberately not implemented in Phase 5C:
+- persistent command/UI control bindings;
+- graphical configuration UI;
+- team/faction definition persistence;
+- weapon/ranged/shield/food behavior;
+- combat inventory snapshots;
+- death/reset snapshot completion.
+
