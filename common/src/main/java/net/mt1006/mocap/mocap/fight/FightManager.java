@@ -669,7 +669,6 @@ public final class FightManager
 					continue;
 				}
 
-				participant.restoreEquipmentSnapshot();
 				participant.tickAttackCooldown();
 				Entity target = FightTargetSelector.select(participant, definition.getTargetMode(), participants,
 						definition, server, definition.getDetectionRange());
@@ -726,6 +725,7 @@ public final class FightManager
 				}
 
 				participant.setState(FightParticipant.State.ATTACK);
+				FightEquipmentController.prepareMeleeAttack(participant);
 				Swing.attackTarget(attacker, target, (net.minecraft.server.level.ServerLevel)entity.level());
 				participant.setAttackCooldownTicks(calculateAttackCooldown(definition.getAttackSpeed()));
 			}
