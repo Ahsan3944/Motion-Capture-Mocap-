@@ -225,12 +225,31 @@ The runtime Fight System is being implemented incrementally on top of the existi
 - Added Fight runtime ticking and server-stop cleanup hooks.
 - Added duplicate-start protection and runtime isolation scaffolding.
 
-### Phase 1 intentionally does not yet provide
-- Runtime fighter binding.
-- Live target acquisition.
-- Autonomous movement/navigation.
-- Runtime attack execution.
-- Weapon/item switching.
-- Death/retarget/reset snapshots.
+### Phase 2 completed
+- Reused the existing PlaybackRoot, RecordingPlayback and ScenePlayback entity lifecycle.
+- Bound Fight runtime ownership to playback-created actors.
+- Added independent playback configuration per Fight source.
+- Added damageable Fight playback state.
+- Added rollback of partially initialized Fight playback roots.
+- Added cleanup of owned playback roots on stop/reset/server shutdown.
 
-Those systems are the next implementation phases and will reuse the existing Recording, Scene and Playback systems rather than replacing them.
+### Phase 3 completed
+- Added independent runtime Fight participants for controlled living actors.
+- Added source/target side isolation.
+- Added entity ownership protection across simultaneous Fights.
+- Added live target acquisition with nearest/current/lowest-health/fixed selection modes.
+- Added target-scene playback roots for Scene-vs-Scene / Mocap-vs-Mocap setups.
+- Added persisted target/combat configuration setters for power, attack speed/range, detection range, movement speed, damage and knockback multipliers.
+- Revalidates live targets every runtime tick without scanning the full world.
+
+### Phase 3 intentionally does not yet provide
+- Autonomous movement/navigation.
+- Runtime attack execution and hit validation.
+- Weapon/item switching.
+- Full combat state machine.
+- Health/inventory/armor reset snapshots.
+- Death presentation/drop policy.
+- Multi-team relationship configuration beyond source/target sides.
+- Group formation teleport and Fishing Rod destination control.
+
+These systems will continue to reuse the existing Recording, Scene and Playback systems rather than replacing them.
