@@ -1,6 +1,7 @@
 package net.mt1006.mocap.mocap.playing.playback;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.mt1006.mocap.api.v1.controller.config.MocapPlaybackConfig;
 import net.mt1006.mocap.api.v1.controller.playable.*;
@@ -102,6 +103,13 @@ public class ScenePlayback extends Playback
 		if (sceneStartPos == null) { return null; }
 
 		return new PositionTransformer(transformations, parent, sceneStartPos);
+	}
+
+	@Override public List<Entity> getControlledEntities()
+	{
+		List<Entity> entities = new ArrayList<>();
+		for (Playback playback : subscenes) { entities.addAll(playback.getControlledEntities()); }
+		return entities;
 	}
 
 	@Override public void executeTick()
