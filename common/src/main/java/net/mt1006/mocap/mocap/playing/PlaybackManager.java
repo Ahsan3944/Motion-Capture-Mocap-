@@ -11,6 +11,7 @@ import net.mt1006.mocap.command.CommandsContext;
 import net.mt1006.mocap.command.io.FullCommandInfo;
 import net.mt1006.mocap.mocap.files.SceneData;
 import net.mt1006.mocap.mocap.files.SceneFiles;
+import net.mt1006.mocap.mocap.fight.FightManager;
 import net.mt1006.mocap.mocap.playing.modifiers.PlaybackModifiers;
 import net.mt1006.mocap.mocap.playing.playable.Playable;
 import net.mt1006.mocap.mocap.playing.playback.Playback;
@@ -102,6 +103,7 @@ public class PlaybackManager
 
 	public static void onServerStop()
 	{
+		FightManager.stopAll();
 		PlaybackManager.stopAll(CommandOutput.DUMMY, null);
 
 		// normally it would be cleared on server tick, but there will be no more ticks
@@ -176,6 +178,7 @@ public class PlaybackManager
 
 	public static void onTick()
 	{
+		FightManager.tick();
 		if (playbacks.isEmpty())
 		{
 			tickCounter++;
