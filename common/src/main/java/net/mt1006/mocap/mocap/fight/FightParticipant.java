@@ -42,6 +42,7 @@ public final class FightParticipant
 	private int attackCooldownTicks = 0;
 	private int crossbowChargeTicks = 0;
 	private int shieldBlockTicks = 0;
+	private int foodCooldownTicks = 0;
 	private int movementBlockedTicks = 0;
 	private int movementRecoveryDirection = 1;
 	private List<Vec3> navigationWaypoints = List.of();
@@ -190,6 +191,15 @@ public final class FightParticipant
 	public int getShieldBlockTicks() { return shieldBlockTicks; }
 	public void setShieldBlockTicks(int ticks) { shieldBlockTicks = Math.max(0, ticks); }
 	public void clearShieldBlock() { shieldBlockTicks = 0; }
+	public int getFoodCooldownTicks() { return foodCooldownTicks; }
+	public void setFoodCooldownTicks(int ticks) { foodCooldownTicks = Math.max(0, ticks); }
+	public boolean tickFoodCooldown()
+	{
+		if (foodCooldownTicks <= 0) { return true; }
+		foodCooldownTicks--;
+		return foodCooldownTicks == 0;
+	}
+
 
 	public boolean tickAttackCooldown()
 	{
@@ -213,6 +223,7 @@ public final class FightParticipant
 		attackCooldownTicks = 0;
 		crossbowChargeTicks = 0;
 		shieldBlockTicks = 0;
+		foodCooldownTicks = 0;
 		movementBlockedTicks = 0;
 		movementRecoveryDirection = 1;
 		navigationStallTicks = 0;
