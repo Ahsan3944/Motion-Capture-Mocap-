@@ -114,7 +114,7 @@ public final class FightCommand
 											.suggests(FightCommand::suggestions)
 											.then(Commands.argument("player", StringArgumentType.word())
 													.then(Commands.argument("team", StringArgumentType.word())
-															.executes(CommandUtils.command(FightCommand::setTargetPlayerTeam)))))
+															.executes(CommandUtils.command(FightCommand::setTargetPlayerTeam)))))))))
 				.then(Commands.literal("start")
 						.then(Commands.argument("name", StringArgumentType.word())
 								.suggests(FightCommand::suggestions)
