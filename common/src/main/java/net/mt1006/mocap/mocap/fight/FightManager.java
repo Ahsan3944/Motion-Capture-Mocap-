@@ -8,6 +8,7 @@ import net.mt1006.mocap.api.v1.controller.config.MocapPlaybackConfig;
 import net.mt1006.mocap.api.v1.controller.playable.MocapPlayable;
 import net.minecraft.world.entity.Entity;
 import net.mt1006.mocap.mocap.files.Files;
+import net.mt1006.mocap.mocap.playing.playback.PlaybackRoot;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -334,16 +335,18 @@ public final class FightManager
 		private FightRuntime(FightDefinition definition, CommandInfo info)
 		{
 			this.id = definition.getId();
-			MocapPlaybackConfig config = MocapPlaybackConfig.createFromSettings();
-			config.setInvulnerablePlayback(false);
+			MocapPlaybackConfig baseConfig = MocapPlaybackConfig.createFromSettings();
+			baseConfig.setInvulnerablePlayback(false);
 			for (String source : definition.getSourceScenes())
 			{
 				MocapPlayable playable = MocapPlayable.get(info, source);
 				if (playable == null) { throw new IllegalArgumentException("Unknown source: " + source); }
+				MocapPlaybackConfig config = baseConfig.copy();
 				MocapPlaybackRoot root = playable.startPlayback(info, net.mt1006.mocap.api.v1.modifiers.MocapModifiers.DEFAULT, config, true);
 				if (root == null) { throw new IllegalStateException("Playback failed: " + source); }
 				playbackRoots.add(root);
-				actors.addAll(root.getControlledEntities());
+				if (root instanceof PlaybackRoot playbackRoot) { actors.addAll(playbackRoot.getControlledEntities()); }
+				else { throw new IllegalStateException("Unsupported playback root implementation."); }
 			}
 		}
 
