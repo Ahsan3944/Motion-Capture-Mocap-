@@ -692,6 +692,27 @@ public final class FightManager
 						continue;
 					}
 
+					if (entity instanceof LivingEntity living && living.getMainHandItem().getItem() instanceof net.minecraft.world.item.CrossbowItem)
+					{
+						participant.setState(FightParticipant.State.ATTACK);
+						boolean fired = FightRangedController.tickCrossbow(participant);
+						if (fired)
+						{
+							participant.setAttackCooldownTicks(calculateAttackCooldown(definition.getAttackSpeed()));
+						}
+						else if (participant.getCrossbowChargeTicks() > 0
+								|| (living.getMainHandItem().getItem() instanceof net.minecraft.world.item.CrossbowItem
+								&& net.minecraft.world.item.CrossbowItem.isCharged(living.getMainHandItem())))
+						{
+							// The Crossbow is still in its authoritative load/charged lifecycle.
+						}
+						else
+						{
+							participant.setState(FightParticipant.State.CHASE);
+						}
+						continue;
+					}
+
 					participant.setState(FightParticipant.State.ATTACK);
 					if (FightRangedController.fireBow(participant))
 					{
