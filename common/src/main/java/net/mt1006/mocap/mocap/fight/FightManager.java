@@ -357,7 +357,7 @@ public final class FightManager
 				MocapPlayable playable = MocapPlayable.get(info, source);
 				if (playable == null) { throw new IllegalArgumentException("Unknown source: " + source); }
 				MocapPlaybackConfig config = baseConfig.copy();
-				MocapPlaybackRoot root = playable.startPlayback(info, net.mt1006.mocap.api.v1.modifiers.MocapModifiers.DEFAULT, config, true);
+				MocapPlaybackRoot root = playable.startPlayback(info, net.mt1006.mocap.api.v1.modifiers.MocapModifiers.empty(), config, true);
 				if (root == null) { throw new IllegalStateException("Playback failed: " + source); }
 				playbackRoots.add(root);
 				if (root instanceof PlaybackRoot playbackRoot) { actors.addAll(playbackRoot.getControlledEntities()); }
