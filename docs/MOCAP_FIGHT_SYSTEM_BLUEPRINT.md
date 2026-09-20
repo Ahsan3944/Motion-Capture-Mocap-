@@ -2274,3 +2274,32 @@ Deliberately not implemented in Phase 6E:
 - food/consumables;
 - runtime loadout persistence.
 
+## Implementation Progress — Phase 6F
+
+Phase 6F adds defensive Shield behavior using the existing Minecraft item-use/blocking lifecycle.
+
+Pre-implementation checks:
+1. Repository search found no existing Fight shield controller or item-use runtime layer, so the implementation is isolated to the existing Fight equipment/runtime controllers.
+2. Minecraft 26.1 API verification confirms LivingEntity exposes isBlocking, getItemBlockingWith, startUsingItem, stopUsingItem and related active-item state; ShieldItem provides the normal use/getUseDuration lifecycle. citeturn0search0turn1search1
+3. The Fight system already suppresses recorded ChangeItem actions while equipment ownership is active, so runtime shield use can remain isolated without modifying the source recording.
+
+Implemented scope:
+1. A Shield is considered available only from the participant's represented main/off-hand equipment.
+2. Off-hand Shield is preferred for defensive use; main-hand Shield is also supported without creating or searching inventory items.
+3. Defensive behavior activates only when a valid live target is close enough to represent melee pressure.
+4. The participant faces the live target before entering defensive use.
+5. Shield activation uses ShieldItem.use and the normal LivingEntity active-item/blocking state.
+6. While the defensive condition remains valid, the participant stays in USE_ITEM and keeps the Shield active.
+7. When the condition becomes invalid, the participant calls stopUsingItem and returns to normal combat decision flow.
+8. Shield state is runtime-only and is not serialized into Fight definitions or recordings.
+9. No synthetic shield, durability repair, inventory generation, or custom damage interception is introduced.
+
+Deliberately not implemented in Phase 6F:
+- custom shield damage absorption;
+- custom shield timing/angles;
+- shield-bash attacks;
+- automatic shield swapping from hidden inventory;
+- projectile-specific defensive prediction;
+- food/consumables;
+- ranged damage/knockback modifiers.
+
