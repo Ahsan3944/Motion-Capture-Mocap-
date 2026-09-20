@@ -2027,3 +2027,39 @@ Navigation contract:
 - a route never bypasses collision by teleporting;
 - navigation state is runtime-only and never mutates recordings or saved Fight definitions;
 - pathfinding failure is recoverable and returns control to the existing chase/recovery loop.
+
+## Implementation Progress — Phase 5A
+
+Phase 5A establishes the first safe Group Controls layer: explicit runtime group selection and atomic formation teleport.
+
+Implemented scope for this batch:
+1. A Fight runtime can select a group from its existing runtime participants by side without creating new entities.
+2. Group teleport is a runtime control operation and does not modify saved Fight definitions or source recordings.
+3. Formation slots are deterministic and generated around the requested destination with bounded spacing.
+4. Every destination slot is validated before any participant is moved.
+5. Destination validation checks:
+   - same server dimension;
+   - loaded chunks only;
+   - actual participant bounding-box collision;
+   - supporting block beneath the destination;
+   - no invalid/dead participant.
+6. If any required slot is unsafe, the entire teleport operation is rejected and no participant is moved.
+7. Successful teleport applies the formation positions atomically and clears stale navigation/recovery state for the affected participants.
+8. Participants face the formation center after teleport.
+9. Group teleport never places/breaks blocks, loads distant chunks, or transfers a participant between dimensions.
+10. Formation spacing is bounded to prevent unreasonably large group layouts.
+
+Deliberately not implemented in Phase 5A:
+- Fishing Rod destination control;
+- command/UI exposure for group selection;
+- persistent formation configuration;
+- dynamic combat spacing during active combat;
+- cross-dimension teleport;
+- item/weapon behavior.
+
+Group-control contract:
+- group selection operates only on runtime participants already owned by the Fight;
+- teleport is all-or-nothing;
+- formation placement is collision-aware and support-aware;
+- no saved recording or Fight configuration is mutated by the operation;
+- later Fishing Rod/command layers must call this same group-control boundary rather than implementing separate teleport logic.
