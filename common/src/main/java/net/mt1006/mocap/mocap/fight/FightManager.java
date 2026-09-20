@@ -500,6 +500,7 @@ public final class FightManager
 				throw new IllegalStateException("Unsupported playback root implementation.");
 			}
 
+			playbackRoot.setMovementControlled(true);
 			List<Entity> entities = playbackRoot.getControlledEntities();
 			for (int i = 0; i < entities.size(); i++)
 			{
@@ -547,9 +548,12 @@ public final class FightManager
 				if (entity.distanceToSqr(target) > attackRange * attackRange)
 				{
 					participant.setState(FightParticipant.State.CHASE);
+					FightMovementController.chase(entity, target, definition.getMovementSpeed(), attackRange);
 					continue;
 				}
 
+				participant.setState(FightParticipant.State.POSITION);
+				FightMovementController.faceTarget(entity, target.getX() - entity.getX(), target.getZ() - entity.getZ());
 				if (participant.getAttackCooldownTicks() > 0)
 				{
 					participant.setState(FightParticipant.State.RECOVER);
@@ -586,6 +590,7 @@ public final class FightManager
 
 			for (MocapPlaybackRoot root : playbackRoots)
 			{
+				if (root instanceof PlaybackRoot playbackRoot) { playbackRoot.setMovementControlled(false); }
 				try { root.stop(); }
 				catch (Exception e) { MocapMod.LOGGER.error("Failed to stop Fight playback root '{}'.", id, e); }
 			}
