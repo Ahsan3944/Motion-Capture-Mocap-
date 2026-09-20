@@ -792,7 +792,8 @@ public final class FightManager
 
 				participant.setState(FightParticipant.State.ATTACK);
 				FightEquipmentController.prepareMeleeAttack(participant);
-				Swing.attackTarget(attacker, target, (net.minecraft.server.level.ServerLevel)entity.level());
+				Swing.attackTarget(attacker, target, (net.minecraft.server.level.ServerLevel)entity.level(),
+						definition.getDamageMultiplier(), definition.getKnockbackMultiplier());
 				participant.setAttackCooldownTicks(calculateAttackCooldown(definition.getAttackSpeed()));
 			}
 		}
