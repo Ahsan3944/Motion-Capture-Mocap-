@@ -1,6 +1,10 @@
 package net.mt1006.mocap.mocap.playing.playback;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+
+import java.util.Collections;
+import java.util.List;
 import net.mt1006.mocap.api.v1.controller.config.MocapPlaybackConfig;
 import net.mt1006.mocap.api.v1.modifiers.MocapModifiers;
 import net.mt1006.mocap.api.v1.modifiers.MocapTimeModifiers;
@@ -28,6 +32,9 @@ public abstract class Playback
 		this.config = config;
 		this.modifiers = modifiers;
 	}
+
+	/** Runtime-controlled entities owned by this playback instance. */
+	public List<Entity> getControlledEntities() { return Collections.emptyList(); }
 
 	public void tick()
 	{
