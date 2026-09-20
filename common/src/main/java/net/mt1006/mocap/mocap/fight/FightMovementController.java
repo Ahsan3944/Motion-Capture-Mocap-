@@ -38,16 +38,35 @@ public final class FightMovementController
 			return false;
 		}
 
+		return moveToward(participant, new Vec3(target.getX(), actor.getY(), target.getZ()), movementSpeed, stopDistance);
+	}
+
+	public static boolean moveToward(FightParticipant participant, Vec3 destination, double movementSpeed, double stopDistance)
+	{
+		Entity actor = participant.getEntity();
+		if (!actor.isAlive()) { return false; }
+
+		double dx = destination.x - actor.getX();
+		double dz = destination.z - actor.getZ();
+		double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+		if (!Double.isFinite(horizontalDistance)) { return false; }
+		if (horizontalDistance <= Math.max(0.0, stopDistance))
+		{
+			participant.resetMovementBlockedTicks();
+			return true;
+		}
+		if (horizontalDistance <= MIN_SUCCESSFUL_MOVE) { return false; }
+
 		faceTarget(actor, dx, dz);
 
 		double speedPerTick = Math.max(0.0, Math.min(movementSpeed / TICKS_PER_SECOND, MAX_BLOCKS_PER_TICK));
 		if (speedPerTick == 0.0) { participant.resetMovementBlockedTicks(); return false; }
 
-		double distanceToMove = Math.min(speedPerTick, horizontalDistance - Math.min(stopDistance, horizontalDistance));
+		double distanceToMove = Math.min(speedPerTick, horizontalDistance - Math.min(Math.max(0.0, stopDistance), horizontalDistance));
 		if (distanceToMove <= 0.0) { return false; }
 
 		if (tryMove(actor, new Vec3(dx / horizontalDistance * distanceToMove, 0.0,
-				dz / horizontalDistance * distanceToMove), distanceToMove))
+			dz / horizontalDistance * distanceToMove), distanceToMove))
 		{
 			participant.resetMovementBlockedTicks();
 			return true;
