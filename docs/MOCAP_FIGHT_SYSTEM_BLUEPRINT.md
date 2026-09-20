@@ -2143,3 +2143,37 @@ Deliberately not implemented in Phase 6A:
 - ranged/shield/food behavior;
 - inventory snapshot/reset completion.
 
+## Implementation Progress — Phase 6B
+
+Phase 6B establishes Fight-owned runtime combat equipment without inventing a full inventory container that the current MoCap recording format does not provide.
+
+Repository audit findings:
+1. Existing recordings persist combat-visible equipment through ChangeItem: main hand, off hand, feet, legs, chest, head, body and saddle.
+2. The recording format does not currently persist the player's complete inventory/hotbar as a Fight-addressable container.
+3. During normal playback ChangeItem may continue to replay recorded equipment changes, so Fight combat ownership needs an explicit suppression boundary just like movement ownership.
+4. FakePlayer is a ServerPlayer and therefore can use vanilla attack mechanics with its currently equipped main-hand item.
+
+Implemented scope:
+1. Fight playback explicitly owns combat equipment while a Fight is active.
+2. Recording ChangeItem actions are suppressed only while Fight equipment ownership is active; unrelated state/actions continue to replay.
+3. Each Fight participant captures a private runtime equipment snapshot from its spawned actor after recording initialization.
+4. Snapshot covers all eight slots already supported by ChangeItem and stores copied ItemStacks, never references into recording data.
+5. The participant can restore its Fight-owned equipment snapshot idempotently.
+6. Initial weapon selection is intentionally limited to the recorded/equipped main-hand and off-hand items because the current recording format exposes no complete inventory pool.
+7. Melee selection prefers a non-empty hand whose item exposes positive ATTACK_DAMAGE through the actor's equipped state; otherwise it preserves the recorded main-hand choice.
+8. Fight-owned equipment is restored before combat decisions if playback or another runtime action changes a controlled slot.
+9. Stop/reset releases equipment ownership before normal playback teardown; the source recording is never mutated.
+10. No battlefield pickup, loot transfer, generated item, or external inventory injection is introduced.
+
+Deliberately not implemented in Phase 6B:
+- synthetic full inventory/hotbar persistence;
+- ranged ammunition management;
+- shield timing;
+- food consumption;
+- battlefield pickup/loot;
+- death-drop suppression;
+- damage/knockback multiplier application;
+- persistent custom loadouts.
+
+A later full-inventory phase must extend the recording/runtime data model explicitly rather than pretending ChangeItem contains slots that it does not record.
+
