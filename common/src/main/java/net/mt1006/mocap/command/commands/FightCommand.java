@@ -93,7 +93,28 @@ public final class FightCommand
 						.then(Commands.literal("clear_targets")
 								.then(Commands.argument("name", StringArgumentType.word())
 										.suggests(FightCommand::suggestions)
-										.executes(CommandUtils.command(FightCommand::clearTargets)))))
+										.executes(CommandUtils.command(FightCommand::clearTargets))))
+						.then(Commands.literal("team")
+								.then(Commands.literal("source_scene")
+										.then(Commands.argument("name", StringArgumentType.word())
+												.suggests(FightCommand::suggestions)
+												.then(Commands.argument("scene", StringArgumentType.string())
+														.suggests(CommandSuggestions::scene)
+														.then(Commands.argument("team", StringArgumentType.word())
+																.executes(CommandUtils.command(FightCommand::setSourceSceneTeam))))))
+							.then(Commands.literal("target_scene")
+									.then(Commands.argument("name", StringArgumentType.word())
+											.suggests(FightCommand::suggestions)
+											.then(Commands.argument("scene", StringArgumentType.string())
+													.suggests(CommandSuggestions::scene)
+													.then(Commands.argument("team", StringArgumentType.word())
+														.executes(CommandUtils.command(FightCommand::setTargetSceneTeam)))))
+							.then(Commands.literal("target_player")
+									.then(Commands.argument("name", StringArgumentType.word())
+											.suggests(FightCommand::suggestions)
+											.then(Commands.argument("player", StringArgumentType.word())
+													.then(Commands.argument("team", StringArgumentType.word())
+															.executes(CommandUtils.command(FightCommand::setTargetPlayerTeam)))))
 				.then(Commands.literal("start")
 						.then(Commands.argument("name", StringArgumentType.word())
 								.suggests(FightCommand::suggestions)
@@ -168,6 +189,21 @@ public final class FightCommand
 	private static boolean setTargetScene(FullCommandInfo info)
 	{
 		return FightManager.setTargetScene(info, info.getString("name"), info.getString("scene"));
+	}
+
+	private static boolean setSourceSceneTeam(FullCommandInfo info)
+	{
+		return FightManager.setSourceSceneTeam(info, info.getString("name"), info.getString("scene"), info.getString("team"));
+	}
+
+	private static boolean setTargetSceneTeam(FullCommandInfo info)
+	{
+		return FightManager.setTargetSceneTeam(info, info.getString("name"), info.getString("scene"), info.getString("team"));
+	}
+
+	private static boolean setTargetPlayerTeam(FullCommandInfo info)
+	{
+		return FightManager.setTargetPlayerTeam(info, info.getString("name"), info.getString("player"), info.getString("team"));
 	}
 
 	private static boolean setTargetMode(FullCommandInfo info)
