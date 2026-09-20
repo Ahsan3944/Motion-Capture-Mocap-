@@ -7,12 +7,14 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.world.phys.Vec3;
 import net.mt1006.mocap.api.v1.io.CommandInfo;
 import net.mt1006.mocap.command.CommandSuggestions;
 import net.mt1006.mocap.command.CommandUtils;
 import net.mt1006.mocap.command.io.FullCommandInfo;
 import net.mt1006.mocap.mocap.fight.FightDefinition;
 import net.mt1006.mocap.mocap.fight.FightManager;
+import net.mt1006.mocap.mocap.fight.FightParticipant;
 
 public final class FightCommand
 {
@@ -107,8 +109,28 @@ public final class FightCommand
 				.then(Commands.literal("remove")
 						.then(Commands.argument("name", StringArgumentType.word())
 								.suggests(FightCommand::suggestions)
-								.executes(CommandUtils.command(FightCommand::remove)))));
-	}
+								.executes(CommandUtils.command(FightCommand::remove))))
+				.then(Commands.literal("control")
+						.then(Commands.literal("rod")
+							.then(Commands.literal("arm")
+									.then(Commands.argument("name", StringArgumentType.word())
+											.suggests(FightCommand::suggestions)
+											.then(Commands.argument("side", StringArgumentType.word())
+													.suggests(FightCommand::sideSuggestions)
+													.executes(CommandUtils.command(FightCommand::armRod)))))
+							.then(Commands.literal("disarm")
+								.executes(CommandUtils.command(FightCommand::disarmRod))))
+						.then(Commands.literal("group")
+								.then(Commands.literal("teleport")
+										.then(Commands.argument("name", StringArgumentType.word())
+												.suggests(FightCommand::suggestions)
+												.then(Commands.argument("side", StringArgumentType.word())
+														.suggests(FightCommand::sideSuggestions)
+														.then(Commands.argument("x", DoubleArgumentType.doubleArg())
+															.then(Commands.argument("y", DoubleArgumentType.doubleArg())
+																.then(Commands.argument("z", DoubleArgumentType.doubleArg())
+																	.executes(CommandUtils.command(FightCommand::teleportGroup)))))))))
+		}
 
 	private static boolean list(CommandInfo info)
 	{
@@ -210,6 +232,45 @@ public final class FightCommand
 	private static boolean remove(FullCommandInfo info)
 	{
 		return FightManager.remove(info, info.getString("name"));
+	}
+
+	private static boolean armRod(FullCommandInfo info)
+	{
+		return FightManager.armFishingRod(info, info.getString("name"), parseSide(info));
+	}
+
+	private static boolean disarmRod(FullCommandInfo info)
+	{
+		return FightManager.disarmFishingRod(info);
+	}
+
+	private static boolean teleportGroup(FullCommandInfo info)
+	{
+		Vec3 destination = new Vec3(info.getDouble("x"), info.getDouble("y"), info.getDouble("z"));
+		return FightManager.teleportGroup(info, info.getString("name"), parseSide(info), destination);
+	}
+
+	private static FightParticipant.Side parseSide(FullCommandInfo info)
+	{
+		String value = info.getString("side");
+		try
+		{
+			return FightParticipant.Side.valueOf(value.toUpperCase(java.util.Locale.ROOT));
+		}
+		catch (IllegalArgumentException e)
+		{
+			info.sendFailure("Unknown Fight side: " + value + ". Use SOURCE or TARGET.");
+			return null;
+		}
+	}
+
+	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> sideSuggestions(
+			com.mojang.brigadier.context.CommandContext<?> ctx,
+			com.mojang.brigadier.suggestion.SuggestionsBuilder builder)
+	{
+		builder.suggest("SOURCE");
+		builder.suggest("TARGET");
+		return builder.buildFuture();
 	}
 
 	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestions(
