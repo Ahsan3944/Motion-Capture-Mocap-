@@ -570,6 +570,7 @@ public final class FightManager
 				startSources(definition, info, baseConfig);
 				startTargets(definition, info, baseConfig);
 				if (participants.isEmpty()) { throw new IllegalStateException("Fight created no runtime participants."); }
+				takeEquipmentOwnership();
 			}
 			catch (RuntimeException e)
 			{
@@ -628,7 +629,17 @@ public final class FightManager
 				{
 					throw new IllegalStateException("Entity is already controlled by another Fight: " + entity.getUUID());
 				}
-				participants.add(new FightParticipant(idPrefix + "-" + i, entity, side, teamId));
+				FightParticipant participant = new FightParticipant(idPrefix + "-" + i, entity, side, teamId);
+				participant.captureEquipmentSnapshot();
+				participants.add(participant);
+			}
+		}
+
+		private void takeEquipmentOwnership()
+		{
+			for (MocapPlaybackRoot root : playbackRoots)
+			{
+				if (root instanceof PlaybackRoot playbackRoot) { playbackRoot.setEquipmentControlled(true); }
 			}
 		}
 
@@ -653,6 +664,7 @@ public final class FightManager
 					continue;
 				}
 
+				participant.restoreEquipmentSnapshot();
 				participant.tickAttackCooldown();
 				Entity target = FightTargetSelector.select(participant, definition.getTargetMode(), participants,
 						definition, server, definition.getDetectionRange());
@@ -731,7 +743,11 @@ public final class FightManager
 
 			for (MocapPlaybackRoot root : playbackRoots)
 			{
-				if (root instanceof PlaybackRoot playbackRoot) { playbackRoot.setMovementControlled(false); }
+				if (root instanceof PlaybackRoot playbackRoot)
+				{
+					playbackRoot.setEquipmentControlled(false);
+					playbackRoot.setMovementControlled(false);
+				}
 				try { root.stop(); }
 				catch (Exception e) { MocapMod.LOGGER.error("Failed to stop Fight playback root '{}'.", id, e); }
 			}
