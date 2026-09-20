@@ -138,7 +138,7 @@ public final class FightCommand
 															.then(Commands.argument("y", DoubleArgumentType.doubleArg())
 																.then(Commands.argument("z", DoubleArgumentType.doubleArg())
 																	.executes(CommandUtils.command(FightCommand::teleportGroup)))))))))
-				))));
+				));
 	}
 
 	private static boolean list(CommandInfo info)
