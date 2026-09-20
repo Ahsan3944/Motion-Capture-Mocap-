@@ -117,17 +117,17 @@ public final class FightDefinition
 
 	public boolean setSourceSceneTeam(String scene, String team)
 	{
-		return setTeam(sourceScenes, sourceSceneTeams, scene, team);
+		return setTeam(sourceScenes, sourceSceneTeams, scene, team, "SOURCE");
 	}
 
 	public boolean setTargetSceneTeam(String scene, String team)
 	{
-		return setTeam(targetScenes, targetSceneTeams, scene, team);
+		return setTeam(targetScenes, targetSceneTeams, scene, team, "TARGET");
 	}
 
 	public boolean setTargetPlayerTeam(String player, String team)
 	{
-		return setTeam(targetPlayers, targetPlayerTeams, player, team);
+		return setTeam(targetPlayers, targetPlayerTeams, player, team, "TARGET");
 	}
 
 	public void setSourceSceneTeams(List<String> values)
@@ -145,12 +145,12 @@ public final class FightDefinition
 		setTeams(targetPlayers, targetPlayerTeams, values, "TARGET");
 	}
 
-	private static boolean setTeam(List<String> references, List<String> teams, String reference, String team)
+	private static boolean setTeam(List<String> references, List<String> teams, String reference, String team, String fallback)
 	{
 		if (reference == null || team == null || !isValidTeamId(team)) { return false; }
 		int index = references.indexOf(reference);
 		if (index < 0) { return false; }
-		while (teams.size() < references.size()) { teams.add(defaultTeam(references, teams.size())); }
+		while (teams.size() < references.size()) { teams.add(fallback); }
 		teams.set(index, team);
 		return true;
 	}
