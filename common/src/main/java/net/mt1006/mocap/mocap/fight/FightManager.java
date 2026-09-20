@@ -637,7 +637,10 @@ public final class FightManager
 		{
 			// Execute the first playback tick before suppressing ChangeItem so each participant
 			// captures the recording's initialized equipment rather than an empty spawn state.
-			for (MocapPlaybackRoot root : playbackRoots) { root.tick(); }
+			for (MocapPlaybackRoot root : playbackRoots)
+			{
+				if (root instanceof PlaybackRoot playbackRoot) { playbackRoot.tick(); }
+			}
 			for (FightParticipant participant : participants) { participant.captureEquipmentSnapshot(); }
 			for (MocapPlaybackRoot root : playbackRoots)
 			{
