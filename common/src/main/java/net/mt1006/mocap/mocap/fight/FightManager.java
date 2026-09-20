@@ -88,6 +88,36 @@ public final class FightManager
 		return out.sendSuccessLiteral("Removed Fight '%s'.", id);
 	}
 
+	public static boolean setSourceScene(CommandOutput out, String id, String scene)
+	{
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (scene == null || scene.isBlank()) { return out.sendFailure("Source scene cannot be empty."); }
+		List<String> scenes = new ArrayList<>(definition.getSourceScenes());
+		if (!scenes.contains(scene)) { scenes.add(scene); }
+		definition.setSourceScenes(scenes);
+		return save(definition) && out.sendSuccessLiteral("Added source scene '%s' to Fight '%s'.", scene, id);
+	}
+
+	public static boolean setTargetPlayer(CommandOutput out, String id, String player)
+	{
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		List<String> players = new ArrayList<>(definition.getTargetPlayers());
+		if (!players.contains(player)) { players.add(player); }
+		definition.setTargetPlayers(players);
+		return save(definition) && out.sendSuccessLiteral("Added target player '%s' to Fight '%s'.", player, id);
+	}
+
+	public static boolean clearTargets(CommandOutput out, String id)
+	{
+		FightDefinition definition = definitions.get(id);
+		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		definition.setTargetPlayers(List.of());
+		definition.setTargetScenes(List.of());
+		return save(definition) && out.sendSuccessLiteral("Cleared targets for Fight '%s'.", id);
+	}
+
 	public static boolean start(CommandOutput out, String id)
 	{
 		ensureLoaded();
