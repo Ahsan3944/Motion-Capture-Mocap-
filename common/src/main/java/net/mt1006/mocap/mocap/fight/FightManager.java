@@ -9,6 +9,7 @@ import net.mt1006.mocap.api.v1.controller.playable.MocapPlayable;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 import net.mt1006.mocap.mocap.files.Files;
 import net.mt1006.mocap.mocap.actions.Swing;
 import net.mt1006.mocap.mocap.playing.playback.PlaybackRoot;
@@ -67,7 +68,7 @@ public final class FightManager
 		return definitions.get(id);
 	}
 
-	public static boolean teleportGroup(String id, FightParticipant.Side side, net.minecraft.world.phys.Vec3 destination)
+	public static boolean teleportGroup(String id, FightParticipant.Side side, Vec3 destination)
 	{
 		FightRuntime runtime = active.get(id);
 		if (runtime == null) { return false; }
@@ -527,7 +528,7 @@ public final class FightManager
 
 		private boolean isEmpty() { return participants.isEmpty(); }
 
-		private boolean teleportGroup(FightParticipant.Side side, net.minecraft.world.phys.Vec3 destination)
+		private boolean teleportGroup(FightParticipant.Side side, Vec3 destination)
 		{
 			List<FightParticipant> group = FightGroupController.selectBySide(participants, side);
 			return FightGroupController.teleportFormation(group, destination);
