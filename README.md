@@ -206,3 +206,27 @@ The repository currently declares:
 - NeoForge
 
 Do not assume compatibility with another Minecraft version without explicitly updating and validating the build configuration.
+
+
+## Runtime Fight System — Implementation Status
+
+The runtime Fight System is being implemented incrementally on top of the existing playback architecture.
+
+### Phase 1 completed
+- Added versioned Fight definitions.
+- Added persistent Fight storage under `mocap_files/fights/`.
+- Added safe load/validation with malformed-file isolation.
+- Added Fight lifecycle commands under `/mocap playback fight`.
+- Added source-scene and target-player configuration primitives.
+- Added Fight runtime ticking and server-stop cleanup hooks.
+- Added duplicate-start protection and runtime isolation scaffolding.
+
+### Phase 1 intentionally does not yet provide
+- Runtime fighter binding.
+- Live target acquisition.
+- Autonomous movement/navigation.
+- Runtime attack execution.
+- Weapon/item switching.
+- Death/retarget/reset snapshots.
+
+Those systems are the next implementation phases and will reuse the existing Recording, Scene and Playback systems rather than replacing them.
