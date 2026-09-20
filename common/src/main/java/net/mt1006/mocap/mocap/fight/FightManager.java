@@ -506,7 +506,7 @@ public final class FightManager
 				if (entity == null || !entity.isAlive()) { continue; }
 				if (!(entity instanceof LivingEntity))
 				{
-					throw new IllegalStateException("Fight participant is not a LivingEntity: " + entity.getTypeName());
+					throw new IllegalStateException("Fight participant is not a LivingEntity.");
 				}
 				if (!claimParticipant(entity.getUUID(), id))
 				{
