@@ -2242,3 +2242,35 @@ Deliberately not implemented in Phase 6D:
 
 Crossbow is deliberately deferred because its 26.1 runtime requires a distinct load/charged-projectile lifecycle rather than treating it as an instant Bow shot.
 
+## Implementation Progress — Phase 6E
+
+Phase 6E adds a stateful Crossbow combat lifecycle rather than treating a Crossbow like an instant Bow shot.
+
+Pre-implementation checks:
+1. Repository search found no existing Crossbow/Fight ranged lifecycle, so the new logic remains isolated in the Fight equipment/ranged layer.
+2. Minecraft 26.1 API verification confirms CrossbowItem exposes isCharged, getChargeDuration, getUseDuration, onUseTick, releaseUsing, performShooting, use, and getDefaultProjectileRange. Crossbow also stores charged projectiles through the ChargedProjectiles item component. citeturn0search0turn0search5
+3. The implementation therefore uses the normal Crossbow loading/release/fire lifecycle and does not synthesize charged-projectile data or bypass vanilla projectile consumption.
+
+Implemented scope:
+1. Equipped Crossbow is recognized as a ranged weapon only when it is actually present in the participant's represented equipment.
+2. Main-hand Crossbow is preferred; an off-hand Crossbow may be moved to main hand at runtime.
+3. Ammunition is resolved through the actor's normal projectile lookup; no arrows/fireworks are generated.
+4. An uncharged Crossbow enters a bounded multi-tick charge state.
+5. During charging, the actor remains oriented toward its current live target.
+6. Once the vanilla charge duration is reached, the Crossbow is released through its normal releaseUsing path.
+7. The resulting charged state is then fired through the normal Crossbow use path on a subsequent combat tick.
+8. The Fight attack cooldown starts only after a successful fire.
+9. If charging becomes invalid, the participant exits the ranged state and falls back to normal chase/melee behavior.
+10. Runtime Crossbow state is never written to the saved Fight definition or recording snapshot.
+
+Deliberately not implemented in Phase 6E:
+- synthetic inventory/hotbar;
+- generated ammunition;
+- multi-shot behavior beyond what the equipped Crossbow's own charged state provides;
+- projectile prediction or aim assistance;
+- line-of-sight ray validation;
+- ranged damage/knockback multipliers;
+- shield blocking;
+- food/consumables;
+- runtime loadout persistence.
+
