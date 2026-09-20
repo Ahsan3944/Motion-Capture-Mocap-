@@ -8,6 +8,7 @@ import net.minecraft.commands.Commands;
 import net.mt1006.mocap.api.v1.io.CommandInfo;
 import net.mt1006.mocap.command.CommandSuggestions;
 import net.mt1006.mocap.command.CommandUtils;
+import net.mt1006.mocap.command.io.FullCommandInfo;
 import net.mt1006.mocap.mocap.fight.FightDefinition;
 import net.mt1006.mocap.mocap.fight.FightManager;
 
@@ -70,12 +71,12 @@ public final class FightCommand
 		return true;
 	}
 
-	private static boolean create(CommandInfo info)
+	private static boolean create(FullCommandInfo info)
 	{
 		return FightManager.create(info, info.getString("name"));
 	}
 
-	private static boolean info(CommandInfo info)
+	private static boolean info(FullCommandInfo info)
 	{
 		FightDefinition definition = FightManager.get(info.getString("name"));
 		return definition != null
@@ -83,37 +84,37 @@ public final class FightCommand
 				: info.sendFailure("Fight not found: " + info.getString("name"));
 	}
 
-	private static boolean setScene(CommandInfo info)
+	private static boolean setScene(FullCommandInfo info)
 	{
 		return FightManager.setSourceScene(info, info.getString("name"), info.getString("scene"));
 	}
 
-	private static boolean setTargetPlayer(CommandInfo info)
+	private static boolean setTargetPlayer(FullCommandInfo info)
 	{
 		return FightManager.setTargetPlayer(info, info.getString("name"), info.getString("player"));
 	}
 
-	private static boolean clearTargets(CommandInfo info)
+	private static boolean clearTargets(FullCommandInfo info)
 	{
 		return FightManager.clearTargets(info, info.getString("name"));
 	}
 
-	private static boolean start(CommandInfo info)
+	private static boolean start(FullCommandInfo info)
 	{
 		return FightManager.start(info, info.getString("name"));
 	}
 
-	private static boolean stop(CommandInfo info)
+	private static boolean stop(FullCommandInfo info)
 	{
 		return FightManager.stop(info, info.getString("name"));
 	}
 
-	private static boolean reset(CommandInfo info)
+	private static boolean reset(FullCommandInfo info)
 	{
 		return FightManager.reset(info, info.getString("name"));
 	}
 
-	private static boolean remove(CommandInfo info)
+	private static boolean remove(FullCommandInfo info)
 	{
 		return FightManager.remove(info, info.getString("name"));
 	}
