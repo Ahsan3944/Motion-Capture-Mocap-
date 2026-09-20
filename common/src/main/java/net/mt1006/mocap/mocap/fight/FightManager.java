@@ -676,8 +676,13 @@ public final class FightManager
 
 				if (target == null)
 				{
+					FightDefenseController.stop(participant);
 					participant.setState(FightParticipant.State.SEARCH_TARGET);
 					continue;
+				}
+				if (!(target instanceof LivingEntity))
+				{
+					FightDefenseController.stop(participant);
 				}
 
 				double attackRange = definition.getAttackRange();
@@ -792,6 +797,7 @@ public final class FightManager
 		{
 			for (FightParticipant participant : participants)
 			{
+				FightDefenseController.stop(participant);
 				participant.deactivate();
 				releaseParticipant(participant.getEntity().getUUID(), id);
 			}
