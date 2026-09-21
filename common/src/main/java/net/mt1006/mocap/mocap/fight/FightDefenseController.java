@@ -44,8 +44,9 @@ public final class FightDefenseController
 
 		FightMovementController.faceTarget(living, target.getX() - living.getX(), target.getZ() - living.getZ());
 
-		if (living.isBlocking())
+		if (living.isUsingItem() && living.getUseItem().getItem() instanceof ShieldItem)
 		{
+			participant.setShieldBlockTicks(participant.getShieldBlockTicks() + 1);
 			participant.setState(FightParticipant.State.USE_ITEM);
 			return true;
 		}
@@ -67,7 +68,7 @@ public final class FightDefenseController
 		player.startUsingItem(hand);
 		participant.setShieldBlockTicks(participant.getShieldBlockTicks() + 1);
 		participant.setState(FightParticipant.State.USE_ITEM);
-		return living.isBlocking();
+		return living.isUsingItem() && living.getUseItem().getItem() instanceof ShieldItem;
 	}
 
 	public static void stop(FightParticipant participant)
