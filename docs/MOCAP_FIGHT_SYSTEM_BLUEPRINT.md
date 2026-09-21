@@ -2516,3 +2516,27 @@ Deliberately not implemented in Phase 7E:
 - async navigation;
 - target-selection changes;
 - combat behavior changes.
+
+## Implementation Progress — Phase 7F
+
+Phase 7F reduces bounded navigation search math overhead by using squared horizontal distance for nearest-progress tracking and attack-range termination checks, while preserving the existing A* priority heuristic and route ordering.
+
+Pre-implementation checks:
+1. The Phase 7E navigation search was audited at the search-node level. The per-node progress check and attack-range termination used Euclidean square roots even though both comparisons only require relative distance or a squared threshold.
+2. The A* priority calculation was deliberately left unchanged because replacing its Euclidean heuristic with a different metric could alter search ordering and route behavior.
+3. Search bounds, neighbor ordering, collision checks, loaded-chunk checks, and waypoint generation were checked and remain unchanged.
+
+Implemented scope:
+1. Track the best search-node distance using squared horizontal distance.
+2. Compare the attack-range termination condition against a squared attack-range threshold.
+3. Keep the A* priority heuristic Euclidean so path ordering remains unchanged.
+4. Preserve all existing search limits and route generation.
+5. Keep the optimization runtime-only with no persistence changes.
+
+Deliberately not implemented in Phase 7F:
+- new pathfinding algorithms;
+- larger search limits;
+- heuristic replacement;
+- global/shared path caches;
+- async pathfinding;
+- terrain or chunk loading changes.
