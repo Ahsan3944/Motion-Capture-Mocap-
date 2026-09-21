@@ -2388,3 +2388,29 @@ Deliberately not implemented in Phase 6I:
 - automatic Fight restart after completion;
 - configurable death/drop policies;
 - battlefield loot/pickup systems.
+
+## Implementation Progress — Phase 7A
+
+Phase 7A hardens runtime target acquisition for lower per-tick allocation and avoids unnecessary candidate scans.
+
+Pre-implementation checks:
+1. FightTargetSelector was inspected against the performance contract. It rebuilt the full candidate list on every active participant tick, even when the participant already had a valid target.
+2. The FightManager tick loop was inspected. Target selection is centralized there, so target retention can be improved without changing movement, combat, or playback ownership.
+3. The target relationship model remains participant/team based. The optimization therefore caches only a target that is still independently validated; no stale target is trusted.
+
+Implemented scope:
+1. CURRENT_TARGET and FIXED_TARGET validate and retain the current target before rebuilding candidates.
+2. All target modes first perform cheap current-target validation where their semantics allow retention.
+3. Candidate collection remains restricted to active Fight participants and configured real target players; no full-world scan is introduced.
+4. Candidate evaluation continues to enforce alive state, same dimension, enemy-team relationship and detection range.
+5. Invalid/dead/out-of-range/dimension-mismatched targets are immediately discarded and normal candidate selection resumes.
+6. No persistent cache is stored in Fight definitions or recordings; target cache remains participant runtime state.
+7. Target selection behavior and ordering remain deterministic for the existing modes.
+
+Deliberately not implemented in Phase 7A:
+- asynchronous pathfinding;
+- global spatial indexes;
+- full-world entity scans;
+- configurable retarget intervals;
+- background worker threads;
+- combat behavior changes.
