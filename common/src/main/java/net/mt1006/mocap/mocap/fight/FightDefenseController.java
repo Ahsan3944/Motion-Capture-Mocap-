@@ -15,8 +15,6 @@ import net.minecraft.world.item.ItemStack;
 public final class FightDefenseController
 {
 	private static final double DEFAULT_DEFENSE_RANGE = 5.0;
-	private static final int MAX_BLOCK_TICKS = 10;
-
 	private FightDefenseController() {}
 
 	public static boolean shouldBlock(FightParticipant participant, LivingEntity target)
@@ -38,7 +36,7 @@ public final class FightDefenseController
 		}
 		LivingEntity living = player;
 
-		if (!shouldBlock(participant, target) || participant.getShieldBlockTicks() >= MAX_BLOCK_TICKS)
+		if (!shouldBlock(participant, target))
 		{
 			stop(participant);
 			return false;
