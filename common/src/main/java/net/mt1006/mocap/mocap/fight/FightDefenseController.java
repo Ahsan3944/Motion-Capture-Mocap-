@@ -29,7 +29,7 @@ public final class FightDefenseController
 	public static boolean tick(FightParticipant participant, LivingEntity target)
 	{
 		if (!(participant.getEntity() instanceof net.minecraft.world.entity.player.Player player)
-				|| !(player.level() instanceof ServerLevel level))
+				|| !(player.level() instanceof ServerLevel))
 		{
 			stop(participant);
 			return false;
@@ -59,7 +59,7 @@ public final class FightDefenseController
 		}
 
 		ItemStack shield = living.getItemInHand(hand);
-		if (!(shield.getItem() instanceof ShieldItem shieldItem))
+		if (!(shield.getItem() instanceof ShieldItem))
 		{
 			stop(participant);
 			return false;
