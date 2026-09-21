@@ -61,6 +61,9 @@ public final class FightRuntimeSafetyGameTest
         LivingEntity first = context.spawn(EntityType.ZOMBIE, 1, 1, 1);
         LivingEntity second = context.spawn(EntityType.ZOMBIE, 2, 1, 1);
         LivingEntity third = context.spawn(EntityType.ZOMBIE, 3, 1, 1);
+        Vec3 firstStart = first.position();
+        Vec3 secondStart = second.position();
+        Vec3 thirdStart = third.position();
         LivingEntity unselected = context.spawn(EntityType.ZOMBIE, 10, 1, 10);
         Vec3 unselectedStart = unselected.position();
 
@@ -72,7 +75,7 @@ public final class FightRuntimeSafetyGameTest
                 new FightParticipant("group-third", third, FightParticipant.Side.SOURCE, "RED");
 
         List<FightParticipant> group = List.of(firstParticipant, secondParticipant, thirdParticipant);
-        Vec3 destination = new Vec3(6.5, 1.0, 6.5);
+        Vec3 destination = context.absoluteVec(new Vec3(6.5, 1.0, 6.5));
 
         try
         {
@@ -81,13 +84,13 @@ public final class FightRuntimeSafetyGameTest
                     "A valid loaded floor must accept a safe group formation.");
 
             context.assertTrue(
-                    first.position().distanceToSqr(new Vec3(1, 1, 1)) > 4.0,
+                    first.position().distanceToSqr(firstStart) > 4.0,
                     "The first participant must move to the requested formation.");
             context.assertTrue(
-                    second.position().distanceToSqr(new Vec3(2, 1, 1)) > 4.0,
+                    second.position().distanceToSqr(secondStart) > 4.0,
                     "The second participant must move to the requested formation.");
             context.assertTrue(
-                    third.position().distanceToSqr(new Vec3(3, 1, 1)) > 4.0,
+                    third.position().distanceToSqr(thirdStart) > 4.0,
                     "The third participant must move to the requested formation.");
 
             context.assertTrue(
