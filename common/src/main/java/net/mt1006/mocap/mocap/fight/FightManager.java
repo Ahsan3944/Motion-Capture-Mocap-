@@ -773,6 +773,7 @@ public final class FightManager
 					if (afterTargetDistance + 1.0E-4 < beforeTargetDistance)
 					{
 						participant.resetNavigationStallTicks();
+						participant.resetNavigationRetryCooldown();
 					}
 					else
 					{
