@@ -87,7 +87,10 @@ public final class FightFishingRodController
 			// of leaving the controlled group at its current location.
 			return true;
 		}
-		return handleDestination(serverPlayer, blockHit.getLocation());
+		// Once armed, the Fight rod owns the interaction even when the destination is rejected.
+		// Returning false here would fall through to vanilla fishing and create a real bobber.
+		handleDestination(serverPlayer, blockHit.getLocation());
+		return true;
 	}
 
 	private static boolean handleDestination(ServerPlayer player, Vec3 destination)
