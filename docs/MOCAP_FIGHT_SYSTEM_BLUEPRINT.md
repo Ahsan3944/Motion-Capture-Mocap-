@@ -3160,3 +3160,24 @@ This batch expanded deterministic server-side Fight coverage without introducing
 8. Existing shield, food, target-selector, group-formation, and server-smoke GameTests remain registered and continue to pass.
 
 Automated verification is still not a substitute for the Final Runtime Validation Batch. Dedicated-server observation remains required for the full cinematic, real-player, multiplayer, dimension/chunk, persistence/restart, long-run, and loader-interaction scenarios defined above.
+
+
+## Implementation Progress — Build #243 Fishing Rod Interaction Isolation
+
+Build & Verify #243 completed successfully on commit `def6e219833c5b458ace8ced3d6d49328676b121`.
+
+A final interaction-boundary audit identified one concrete Fight-control edge case: when a Fishing Rod was armed for a running Fight, an interaction that did not resolve to a valid teleport destination could fall through to vanilla fishing or ordinary block interaction. That could create an unrelated fishing bobber or mutate a block instead of keeping the armed Fight control authoritative.
+
+The Fishing Rod controller now:
+
+1. treats an armed, valid Fight binding as the owner of the interaction;
+2. consumes non-block item uses instead of falling through to vanilla fishing;
+3. consumes block interactions even when the requested Fight destination is rejected, preventing unrelated vanilla block interaction;
+4. still removes stale bindings when the Fight is no longer running;
+5. leaves unarmed rods and non-rod interactions unchanged.
+
+The change is limited to the existing Fishing Rod interaction boundary. No teleport validation, formation layout, Fight lifecycle, combat, targeting, movement, navigation, equipment, persistence format, or command syntax was changed.
+
+Build #243 verified the complete configured CI pipeline after this change, including the existing Fabric server GameTests and loader builds.
+
+Dedicated-server runtime validation remains required for the live Fishing Rod scenario and the other final runtime matrix items; CI success does not mark those observations GREEN.
