@@ -822,13 +822,9 @@ public final class FightManager
 					? currentTarget
 					: FightTargetSelector.select(participant, targetMode, participants, definition, server, detectionRange);
 				participant.setCurrentTarget(target);
-				if (target != null && target != currentTarget)
-				{
-					participant.setTargetSelectionCooldownTicks(TARGET_RESELECT_INTERVAL_TICKS);
-				}
-				else if (target != null && (targetMode == FightDefinition.TargetMode.NEAREST
-						|| targetMode == FightDefinition.TargetMode.LOWEST_HEALTH)
-						&& !currentTargetValid)
+				if (!cacheTarget && target != null
+						&& (targetMode == FightDefinition.TargetMode.NEAREST
+						|| targetMode == FightDefinition.TargetMode.LOWEST_HEALTH))
 				{
 					participant.setTargetSelectionCooldownTicks(TARGET_RESELECT_INTERVAL_TICKS);
 				}
