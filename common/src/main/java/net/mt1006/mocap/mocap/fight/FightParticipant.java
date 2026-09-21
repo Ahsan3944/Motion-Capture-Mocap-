@@ -49,6 +49,7 @@ public final class FightParticipant
 	private int navigationWaypointIndex = 0;
 	private int navigationAgeTicks = 0;
 	private int navigationStallTicks = 0;
+	private int navigationRetryCooldownTicks = 0;
 	private @Nullable Vec3 navigationTargetPosition;
 	private boolean active = true;
 	private float initialHealth = 0.0F;
@@ -138,6 +139,7 @@ public final class FightParticipant
 		{
 			movementBlockedTicks = 0;
 			movementRecoveryDirection = 1;
+			navigationRetryCooldownTicks = 0;
 			clearNavigationPath();
 		}
 		currentTarget = target;
@@ -186,6 +188,25 @@ public final class FightParticipant
 	public int getNavigationAgeTicks() { return navigationAgeTicks; }
 
 	public int getNavigationStallTicks() { return navigationStallTicks; }
+
+	public int getNavigationRetryCooldownTicks() { return navigationRetryCooldownTicks; }
+
+	public boolean tickNavigationRetryCooldown()
+	{
+		if (navigationRetryCooldownTicks <= 0) { return true; }
+		navigationRetryCooldownTicks--;
+		return navigationRetryCooldownTicks == 0;
+	}
+
+	public void setNavigationRetryCooldownTicks(int ticks)
+	{
+		navigationRetryCooldownTicks = Math.max(0, ticks);
+	}
+
+	public void resetNavigationRetryCooldown()
+	{
+		navigationRetryCooldownTicks = 0;
+	}
 
 	public int incrementNavigationStallTicks() { return ++navigationStallTicks; }
 
@@ -246,6 +267,7 @@ public final class FightParticipant
 		movementBlockedTicks = 0;
 		movementRecoveryDirection = 1;
 		navigationStallTicks = 0;
+		navigationRetryCooldownTicks = 0;
 		clearNavigationPath();
 	}
 }
