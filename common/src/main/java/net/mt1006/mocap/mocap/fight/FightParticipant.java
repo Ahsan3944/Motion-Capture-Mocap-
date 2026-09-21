@@ -116,6 +116,25 @@ public final class FightParticipant
 		}
 	}
 
+	/**
+	 * Restores the runtime state captured immediately after Fight playback initialization.
+	 * This is used only during Fight reset/rollback so repeated runs do not inherit
+	 * combat damage, movement, rotation, or equipment mutations from a prior run.
+	 */
+	public void restoreResetSnapshot()
+	{
+		entity.snapTo(initialPosition.x, initialPosition.y, initialPosition.z);
+		entity.setYRot(initialYaw);
+		entity.setXRot(initialPitch);
+		entity.setYHeadRot(initialYaw);
+		entity.setDeltaMovement(Vec3.ZERO);
+		if (entity instanceof LivingEntity living)
+		{
+			if (initialHealth > 0.0F) { living.setHealth(Math.min(initialHealth, living.getMaxHealth())); }
+			restoreEquipmentSnapshot();
+		}
+	}
+
 	public ItemStack getRecordedMainHandItem()
 	{
 		return equipmentSnapshot.isEmpty() ? ItemStack.EMPTY : equipmentSnapshot.get(0).copy();
