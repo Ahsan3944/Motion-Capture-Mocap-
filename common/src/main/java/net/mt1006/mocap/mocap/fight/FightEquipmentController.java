@@ -33,10 +33,10 @@ public final class FightEquipmentController
 		if (!(participant.getEntity() instanceof LivingEntity living) || !living.isAlive()) { return false; }
 
 		ItemStack mainHand = living.getMainHandItem();
-		if (isMeleeWeapon(mainHand, EquipmentSlot.MAINHAND)) { return true; }
+		if (isMeleeWeapon(mainHand)) { return true; }
 
 		ItemStack offHand = living.getOffhandItem();
-		if (!isMeleeWeapon(offHand, EquipmentSlot.OFFHAND)) { return false; }
+		if (!isMeleeWeapon(offHand)) { return false; }
 
 		living.setItemInHand(InteractionHand.MAIN_HAND, offHand.copy());
 		living.setItemInHand(InteractionHand.OFF_HAND, mainHand.copy());
@@ -155,12 +155,12 @@ public final class FightEquipmentController
 		return stack.getItem() instanceof BowItem && !living.getProjectile(stack).isEmpty();
 	}
 
-	private static boolean isMeleeWeapon(ItemStack stack, EquipmentSlot slot)
+	private static boolean isMeleeWeapon(ItemStack stack)
 	{
 		if (stack == null || stack.isEmpty()) { return false; }
 
 		boolean[] found = {false};
-		stack.forEachModifier(slot, (attribute, modifier) ->
+		stack.forEachModifier(EquipmentSlot.MAINHAND, (attribute, modifier) ->
 		{
 			if (attribute.equals(Attributes.ATTACK_DAMAGE) && Double.isFinite(modifier.amount()) && modifier.amount() > 0.0)
 			{
