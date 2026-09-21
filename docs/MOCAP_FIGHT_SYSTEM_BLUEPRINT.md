@@ -2440,3 +2440,29 @@ Deliberately not implemented in Phase 7B:
 - retarget scheduling changes;
 - navigation/pathfinding changes;
 - combat-rule changes.
+
+## Implementation Progress — Phase 7C
+
+Phase 7C hardens and reduces bounded navigation work without changing the Fight's movement ownership model.
+
+Pre-implementation checks:
+1. The current navigation controller was inspected end-to-end with FightManager. A valid waypoint path was being reconsidered on a fixed interval even when the target had not moved materially and the path remained usable.
+2. The existing manager/controller interaction was checked for stall accounting. While a navigation waypoint existed, a failed waypoint move could remain in navigation mode without incrementing the navigation-specific stall counter, delaying recovery until the navigation timeout/repath cycle.
+3. The bounded A* contract was checked: loaded-chunk checks, collision/support validation, search-node/path-node caps, timeout, and target-distance threshold must remain bounded and unchanged.
+
+Implemented scope:
+1. Remove the unconditional fixed-interval A* repath from an otherwise valid waypoint path.
+2. Repath only when the target moved beyond the existing target-repath threshold, the navigation path timed out, the current waypoint/path is exhausted, or bounded local progress stalls.
+3. Count failed waypoint movement as navigation stall progress inside the navigation controller.
+4. After bounded navigation stall, clear the stale path and allow a fresh bounded search instead of repeatedly retrying the same waypoint.
+5. Preserve the existing direct movement/recovery controller and all existing A* search limits.
+6. Preserve loaded-chunk-only behavior and no terrain modification.
+7. Keep all navigation state runtime-only.
+
+Deliberately not implemented in Phase 7C:
+- global spatial indexes;
+- asynchronous/background pathfinding;
+- unbounded A*;
+- world/chunk loading;
+- terrain modification;
+- movement-speed or combat-rule changes.
