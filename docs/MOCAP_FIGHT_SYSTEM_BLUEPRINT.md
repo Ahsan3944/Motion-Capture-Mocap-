@@ -2794,3 +2794,39 @@ Deliberately not implemented in Phase 7P:
 - target selection changes;
 - persistent/shared caches;
 - public API changes;
+
+## Implementation Progress — Final Hardening Batch (Phases 8–9)
+
+The remaining blueprint work was audited as a regression/final-hardening pass rather than as a new combat subsystem. The code already contains the runtime, persistence, ownership, target validation, movement/navigation, equipment, ranged, shield, food, group-control, loader event, and server-stop foundations described by the earlier phases.
+
+Pre-implementation checks:
+1. The Phase 7P GREEN commit was verified as the current baseline. The remaining blueprint sections were compared against the actual command registration, FightManager lifecycle, Fabric/NeoForge event wiring, playback ownership hooks, persistence loader, and runtime ownership registry.
+2. A concrete integration gap was confirmed: FightCommand.java existed and was fully implemented, but MocapCommand.java did not attach FightCommand to the existing administrative /mocap command tree. The Fight feature therefore had no reachable command path through the project's registered command root.
+3. A lifecycle-safety gap was confirmed: several FightDefinition mutation commands could modify saved configuration while a Fight runtime was already active, while team-assignment mutations already correctly rejected active runtimes. This could make the saved definition and live runtime diverge mid-fight.
+4. No new Minecraft API, persistence field, combat rule, target algorithm, movement algorithm, or shared cache is required for these hardening fixes. The changes stay inside the existing command/lifecycle architecture.
+
+Implemented scope:
+1. Register FightCommand under the existing /mocap administrative command root using the same permission model already applied by MocapCommand.
+2. Reject all saved Fight configuration mutations while that Fight is running, covering source scenes, target players/scenes, target mode, combat numeric settings, and target clearing.
+3. Keep active runtime state independent until the Fight is stopped/reset.
+4. Preserve existing command syntax and error handling; only the previously unreachable Fight command tree and unsafe active-runtime mutation cases are corrected.
+5. Preserve all combat, target, movement, navigation, equipment, persistence-format, Fabric, and NeoForge behavior outside this integration hardening.
+
+Manual/runtime validation still required before final Definition of Done:
+- full cinematic scenario;
+- real combat interaction across melee/ranged/shield/food;
+- target movement/death/retargeting;
+- repeated start/stop/reset with inventory observation;
+- multiplayer and dimension/chunk edge cases;
+- existing MoCap recording/playback regression checks.
+
+Deliberately not implemented in this final hardening batch:
+- new target modes;
+- new combat behaviors;
+- full inventory/hotbar persistence;
+- new loot/drop rules for unrelated real players;
+- advanced pathfinding;
+- persistent runtime Fight recovery across server restart;
+- new public API surface;
+- asynchronous processing;
+- artificial fighter-count limits.

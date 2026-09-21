@@ -8,6 +8,7 @@ import net.minecraft.commands.Commands;
 import net.mt1006.mocap.MocapMod;
 import net.mt1006.mocap.api.v1.io.CommandOutput;
 import net.mt1006.mocap.command.CommandUtils;
+import net.mt1006.mocap.command.commands.FightCommand;
 
 public class MocapCommand
 {
@@ -21,6 +22,7 @@ public class MocapCommand
 		commandBuilder.then(RecordingsCommand.getArgumentBuilder());
 		commandBuilder.then(ScenesCommand.getArgumentBuilder(buildContext));
 		commandBuilder.then(SettingsCommand.getArgumentBuilder());
+		FightCommand.add(commandBuilder, buildContext);
 		commandBuilder.then(MiscCommand.getArgumentBuilder());
 		commandBuilder.then(Commands.literal("info").executes(CommandUtils.command(MocapCommand::info)));
 		commandBuilder.then(Commands.literal("help").executes(CommandUtils.command(MocapCommand::help)));

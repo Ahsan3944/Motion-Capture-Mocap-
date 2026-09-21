@@ -169,6 +169,7 @@ public final class FightManager
 
 	public static boolean setSourceScene(CommandOutput out, String id, String scene)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -181,6 +182,7 @@ public final class FightManager
 
 	public static boolean setTargetPlayer(CommandOutput out, String id, String player)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -205,6 +207,7 @@ public final class FightManager
 
 	public static boolean setTargetScene(CommandOutput out, String id, String scene)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -243,6 +246,7 @@ public final class FightManager
 
 	public static boolean setTargetMode(CommandOutput out, String id, String mode)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -259,6 +263,7 @@ public final class FightManager
 
 	public static boolean setPower(CommandOutput out, String id, int value)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -268,6 +273,7 @@ public final class FightManager
 
 	public static boolean setAttackSpeed(CommandOutput out, String id, double value)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -277,6 +283,7 @@ public final class FightManager
 
 	public static boolean setAttackRange(CommandOutput out, String id, double value)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -286,6 +293,7 @@ public final class FightManager
 
 	public static boolean setDetectionRange(CommandOutput out, String id, double value)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -295,6 +303,7 @@ public final class FightManager
 
 	public static boolean setMovementSpeed(CommandOutput out, String id, double value)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -304,6 +313,7 @@ public final class FightManager
 
 	public static boolean setDamageMultiplier(CommandOutput out, String id, double value)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -313,6 +323,7 @@ public final class FightManager
 
 	public static boolean setKnockbackMultiplier(CommandOutput out, String id, double value)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
@@ -322,6 +333,7 @@ public final class FightManager
 
 	public static boolean clearTargets(CommandOutput out, String id)
 	{
+		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
