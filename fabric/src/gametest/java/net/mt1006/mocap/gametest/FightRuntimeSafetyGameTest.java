@@ -16,10 +16,12 @@ import java.util.List;
 
 public final class FightRuntimeSafetyGameTest
 {
+    @SuppressWarnings("removal")
     @GameTest(maxTicks = 80)
     public void shieldLifecycleUsesNormalBlockingState(GameTestHelper context)
     {
         ServerPlayer player = context.makeMockServerPlayerInLevel();
+        player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
         player.setPos(context.absoluteVec(new Vec3(0.5, 1.0, 1.5)));
         LivingEntity target = context.spawn(EntityType.ZOMBIE, 4, 1, 1);
         FightParticipant participant = new FightParticipant("shield-test", player, FightParticipant.Side.SOURCE);
