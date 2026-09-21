@@ -45,6 +45,28 @@ public final class FightDefinition
 	}
 
 	public String getId() { return id; }
+
+	public FightDefinition copy()
+	{
+		FightDefinition copy = new FightDefinition(id);
+		copy.setSourceScenes(sourceScenes);
+		copy.setTargetPlayers(targetPlayers);
+		copy.setTargetScenes(targetScenes);
+		copy.setSourceSceneTeams(sourceSceneTeams);
+		copy.setTargetSceneTeams(targetSceneTeams);
+		copy.setTargetPlayerTeams(targetPlayerTeams);
+		copy.setPower(power);
+		copy.setAttackSpeed(attackSpeed);
+		copy.setAttackRange(attackRange);
+		copy.setDetectionRange(detectionRange);
+		copy.setMovementSpeed(movementSpeed);
+		copy.setDamageMultiplier(damageMultiplier);
+		copy.setKnockbackMultiplier(knockbackMultiplier);
+		copy.setTargetMode(targetMode);
+		copy.setState(state);
+		return copy;
+	}
+
 	public List<String> getSourceScenes() { return Collections.unmodifiableList(sourceScenes); }
 	public List<String> getTargetPlayers() { return Collections.unmodifiableList(targetPlayers); }
 	public List<String> getTargetScenes() { return Collections.unmodifiableList(targetScenes); }

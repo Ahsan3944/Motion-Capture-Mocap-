@@ -2947,3 +2947,12 @@ The runtime now applies a bounded Power mapping:
 - the attack-speed safety clamp remains in `calculateAttackCooldown`.
 
 This completes the documented Power influence without introducing unbounded statistics or a new AI system. Runtime behavior still requires dedicated-server validation before the Power scenarios can be marked GREEN.
+
+
+## Final Configuration-Persistence Hardening — Post Power Audit
+
+A source audit identified a concrete consistency gap in Fight configuration updates: setters modified the in-memory FightDefinition before persistence, but a failed save could leave the in-memory definition changed even though the command reported failure and the previous file could still contain the old configuration.
+
+Configuration mutations now snapshot the previous definition and restore it when persistence fails. This applies to scene/target/team assignments, target mode, Power, attack speed/range, detection range, movement speed, damage multiplier, knockback multiplier, and target clearing.
+
+This keeps the in-memory configuration and persisted configuration aligned after a failed write, without changing successful command syntax or runtime combat behavior.
