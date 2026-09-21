@@ -103,7 +103,8 @@ public final class FightNavigationController
 	{
 		GridPos start = new GridPos(BlockPos.containing(actor.getX(), actor.getY(), actor.getZ()).getX(),
 				BlockPos.containing(actor.getX(), actor.getY(), actor.getZ()).getZ());
-		if (!isWalkable(level, actor, start)) { return Collections.emptyList(); }
+		Map<GridPos, Boolean> walkabilityCache = new HashMap<>();
+		if (!isWalkableCached(level, actor, start, walkabilityCache)) { return Collections.emptyList(); }
 
 		PriorityQueue<SearchNode> open = new PriorityQueue<>();
 		Map<GridPos, Double> bestCost = new HashMap<>();
@@ -141,7 +142,7 @@ public final class FightNavigationController
 			{
 				GridPos next = new GridPos(current.position().x() + direction[0], current.position().z() + direction[1]);
 				if (Math.abs(next.x() - start.x()) > SEARCH_RADIUS || Math.abs(next.z() - start.z()) > SEARCH_RADIUS) { continue; }
-				if (!isWalkable(level, actor, next)) { continue; }
+				if (!isWalkableCached(level, actor, next, walkabilityCache)) { continue; }
 
 				double nextCost = current.cost() + 1.0;
 				if (nextCost >= bestCost.getOrDefault(next, Double.POSITIVE_INFINITY)) { continue; }
@@ -175,6 +176,15 @@ public final class FightNavigationController
 			waypoints.add(new Vec3(cell.x() + 0.5, y, cell.z() + 0.5));
 		}
 		return waypoints;
+	}
+
+	private static boolean isWalkableCached(ServerLevel level, Entity actor, GridPos pos, Map<GridPos, Boolean> cache)
+	{
+		Boolean cached = cache.get(pos);
+		if (cached != null) { return cached; }
+		boolean walkable = isWalkable(level, actor, pos);
+		cache.put(pos, walkable);
+		return walkable;
 	}
 
 	private static boolean isWalkable(ServerLevel level, Entity actor, GridPos pos)
