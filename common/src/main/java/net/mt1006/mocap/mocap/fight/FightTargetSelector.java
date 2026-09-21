@@ -32,10 +32,10 @@ public final class FightTargetSelector
 		Entity actor = participant.getEntity();
 		if (!actor.isAlive() || actor == target) { return false; }
 		if (actor.level() != target.level()) { return false; }
-		return isValid(participant, target, detectionRange * detectionRange);
+		return isValidWithSquaredRange(participant, target, detectionRange * detectionRange);
 	}
 
-	private static boolean isValid(FightParticipant participant, @Nullable Entity target, double detectionRangeSqr)
+	private static boolean isValidWithSquaredRange(FightParticipant participant, @Nullable Entity target, double detectionRangeSqr)
 	{
 		if (!(target instanceof LivingEntity living) || !living.isAlive()) { return false; }
 		Entity actor = participant.getEntity();
