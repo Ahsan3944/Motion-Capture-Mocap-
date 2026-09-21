@@ -2830,3 +2830,29 @@ Deliberately not implemented in this final hardening batch:
 - new public API surface;
 - asynchronous processing;
 - artificial fighter-count limits.
+
+## Implementation Progress — Final Audit (Post-Build #169)
+
+Build #169 completed successfully on commit `7883b9491132ed5b4fa9109a584015c38c1c3d99`. A repository-level final audit was then performed against the Completion Checklist, Final Architectural Invariants, and Definition of Done.
+
+Code-side audit result:
+1. Fight command registration is present under `/mocap fight ...`.
+2. Fight CRUD, persistence loading/saving, malformed-file rejection, start/stop/reset/remove lifecycle, active-runtime isolation, and server-stop cleanup are implemented.
+3. Runtime participants are independently owned; target validation, live retargeting, movement ownership, bounded navigation/recovery, group formation teleport, and Fishing Rod destination control are implemented.
+4. Melee, Bow, Crossbow, Shield, Food/Consumable, damage, knockback, death, completion, and reset handling are implemented within the existing playback architecture.
+5. Active-Fight configuration mutation is rejected, preventing saved-definition/live-runtime divergence.
+6. Fabric and NeoForge loader-specific Fishing Rod hooks are present; no additional interaction hook is required by the current 26.1 architecture.
+7. No repository TODO/FIXME markers or unsupported-operation stubs were found in the audited codebase, and no additional blueprint-defined implementation phase remains after Phase 9.
+
+Not promoted to a false GREEN status:
+- live in-game cinematic validation;
+- real-player combat observation;
+- target movement/death/retargeting observation;
+- repeated start/stop/reset inventory observation;
+- multiplayer/dimension/chunk edge-case observation;
+- original MoCap recording/scene/playback regression observation;
+- measured runtime performance profiling.
+
+These items require an actual running Minecraft server/world and cannot be truthfully marked complete from a repository build alone. No speculative subsystem, new persistence format, synthetic inventory layer, server-restart runtime recovery system, or new combat behavior was added merely to make the checklist appear complete.
+
+Definition-of-Done status: **implementation/code audit complete; runtime validation remains the only unverified layer.**
