@@ -3,6 +3,13 @@ plugins
 	id "net.neoforged.moddev" version "${neoforge_moddev_version}"
 }
 
+dependencies
+{
+	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+	testImplementation "net.neoforged:testframework:${neoforge_version}"
+}
+
 neoForge
 {
 	version = neoforge_version
