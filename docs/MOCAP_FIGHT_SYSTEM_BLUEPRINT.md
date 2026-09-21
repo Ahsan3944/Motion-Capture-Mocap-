@@ -3142,3 +3142,21 @@ This final hardening pass addressed two concrete lifecycle issues found during t
 A Fabric server-side GameTest now exercises the food lifecycle through the same defense-before-food decision ordering used by `FightManager`, including the active-use/cooldown boundary.
 
 Build #213 is the current automated verification baseline. The remaining Final Runtime Validation Batch is unchanged and still requires execution on an actual dedicated Minecraft server/world; CI success does not mark those runtime observations GREEN.
+
+
+## Implementation Progress — Build #240 Runtime-Safety Coverage Expansion
+
+Build & Verify #240 completed successfully on commit `3d5e34e6964501e21c4230da6c1864a139cfad42`.
+
+This batch expanded deterministic server-side Fight coverage without introducing a new runtime subsystem:
+
+1. Direct Fight chase movement is verified to reduce target distance while respecting the hard 0.5-block-per-tick movement cap.
+2. Repeated obstruction is verified to trigger the existing bounded lateral recovery path.
+3. Bounded navigation is verified against a loaded obstacle course and must retain a runtime waypoint without loading distant chunks.
+4. Melee equipment preparation is verified for an off-hand weapon, including preservation of the previous main-hand item.
+5. Runtime equipment snapshots are verified to restore each participant independently.
+6. Group formation teleport is verified to reject an unsafe destination atomically, leaving every selected participant unmoved after validation failure.
+7. The melee-equipment detector was hardened to evaluate combat modifiers using the MAINHAND slot context because vanilla melee weapon attack modifiers are defined for the main-hand combat group even when the stack is temporarily held in the off hand for Fight preparation.
+8. Existing shield, food, target-selector, group-formation, and server-smoke GameTests remain registered and continue to pass.
+
+Automated verification is still not a substitute for the Final Runtime Validation Batch. Dedicated-server observation remains required for the full cinematic, real-player, multiplayer, dimension/chunk, persistence/restart, long-run, and loader-interaction scenarios defined above.
