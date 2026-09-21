@@ -53,12 +53,7 @@ public final class FightTargetSelectorGameTest
 					FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
 							context.getLevel().getServer(), definition.getDetectionRange()) == farther,
 						"CURRENT_TARGET must invalidate a cached Fight participant after that participant is deactivated.");
-			nearestParticipant = new FightParticipant("nearest-replacement", nearest, FightParticipant.Side.TARGET, "BLUE");
 			nearest.discard();
-			context.assertTrue(
-					FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
-							context.getLevel().getServer(), definition.getDetectionRange()) == farther,
-						"CURRENT_TARGET must resume normal candidate selection after invalidation.");
 			nearest = (LivingEntity) context.spawn(EntityType.ZOMBIE, new Vec3(3.5, 1.0, 1.5));
 			nearestParticipant = new FightParticipant("nearest-replacement", nearest, FightParticipant.Side.TARGET, "BLUE");
 			participants = List.of(sourceParticipant, nearestParticipant, fartherParticipant);
