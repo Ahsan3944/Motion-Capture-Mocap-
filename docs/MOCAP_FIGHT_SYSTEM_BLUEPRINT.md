@@ -2607,3 +2607,25 @@ Deliberately not implemented in Phase 7I:
 - teleportation;
 - pathfinding changes;
 - recovery algorithm changes.
+## Implementation Progress — Phase 7J
+
+Phase 7J removes repeated detection-range arithmetic during one Fight target-selection pass.
+
+Pre-implementation checks:
+1. FightTargetSelector was audited after Phase 7B. The selector already evaluates candidates in one pass, but every candidate validation recalculated `detectionRange * detectionRange`.
+2. The public validation behavior was checked before changing the internal helper. A private squared-range helper can preserve the existing public `isValid(...)` contract while avoiding repeated arithmetic inside a selection pass.
+3. Candidate ordering, team filtering, alive/dimension checks, CURRENT_TARGET/FIXED_TARGET retention, and configured-player handling were checked and remain unchanged.
+
+Implemented scope:
+1. Compute the squared detection range once per `select(...)` call.
+2. Pass that squared threshold through the internal candidate-selection and validation path.
+3. Keep the existing public `isValid(...)` method behavior unchanged.
+4. Preserve all target-selection ordering and semantics.
+5. Keep the optimization runtime-only with no persistence or cached world state.
+
+Deliberately not implemented in Phase 7J:
+- persistent target caches;
+- retarget interval changes;
+- world-wide spatial indexes;
+- target-selection behavior changes;
+- asynchronous work.
