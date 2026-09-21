@@ -2466,3 +2466,29 @@ Deliberately not implemented in Phase 7C:
 - world/chunk loading;
 - terrain modification;
 - movement-speed or combat-rule changes.
+
+## Implementation Progress — Phase 7D
+
+Phase 7D adds bounded retry backoff for failed local navigation searches so a blocked fighter does not repeatedly rebuild the same bounded path search while the target and local route conditions have not materially changed.
+
+Pre-implementation checks:
+1. The current Phase 7C flow was traced from FightManager into FightNavigationController. When direct chase remained blocked, the manager could request a new navigation search every eight ticks even when the previous bounded search had already failed.
+2. Navigation state reset semantics were checked so the retry backoff cannot survive a target identity change, Fight reset, or a materially moved target.
+3. The existing navigation safety limits were rechecked: search radius, maximum expanded nodes, maximum path nodes, loaded-chunk-only checks, collision checks, and no terrain modification remain unchanged.
+
+Implemented scope:
+1. Add a small runtime-only navigation retry cooldown to each Fight participant.
+2. After a bounded path search returns no usable path, delay another identical search for a short fixed interval.
+3. A materially moved target bypasses the retry delay and permits immediate bounded replanning.
+4. A target identity change clears the retry delay.
+5. Successful direct movement clears the retry delay so a previously blocked route can be reconsidered promptly.
+6. Fight reset/deactivation clears all navigation retry state.
+7. No changes to target selection, movement speed, path search bounds, combat rules, or persistence.
+
+Deliberately not implemented in Phase 7D:
+- global path caches;
+- shared cross-fighter path caches;
+- asynchronous pathfinding;
+- terrain mutation;
+- world/chunk loading;
+- configurable retry timing.
