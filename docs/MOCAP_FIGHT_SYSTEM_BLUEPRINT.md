@@ -2563,3 +2563,25 @@ Deliberately not implemented in Phase 7G:
 - larger search limits;
 - terrain modification;
 - chunk loading changes.
+## Implementation Progress — Phase 7H
+
+Phase 7H reduces temporary collection resizing during bounded navigation searches by pre-sizing the per-search work structures to the existing bounded search scale. This is allocation tuning only; search behavior and limits remain unchanged.
+
+Pre-implementation checks:
+1. The current findPath implementation was traced for temporary collections. Each search creates the walkability cache, A* cost map, predecessor map, and priority queue; their default capacities can resize while the bounded search expands.
+2. The existing hard limits were verified first: MAX_SEARCH_NODES remains 96 and SEARCH_RADIUS remains 8. The new capacities are only initial capacities and do not increase any search limit.
+3. Path reconstruction was checked separately so its existing MAX_PATH_NODES cap and ordering remain unchanged.
+
+Implemented scope:
+1. Pre-size the per-search walkability cache, best-cost map, predecessor map, and priority queue.
+2. Keep all collections local to one findPath call.
+3. Preserve identical candidate expansion, scoring, neighbor ordering, collision checks, and route reconstruction.
+4. Do not introduce persistent caches or shared mutable navigation state.
+
+Deliberately not implemented in Phase 7H:
+- larger search limits;
+- global/shared caches;
+- async pathfinding;
+- new heuristics;
+- terrain modification;
+- chunk loading changes.
