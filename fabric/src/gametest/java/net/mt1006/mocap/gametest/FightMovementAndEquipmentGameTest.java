@@ -145,7 +145,7 @@ public final class FightMovementAndEquipmentGameTest
         {
             first.setItemInHand(InteractionHand.MAIN_HAND, Items.STICK.getDefaultInstance());
             first.setItemInHand(InteractionHand.OFF_HAND, Items.IRON_SWORD.getDefaultInstance());
-            first.setItemInHand(EquipmentSlot.HEAD, Items.IRON_HELMET.getDefaultInstance());
+            first.setItemSlot(EquipmentSlot.HEAD, Items.IRON_HELMET.getDefaultInstance());
             second.setItemInHand(InteractionHand.MAIN_HAND, Items.DIAMOND_SWORD.getDefaultInstance());
 
             firstParticipant.captureResetSnapshot();
