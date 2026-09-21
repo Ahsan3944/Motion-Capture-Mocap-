@@ -669,6 +669,15 @@ public final class FightManager
 
 		private void tick(FightDefinition definition)
 		{
+			FightDefinition.TargetMode targetMode = definition.getTargetMode();
+			double detectionRange = definition.getDetectionRange();
+			double attackRange = definition.getAttackRange();
+			double attackRangeSqr = attackRange * attackRange;
+			double attackSpeed = definition.getAttackSpeed();
+			double movementSpeed = definition.getMovementSpeed();
+			double damageMultiplier = definition.getDamageMultiplier();
+			double knockbackMultiplier = definition.getKnockbackMultiplier();
+
 			for (FightParticipant participant : participants)
 			{
 				if (!participant.isActive()) { continue; }
@@ -684,8 +693,8 @@ public final class FightManager
 
 				participant.tickAttackCooldown();
 				participant.tickFoodCooldown();
-				Entity target = FightTargetSelector.select(participant, definition.getTargetMode(), participants,
-						definition, server, definition.getDetectionRange());
+				Entity target = FightTargetSelector.select(participant, targetMode, participants,
+						definition, server, detectionRange);
 				participant.setCurrentTarget(target);
 
 				if (target == null)
@@ -700,9 +709,6 @@ public final class FightManager
 					FightDefenseController.stop(participant);
 					FightFoodController.stop(participant);
 				}
-
-				double attackRange = definition.getAttackRange();
-			double attackRangeSqr = attackRange * attackRange;
 				if (target instanceof LivingEntity livingTarget
 						&& FightDefenseController.tick(participant, livingTarget))
 				{
@@ -733,7 +739,7 @@ public final class FightManager
 						boolean fired = FightRangedController.tickCrossbow(participant);
 						if (fired)
 						{
-							participant.setAttackCooldownTicks(calculateAttackCooldown(definition.getAttackSpeed()));
+							participant.setAttackCooldownTicks(calculateAttackCooldown(attackSpeed));
 						}
 						else if (participant.getCrossbowChargeTicks() > 0
 								|| (living.getMainHandItem().getItem() instanceof net.minecraft.world.item.CrossbowItem
@@ -751,7 +757,7 @@ public final class FightManager
 					participant.setState(FightParticipant.State.ATTACK);
 					if (FightRangedController.fireBow(participant))
 					{
-						participant.setAttackCooldownTicks(calculateAttackCooldown(definition.getAttackSpeed()));
+						participant.setAttackCooldownTicks(calculateAttackCooldown(attackSpeed));
 					}
 					else
 					{
@@ -765,12 +771,12 @@ public final class FightManager
 					participant.setState(FightParticipant.State.CHASE);
 					if (participant.getNavigationWaypoint() != null)
 					{
-						FightNavigationController.navigate(participant, target, definition.getMovementSpeed(), attackRange);
+						FightNavigationController.navigate(participant, target, movementSpeed, attackRange);
 						if (participant.getNavigationWaypoint() != null) { continue; }
 					}
 
 					double beforeTargetDistance = entity.distanceToSqr(target);
-					FightMovementController.chase(participant, target, definition.getMovementSpeed(), attackRange);
+					FightMovementController.chase(participant, target, movementSpeed, attackRange);
 					double afterTargetDistance = entity.distanceToSqr(target);
 					if (afterTargetDistance + 1.0E-4 < beforeTargetDistance)
 					{
@@ -783,7 +789,7 @@ public final class FightManager
 					}
 					if (participant.getNavigationStallTicks() >= 8)
 					{
-						FightNavigationController.navigate(participant, target, definition.getMovementSpeed(), attackRange);
+						FightNavigationController.navigate(participant, target, movementSpeed, attackRange);
 					}
 					continue;
 				}
@@ -807,8 +813,8 @@ public final class FightManager
 				participant.setState(FightParticipant.State.ATTACK);
 				FightEquipmentController.prepareMeleeAttack(participant);
 				Swing.attackTarget(attacker, target, (net.minecraft.server.level.ServerLevel)entity.level(),
-						definition.getDamageMultiplier(), definition.getKnockbackMultiplier());
-				participant.setAttackCooldownTicks(calculateAttackCooldown(definition.getAttackSpeed()));
+						damageMultiplier, knockbackMultiplier);
+				participant.setAttackCooldownTicks(calculateAttackCooldown(attackSpeed));
 			}
 		}
 

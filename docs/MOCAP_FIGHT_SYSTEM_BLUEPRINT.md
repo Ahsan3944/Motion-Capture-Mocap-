@@ -2684,3 +2684,32 @@ Deliberately not implemented in Phase 7L:
 - attack-speed changes;
 - combat-rule changes;
 - persistent runtime caches.
+
+
+## Implementation Progress — Phase 7M
+
+Phase 7M hoists immutable-for-the-current-tick Fight configuration reads out of the per-participant decision loop. This phase was explicitly defined after the Phase 7L audit because the blueprint had no pre-defined next phase.
+
+Pre-implementation checks:
+1. The blueprint was audited through Phase 7L and contained no officially defined Phase 7M, so no new feature or behavior-changing phase was assumed. The next phase was defined as a narrow runtime lookup optimization only.
+2. FightManager.tick() was traced end-to-end. Target mode, detection range, attack range, attack speed, movement speed, damage multiplier, and knockback multiplier are all FightDefinition values read during the participant loop.
+3. Mutation semantics were checked. FightDefinition setters can update a definition between server ticks, so the optimization snapshots these values at the start of each tick rather than storing them in persistent/runtime participant state. This preserves configuration changes for the next tick while preventing repeated getter calls within the same tick.
+4. No new Minecraft API is required; the change uses only existing FightDefinition getters and local Java variables.
+
+Implemented scope:
+1. Read the seven runtime combat/target configuration values once at the beginning of each FightRuntime tick.
+2. Reuse the local values for every active participant in that tick.
+3. Keep attackRangeSqr derived from the same per-tick attackRange snapshot.
+4. Preserve the existing definition object passed to FightTargetSelector because selector semantics still depend on its configured target lists/team relationships.
+5. Preserve the existing equipment-derived ranged range and all participant runtime state.
+6. Preserve configuration mutation semantics: changes made before a tick are observed on that tick; no persistent cached configuration is introduced.
+7. No serialized fields, API changes, combat-rule changes, target-selection ordering changes, movement changes, or navigation changes are introduced.
+
+Deliberately not implemented in Phase 7M:
+- persistent FightDefinition caches;
+- cross-tick configuration snapshots;
+- target candidate caching changes;
+- equipment caching;
+- movement/pathfinding changes;
+- combat behavior changes;
+- new Minecraft APIs.
