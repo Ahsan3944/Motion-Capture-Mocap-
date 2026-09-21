@@ -702,6 +702,7 @@ public final class FightManager
 				}
 
 				double attackRange = definition.getAttackRange();
+			double attackRangeSqr = attackRange * attackRange;
 				if (target instanceof LivingEntity livingTarget
 						&& FightDefenseController.tick(participant, livingTarget))
 				{
@@ -714,7 +715,7 @@ public final class FightManager
 				}
 				double targetDistanceSqr = entity.distanceToSqr(target);
 				double rangedRange = FightEquipmentController.getRangedRange(participant);
-				if (targetDistanceSqr > attackRange * attackRange && rangedRange > attackRange && targetDistanceSqr <= rangedRange * rangedRange)
+				if (targetDistanceSqr > attackRangeSqr && rangedRange > attackRange && targetDistanceSqr <= rangedRange * rangedRange)
 				{
 					FightMovementController.faceTarget(entity, target.getX() - entity.getX(), target.getZ() - entity.getZ());
 					if (participant.getAttackCooldownTicks() > 0)
@@ -758,7 +759,7 @@ public final class FightManager
 					continue;
 				}
 
-				if (targetDistanceSqr > attackRange * attackRange)
+				if (targetDistanceSqr > attackRangeSqr)
 				{
 					participant.setState(FightParticipant.State.CHASE);
 					if (participant.getNavigationWaypoint() != null)

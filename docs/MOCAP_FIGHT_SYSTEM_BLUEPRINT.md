@@ -2629,3 +2629,30 @@ Deliberately not implemented in Phase 7J:
 - world-wide spatial indexes;
 - target-selection behavior changes;
 - asynchronous work.
+
+
+## Implementation Progress — Phase 7K
+
+Phase 7K removes repeated attack-range squaring from the per-participant Fight decision loop without changing combat behavior.
+
+Pre-implementation checks:
+1. The Phase 7J target-selector optimization was rechecked first; its squared detection-range value is scoped to target selection and does not cover the separate attack-range checks in FightManager.
+2. The active Fight tick path was traced through defense, food, ranged combat, navigation/chase, and melee positioning. The configured attack range is immutable for the current Fight definition, while the same squared threshold was recomputed at multiple decision points for every active participant.
+3. The ranged branch was checked separately because its range is equipment-dependent and must remain runtime-derived. Only the fixed Fight attack-range threshold is precomputed in this phase.
+
+Implemented scope:
+1. Compute `attackRangeSqr` once per active participant tick from the validated Fight attack range.
+2. Reuse that squared threshold for ranged-vs-melee distance gating and normal chase/positioning decisions.
+3. Keep the original `attackRange` value for APIs that require the actual distance, including Food and navigation/movement controllers.
+4. Preserve the existing ranged-weapon range calculation and its runtime dependency on equipped equipment.
+5. Preserve all target selection, movement, navigation, attack timing, damage, knockback, item-use, and persistence behavior.
+6. No new cache, mutable shared state, or persistence field is introduced.
+7. The optimization is runtime-only and cannot alter saved Fight definitions or recordings.
+
+Deliberately not implemented in Phase 7K:
+- ranged-range caching;
+- target-selection changes;
+- movement/pathfinding changes;
+- attack-speed changes;
+- combat-rule changes;
+- persistent runtime caches.
