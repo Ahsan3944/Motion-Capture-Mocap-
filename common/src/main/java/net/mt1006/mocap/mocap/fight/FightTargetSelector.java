@@ -22,7 +22,7 @@ public final class FightTargetSelector
 			if (isValid(participant, current, detectionRange)) { return current; }
 		}
 
-return selectCandidate(participant, mode, participants, definition, server, detectionRange);
+		return selectCandidate(participant, mode, participants, definition, server, detectionRange);
 	}
 
 	public static boolean isValid(FightParticipant participant, @Nullable Entity target, double detectionRange)
