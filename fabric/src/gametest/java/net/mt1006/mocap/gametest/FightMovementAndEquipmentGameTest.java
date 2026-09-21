@@ -236,7 +236,10 @@ public final class FightMovementAndEquipmentGameTest
         LivingEntity target = context.spawn(EntityType.ARMOR_STAND, 8, 1, 4);
         net.minecraft.world.entity.player.Player player = context.makeMockPlayer(GameType.SURVIVAL);
         player.setPos(context.absoluteVec(new Vec3(4.0, 1.0, 4.0)));
-        player.getInventory().add(Items.ARROW.getDefaultInstance());
+        // Keep ammunition in the off hand so this lifecycle test does not depend on
+        // mock-player inventory selection/scanning; vanilla crossbows explicitly support
+        // loading an arrow from the held off-hand slot.
+        player.setItemInHand(InteractionHand.OFF_HAND, Items.ARROW.getDefaultInstance());
         player.setItemInHand(InteractionHand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
         FightParticipant participant =
                 new FightParticipant("crossbow-lifecycle", player, FightParticipant.Side.SOURCE, "RED");
