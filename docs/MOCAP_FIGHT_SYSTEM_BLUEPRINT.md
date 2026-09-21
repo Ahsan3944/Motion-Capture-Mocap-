@@ -3016,3 +3016,21 @@ A focused runtime audit identified a semantic gap in the existing `FIXED_TARGET`
 - no persisted entity reference or new Fight file field is introduced.
 
 This keeps `FIXED_TARGET` deterministic without adding a new persisted target-identity architecture. Other target modes remain unchanged. Dedicated-server observation of target death/disappearance remains part of the final runtime validation matrix.
+
+## Final Playback Ownership Enforcement — Post Source Audit
+
+A post-GREEN source audit found that the Phase 4A/6B ownership hooks were present but the action layer did not yet enforce them at the point where recorded Movement and ChangeItem actions mutate the actor.
+
+This was a concrete integration defect, not a new feature request.
+
+Implemented scope:
+1. `ActionContext.changePosition(...)` now always advances the playback's internal recorded position, but does not snap the live entity while movement ownership is suppressed.
+2. `Movement.execute(...)` now exits after updating the internal playback position when Fight movement ownership is active, so recorded movement cannot overwrite Fight-controlled locomotion, head rotation, ground state, or movement packets.
+3. `ChangeItem.execute(...)` now leaves the live equipment untouched while Fight equipment ownership is active, while still reporting the recorded action as processed so playback timing continues normally.
+4. No public API interface was changed; the suppression boundary remains internal to the existing playback implementation.
+5. Normal playback behavior is unchanged when the suppression flags are false.
+6. Scene playback continues to propagate the existing ownership flags to nested recordings.
+
+This closes the concrete movement/equipment ownership gap described by Phases 4A and 6B without changing Fight combat rules, persistence, targeting, navigation, or command syntax.
+
+Runtime validation remains required for the final cinematic matrix.

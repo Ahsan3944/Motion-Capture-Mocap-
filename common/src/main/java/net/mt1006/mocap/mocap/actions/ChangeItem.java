@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.mt1006.mocap.api.v1.extension.MocapRecordingData;
 import net.mt1006.mocap.api.v1.extension.actions.MocapActionContext;
+import net.mt1006.mocap.mocap.playing.playback.ActionContext;
 import net.mt1006.mocap.api.v1.extension.actions.MocapStateAction;
 import net.mt1006.mocap.mixin.fields.LivingEntityFields;
 import net.mt1006.mocap.utils.Utils;
@@ -142,6 +143,11 @@ public class ChangeItem implements MocapStateAction
 
 	@Override public Result execute(MocapActionContext ctx)
 	{
+		if (ctx instanceof ActionContext actionContext && actionContext.isEquipmentSuppressed())
+		{
+			return Result.OK;
+		}
+
 		LivingEntity livingEntity = ctx.getLivingEntityOrDummyPlayer();
 		if (livingEntity == null) { return Result.IGNORED; }
 

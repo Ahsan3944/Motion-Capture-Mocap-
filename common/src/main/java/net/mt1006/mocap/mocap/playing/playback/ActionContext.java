@@ -244,6 +244,8 @@ public class ActionContext implements MocapActionContext
 	@Override public void changePosition(Vec3 newPos, float rotY, float rotX, boolean transformRot)
 	{
 		position = newPos;
+		if (movementSuppressed) { return; }
+
 		Vec3 finPos = transformer.transformPos(position);
 		float finRotY = transformRot ? transformer.transformRotation(rotY) : rotY;
 

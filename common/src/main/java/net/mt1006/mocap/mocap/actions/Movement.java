@@ -8,6 +8,7 @@ import net.minecraft.world.phys.Vec3;
 import net.mt1006.mocap.api.v1.extension.MocapRecordingData;
 import net.mt1006.mocap.api.v1.extension.actions.MocapAction;
 import net.mt1006.mocap.api.v1.extension.actions.MocapActionContext;
+import net.mt1006.mocap.mocap.playing.playback.ActionContext;
 import net.mt1006.mocap.mocap.settings.Settings;
 import org.jetbrains.annotations.Nullable;
 
@@ -272,7 +273,10 @@ public class Movement implements MocapAction
 			default -> oldPos.y; // Y_DELTA0
 		};
 
+		boolean movementSuppressed = ctx instanceof ActionContext actionContext && actionContext.isMovementSuppressed();
 		ctx.changePosition(new Vec3(x, y, z), rotY, rotX, updateRot);
+		if (movementSuppressed) { return Result.OK; }
+
 		if (updateRot) { entity.setYHeadRot(finHeadRot); }
 		entity.setOnGround((flags & ON_GROUND) != 0);
 		entity.applyEffectsFromBlocks(oldPos, entity.position());
