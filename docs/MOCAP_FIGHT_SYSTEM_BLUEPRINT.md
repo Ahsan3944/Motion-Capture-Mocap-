@@ -2873,3 +2873,35 @@ Result:
 4. This audit intentionally leaves those scenarios unmarked rather than manufacturing a code-side GREEN result.
 
 **Implementation decision:** no speculative production-code upgrade is made in this pass because the repository already satisfies the implementation scope and Build #170 is GREEN. The next meaningful validation step is execution on a real dedicated server/world, not another source-code rewrite.
+
+## Final Runtime Validation Batch — Ready for Dedicated-Server Execution
+
+The implementation/code phase is complete. The remaining work is consolidated into one runtime validation batch so individual scenarios are not implemented or marked complete speculatively.
+
+### Validation order
+
+1. **Baseline / regression** — start the dedicated server with the current mod build; verify existing recording, recording save/load, scene creation, scene playback, nested scene playback, playback offsets/delays, player naming/skin handling, and existing commands before starting any Fight.
+2. **Fight lifecycle** — create/load a Fight, configure source and target, start, stop, reset, remove, then repeat START → STOP → RESET → START and START → DEATH → RESET → START.
+3. **Mocap vs Mocap** — verify independent participants, target acquisition, chase, melee, death, target invalidation, completion, and reset.
+4. **Mocap vs real player** — verify live target movement, dynamic retargeting, damage, target death/disappearance, and that the real player is never movement-controlled by Fight.
+5. **Equipment/combat matrix** — verify melee, Bow, Crossbow, Shield, Food/Consumable, item switching, cooldown/recovery, damage, knockback, and no cross-participant equipment leakage.
+6. **Inventory/drop isolation** — verify battlefield pickups are not consumed by Fight actors, dead Fight actors do not become loot sources for other Fight actors, and reset/start does not duplicate or lose recorded combat equipment.
+7. **Group control** — verify Fishing Rod arming/disarming, valid destination resolution, formation spacing, collision/terrain safety, invalid destination rejection, and no unrelated-player teleport.
+8. **Movement/navigation recovery** — verify direct chase, small obstacles, bounded navigation, stall recovery, holes/traps, target movement, and timeout/failsafe behavior without destructive world modification.
+9. **Multiplayer isolation** — run multiple independent Fights concurrently and verify participant ownership prevents cross-Fight control, target selection, equipment changes, or reset interference.
+10. **Dimension/chunk edges** — verify configured actors and targets across dimensions/chunks, unloaded/invalid destinations, and stale/dead target references.
+11. **Persistence/restart** — stop and restart the dedicated server; verify Fight definitions reload correctly, malformed files remain rejected, no RUNNING Fight is reconstructed accidentally, and existing recordings/scenes remain intact.
+12. **Long-run stability** — run a representative Fight for an extended period and observe server log errors, runaway movement, stuck states, entity leaks, duplicate actors, and abnormal tick cost.
+13. **Loader regression** — repeat the critical interaction scenarios on both Fabric and NeoForge builds where the feature is supported, with special attention to Fishing Rod interaction hooks.
+
+### Pass criteria
+
+A scenario is GREEN only after it has been observed on a running server/world with no unexpected log exception, stuck runtime state, participant ownership leak, inventory/equipment duplication, unrelated-player mutation, terrain damage, or existing MoCap regression.
+
+### Evidence to capture
+
+For each scenario record: server/mod build, loader, world/dimension, Fight definition, command sequence, expected result, observed result, relevant log excerpt, and final status. Failed scenarios must produce a concrete reproduction before production-code changes are made.
+
+### Implementation boundary
+
+No additional production subsystem is to be added solely to make these checks easier. If runtime validation exposes a concrete defect, the defect becomes the next focused implementation change; otherwise this blueprint remains the final implementation baseline. NeoForge 26.1 provides Game Tests for in-game behavior testing, but introducing a new Fight-specific GameTest abstraction is intentionally deferred until a concrete runtime scenario shows that it is necessary. Dedicated-server execution remains the authoritative validation layer for this feature.
