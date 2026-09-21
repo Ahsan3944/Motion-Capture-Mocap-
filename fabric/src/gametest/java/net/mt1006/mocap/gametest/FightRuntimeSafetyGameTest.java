@@ -53,6 +53,50 @@ public final class FightRuntimeSafetyGameTest
     }
 
     @GameTest(maxTicks = 80)
+    public void groupFormationRejectsUnsafeDestinationAtomically(GameTestHelper context)
+    {
+        for (int x = 0; x <= 8; x++)
+        {
+            for (int z = 0; z <= 8; z++)
+            {
+                context.setBlock(x, 0, z, net.minecraft.world.level.block.Blocks.STONE);
+            }
+        }
+
+        LivingEntity first = context.spawn(EntityType.ARMOR_STAND, 1, 1, 1);
+        LivingEntity second = context.spawn(EntityType.ARMOR_STAND, 2, 1, 1);
+        FightParticipant firstParticipant =
+                new FightParticipant("atomic-first", first, FightParticipant.Side.SOURCE, "RED");
+        FightParticipant secondParticipant =
+                new FightParticipant("atomic-second", second, FightParticipant.Side.SOURCE, "RED");
+
+        Vec3 firstStart = first.position();
+        Vec3 secondStart = second.position();
+        Vec3 unsafeDestination = context.absoluteVec(new Vec3(5.5, 2.0, 5.5));
+
+        try
+        {
+            context.assertFalse(
+                    FightGroupController.teleportFormation(
+                            List.of(firstParticipant, secondParticipant), unsafeDestination),
+                    "A destination without supporting terrain must be rejected.");
+
+            context.assertTrue(
+                    first.position().distanceToSqr(firstStart) < 0.000001,
+                    "Atomic group teleport must not move the first participant after validation failure.");
+            context.assertTrue(
+                    second.position().distanceToSqr(secondStart) < 0.000001,
+                    "Atomic group teleport must not move the second participant after validation failure.");
+            context.succeed();
+        }
+        finally
+        {
+            first.discard();
+            second.discard();
+        }
+    }
+
+    @GameTest(maxTicks = 80)
     public void groupFormationTeleportsOnlyTheSelectedParticipants(GameTestHelper context)
     {
         for (int x = 0; x <= 12; x++)
