@@ -1001,6 +1001,7 @@ public final class FightManager
 			{
 				FightDefenseController.stop(participant);
 				FightFoodController.stop(participant);
+				participant.restoreResetSnapshot();
 				participant.deactivate();
 				releaseParticipant(participant.getEntity().getUUID(), id);
 			}
