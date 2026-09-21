@@ -50,7 +50,20 @@ public final class FightFishingRodController
 	{
 		if (!(player instanceof ServerPlayer serverPlayer) || player.level().isClientSide()) { return false; }
 		if (!isFishingRod(serverPlayer, hand)) { return false; }
-		return handleDestination(serverPlayer, destination);
+
+		Binding binding = bindings.get(serverPlayer.getUUID());
+		if (binding == null) { return false; }
+		if (!FightManager.isRunning(binding.fightId()))
+		{
+			bindings.remove(serverPlayer.getUUID());
+			return false;
+		}
+
+		// Once armed, the rod owns the block interaction even when the requested
+		// destination is rejected. This prevents an unsafe Fight teleport attempt
+		// from falling through into an unrelated vanilla block interaction.
+		handleDestination(serverPlayer, destination);
+		return true;
 	}
 
 	public static boolean handleItemUse(Player player, InteractionHand hand)
