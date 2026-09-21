@@ -78,7 +78,7 @@ public final class FightNavigationController
 		List<Vec3> path = findPath(level, actor, targetPosition, attackRange);
 		if (path.isEmpty())
 		{
-			participant.clearNavigationPath();
+			participant.setNavigationPath(List.of(), targetPosition);
 			participant.setNavigationRetryCooldownTicks(NAVIGATION_RETRY_COOLDOWN_TICKS);
 			return false;
 		}
