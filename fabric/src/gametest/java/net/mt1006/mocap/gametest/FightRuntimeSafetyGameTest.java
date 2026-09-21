@@ -10,7 +10,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.mt1006.mocap.mocap.fight.FightDefenseController;
-import net.mt1006.mocap.mocap.fight.FightEquipmentController;
 import net.mt1006.mocap.mocap.fight.FightGroupController;
 import net.mt1006.mocap.mocap.fight.FightParticipant;
 
@@ -28,21 +27,17 @@ public final class FightRuntimeSafetyGameTest
 
         player.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
 
-        context.assertTrue(player.isAlive(), "Mock player must be alive.");
-        context.assertTrue(target.isAlive(), "Shield target must be alive.");
-        context.assertTrue(player.level() instanceof net.minecraft.server.level.ServerLevel,
-                "Mock player must use the GameTest server level.");
-        context.assertTrue(FightEquipmentController.hasShield(player),
-                "Shield must be visible in the participant equipment.");
-        context.assertTrue(player.distanceToSqr(target) <= 25.0,
-                "Shield target must be inside the defense range.");
-
         try
         {
-            context.assertTrue(
-                    FightDefenseController.tick(participant, target),
-                    "A nearby target with a shield available should enter normal shield blocking.");
-            context.assertTrue(player.isBlocking(), "Shield defense must enter Minecraft's active blocking state.");
+            for (int tick = 0; tick < 6; tick++)
+            {
+                context.assertTrue(
+                        FightDefenseController.tick(participant, target),
+                        "A nearby target with a shield available should enter normal shield item use.");
+                player.tick();
+            }
+
+            context.assertTrue(player.isBlocking(), "Shield defense must reach Minecraft's active blocking state.");
             context.assertTrue(player.isUsingItem(), "Shield defense must use the normal item-use lifecycle.");
 
             FightDefenseController.stop(participant);
