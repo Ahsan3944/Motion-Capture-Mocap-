@@ -42,10 +42,10 @@ public final class FightManager
 	public static void ensureLoaded()
 	{
 		if (loaded) { return; }
-		loaded = true;
-		definitions.clear();
-
 		if (!Files.initialized || Files.fightDirectory == null) { return; }
+
+		definitions.clear();
+		loaded = true;
 		File[] files = Files.fightDirectory.listFiles((dir, name) -> name.endsWith(FILE_EXTENSION));
 		if (files == null) { return; }
 
@@ -186,7 +186,8 @@ public final class FightManager
 		if (!scenes.contains(scene)) { scenes.add(scene); }
 		definition.setSourceScenes(scenes);
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Added source scene '%s' to Fight '%s'.", scene, id);	}
+		return out.sendSuccessLiteral("Added source scene '%s' to Fight '%s'.", scene, id);
+	}
 
 	public static boolean setTargetPlayer(CommandOutput out, String id, String player)
 	{
@@ -199,7 +200,8 @@ public final class FightManager
 		if (!players.contains(player)) { players.add(player); }
 		definition.setTargetPlayers(players);
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Added target player '%s' to Fight '%s'.", player, id);	}
+		return out.sendSuccessLiteral("Added target player '%s' to Fight '%s'.", player, id);
+	}
 
 	public static boolean setSourceSceneTeam(CommandOutput out, String id, String scene, String team)
 	{
@@ -213,7 +215,8 @@ public final class FightManager
 			return out.sendFailure("Invalid source scene or team ID for Fight '" + id + "'.");
 		}
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set source scene '%s' team to '%s'.", scene, team);	}
+		return out.sendSuccessLiteral("Set source scene '%s' team to '%s'.", scene, team);
+	}
 
 	public static boolean setTargetScene(CommandOutput out, String id, String scene)
 	{
@@ -227,7 +230,8 @@ public final class FightManager
 		if (!scenes.contains(scene)) { scenes.add(scene); }
 		definition.setTargetScenes(scenes);
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Added target scene '%s' to Fight '%s'.", scene, id);	}
+		return out.sendSuccessLiteral("Added target scene '%s' to Fight '%s'.", scene, id);
+	}
 
 	public static boolean setTargetSceneTeam(CommandOutput out, String id, String scene, String team)
 	{
@@ -241,7 +245,8 @@ public final class FightManager
 			return out.sendFailure("Invalid target scene or team ID for Fight '" + id + "'.");
 		}
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set target scene '%s' team to '%s'.", scene, team);	}
+		return out.sendSuccessLiteral("Set target scene '%s' team to '%s'.", scene, team);
+	}
 
 	public static boolean setTargetPlayerTeam(CommandOutput out, String id, String player, String team)
 	{
@@ -255,7 +260,8 @@ public final class FightManager
 			return out.sendFailure("Invalid target player or team ID for Fight '" + id + "'.");
 		}
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set target player '%s' team to '%s'.", player, team);	}
+		return out.sendSuccessLiteral("Set target player '%s' team to '%s'.", player, team);
+	}
 
 	public static boolean setTargetMode(CommandOutput out, String id, String mode)
 	{
@@ -273,7 +279,8 @@ public final class FightManager
 			return out.sendFailure("Unknown target mode: " + mode);
 		}
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set target mode for Fight '%s' to %s.", id, definition.getTargetMode());	}
+		return out.sendSuccessLiteral("Set target mode for Fight '%s' to %s.", id, definition.getTargetMode());
+	}
 
 	public static boolean setPower(CommandOutput out, String id, int value)
 	{
@@ -284,7 +291,8 @@ public final class FightManager
 		FightDefinition previous = definition.copy();
 		if (!definition.setPower(value)) { return out.sendFailure("Power must be between 1 and 10."); }
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set power for Fight '%s' to %d.", id, value);	}
+		return out.sendSuccessLiteral("Set power for Fight '%s' to %d.", id, value);
+	}
 
 	public static boolean setAttackSpeed(CommandOutput out, String id, double value)
 	{
@@ -295,7 +303,8 @@ public final class FightManager
 		FightDefinition previous = definition.copy();
 		if (!definition.setAttackSpeed(value)) { return out.sendFailure("Attack speed must be finite and greater than 0."); }
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set attack speed for Fight '%s' to %.3f.", id, value);	}
+		return out.sendSuccessLiteral("Set attack speed for Fight '%s' to %.3f.", id, value);
+	}
 
 	public static boolean setAttackRange(CommandOutput out, String id, double value)
 	{
@@ -306,7 +315,8 @@ public final class FightManager
 		FightDefinition previous = definition.copy();
 		if (!definition.setAttackRange(value)) { return out.sendFailure("Attack range must be finite and greater than 0."); }
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set attack range for Fight '%s' to %.2f.", id, value);	}
+		return out.sendSuccessLiteral("Set attack range for Fight '%s' to %.2f.", id, value);
+	}
 
 	public static boolean setDetectionRange(CommandOutput out, String id, double value)
 	{
@@ -317,7 +327,8 @@ public final class FightManager
 		FightDefinition previous = definition.copy();
 		if (!definition.setDetectionRange(value)) { return out.sendFailure("Detection range must be finite and greater than 0."); }
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set detection range for Fight '%s' to %.2f.", id, value);	}
+		return out.sendSuccessLiteral("Set detection range for Fight '%s' to %.2f.", id, value);
+	}
 
 	public static boolean setMovementSpeed(CommandOutput out, String id, double value)
 	{
@@ -328,7 +339,8 @@ public final class FightManager
 		FightDefinition previous = definition.copy();
 		if (!definition.setMovementSpeed(value)) { return out.sendFailure("Movement speed must be finite and non-negative."); }
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set movement speed for Fight '%s' to %.2f.", id, value);	}
+		return out.sendSuccessLiteral("Set movement speed for Fight '%s' to %.2f.", id, value);
+	}
 
 	public static boolean setDamageMultiplier(CommandOutput out, String id, double value)
 	{
@@ -339,7 +351,8 @@ public final class FightManager
 		FightDefinition previous = definition.copy();
 		if (!definition.setDamageMultiplier(value)) { return out.sendFailure("Damage multiplier must be finite and non-negative."); }
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set damage multiplier for Fight '%s' to %.2f.", id, value);	}
+		return out.sendSuccessLiteral("Set damage multiplier for Fight '%s' to %.2f.", id, value);
+	}
 
 	public static boolean setKnockbackMultiplier(CommandOutput out, String id, double value)
 	{
@@ -350,7 +363,8 @@ public final class FightManager
 		FightDefinition previous = definition.copy();
 		if (!definition.setKnockbackMultiplier(value)) { return out.sendFailure("Knockback multiplier must be finite and non-negative."); }
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Set knockback multiplier for Fight '%s' to %.2f.", id, value);	}
+		return out.sendSuccessLiteral("Set knockback multiplier for Fight '%s' to %.2f.", id, value);
+	}
 
 	public static boolean clearTargets(CommandOutput out, String id)
 	{
@@ -362,7 +376,8 @@ public final class FightManager
 		definition.setTargetPlayers(List.of());
 		definition.setTargetScenes(List.of());
 		if (!saveOrRestore(out, definition, previous)) { return false; }
-		return out.sendSuccessLiteral("Cleared targets for Fight '%s'.", id);	}
+		return out.sendSuccessLiteral("Cleared targets for Fight '%s'.", id);
+	}
 
 	public static boolean start(CommandInfo out, String id)
 	{
@@ -481,7 +496,14 @@ public final class FightManager
 			}
 			FightFishingRodController.clearFight(id);
 			FightDefinition definition = definitions.get(id);
-			if (definition != null) { definition.setState(FightDefinition.State.STOPPED); save(definition); }
+			if (definition != null)
+			{
+				definition.setState(FightDefinition.State.STOPPED);
+				if (!save(definition))
+				{
+					MocapMod.LOGGER.error("Failed to persist isolated Fight '{}' as STOPPED.", id);
+				}
+			}
 		}
 	}
 
@@ -498,8 +520,16 @@ public final class FightManager
 		for (FightDefinition definition : definitions.values())
 		{
 			definition.setState(FightDefinition.State.STOPPED);
-			save(definition);
+			if (!save(definition))
+			{
+				MocapMod.LOGGER.error("Failed to persist Fight '{}' as STOPPED during shutdown.", definition.getId());
+			}
 		}
+
+		// Fight definitions are world-scoped. A later server instance in the same JVM must
+		// reload from its own fight directory instead of reusing stale static definitions.
+		definitions.clear();
+		loaded = false;
 	}
 
 	public static String describe(FightDefinition definition)
