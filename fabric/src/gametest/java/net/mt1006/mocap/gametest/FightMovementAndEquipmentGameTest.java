@@ -191,6 +191,62 @@ public final class FightMovementAndEquipmentGameTest
         }
     }
 
+    @GameTest(maxTicks = 40)
+    public void resetSnapshotRestoresRuntimeStateAfterCombatMutations(GameTestHelper context)
+    {
+        LivingEntity actor = context.spawn(EntityType.ARMOR_STAND, 3, 1, 3);
+        FightParticipant participant =
+                new FightParticipant("reset-snapshot", actor, FightParticipant.Side.SOURCE, "RED");
+
+        try
+        {
+            actor.setItemInHand(InteractionHand.MAIN_HAND, Items.IRON_SWORD.getDefaultInstance());
+            actor.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
+            actor.setYRot(37.0F);
+            actor.setXRot(-12.0F);
+            participant.captureResetSnapshot();
+
+            Vec3 initialPosition = participant.getInitialPosition();
+            float initialYaw = participant.getInitialYaw();
+            float initialPitch = participant.getInitialPitch();
+            float initialHealth = participant.getInitialHealth();
+
+            actor.setPos(context.absoluteVec(new Vec3(8.0, 1.0, 8.0)));
+            actor.setYRot(180.0F);
+            actor.setXRot(25.0F);
+            actor.setHealth(1.0F);
+            actor.setItemInHand(InteractionHand.MAIN_HAND, Items.STICK.getDefaultInstance());
+            actor.setItemInHand(InteractionHand.OFF_HAND, Items.AIR.getDefaultInstance());
+
+            participant.restoreResetSnapshot();
+
+            context.assertTrue(
+                    actor.position().distanceTo(initialPosition) < 1.0E-6,
+                    "Reset must restore the participant's captured position.");
+            context.assertTrue(
+                    Math.abs(actor.getYRot() - initialYaw) < 1.0E-6,
+                    "Reset must restore the participant's captured yaw.");
+            context.assertTrue(
+                    Math.abs(actor.getXRot() - initialPitch) < 1.0E-6,
+                    "Reset must restore the participant's captured pitch.");
+            context.assertTrue(
+                    Math.abs(actor.getHealth() - initialHealth) < 1.0E-6,
+                    "Reset must restore the participant's captured health.");
+            context.assertTrue(
+                    actor.getMainHandItem().is(Items.IRON_SWORD),
+                    "Reset must restore the captured main-hand item.");
+            context.assertTrue(
+                    actor.getOffhandItem().is(Items.SHIELD),
+                    "Reset must restore the captured off-hand item.");
+            context.succeed();
+        }
+        finally
+        {
+            actor.discard();
+        }
+    }
+
+
     private static void fillFloor(GameTestHelper context, int minX, int minZ, int maxX, int maxZ)
     {
         for (int x = minX; x <= maxX; x++)
