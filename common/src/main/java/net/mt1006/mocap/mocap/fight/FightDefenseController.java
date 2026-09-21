@@ -73,7 +73,7 @@ public final class FightDefenseController
 	public static void stop(FightParticipant participant)
 	{
 		if (participant == null || !(participant.getEntity() instanceof LivingEntity living)) { return; }
-		if (living.isUsingItem()) { living.stopUsingItem(); }
+		if (living.isUsingItem() && living.getUseItem().getItem() instanceof ShieldItem) { living.stopUsingItem(); }
 		participant.clearShieldBlock();
 		if (participant.getState() == FightParticipant.State.USE_ITEM)
 		{
