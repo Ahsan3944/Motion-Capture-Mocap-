@@ -2540,3 +2540,26 @@ Deliberately not implemented in Phase 7F:
 - global/shared path caches;
 - async pathfinding;
 - terrain or chunk loading changes.
+## Implementation Progress — Phase 7G
+
+Phase 7G adds a bounded per-search walkability cache to avoid repeating the same loaded-chunk, collision, and support checks for the same local grid cell during one navigation search.
+
+Pre-implementation checks:
+1. The Phase 7F search was traced at the neighbor-expansion level. A grid cell can be evaluated repeatedly from different neighboring nodes, causing duplicate world collision/support and loaded-chunk checks.
+2. A per-search cache was chosen instead of a persistent/global cache so block/entity changes cannot leave stale navigation data across ticks or fights.
+3. The cache is bounded by the existing search node budget and is discarded after each search. Existing path ordering, neighbor ordering, collision rules, loaded-chunk rules, and search limits remain unchanged.
+
+Implemented scope:
+1. Cache the boolean walkability result for each GridPos during one bounded findPath call.
+2. Reuse the cached result whenever the same cell is evaluated again in that search.
+3. Preserve the exact existing isWalkable validation when a cell is first evaluated.
+4. Keep the cache local to one search invocation; no cross-tick or cross-fighter persistence.
+5. Preserve all existing A* scoring and route reconstruction behavior.
+
+Deliberately not implemented in Phase 7G:
+- persistent/world-wide path caches;
+- shared caches between fighters;
+- async pathfinding;
+- larger search limits;
+- terrain modification;
+- chunk loading changes.
