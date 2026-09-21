@@ -29,6 +29,7 @@ public final class FightMovementAndEquipmentGameTest
         {
             actor.setNoGravity(true);
             target.setNoGravity(true);
+            Vec3 startPosition = actor.position();
             double before = actor.distanceToSqr(target);
 
             context.assertTrue(
@@ -36,7 +37,7 @@ public final class FightMovementAndEquipmentGameTest
                     "A clear target path must produce a successful chase movement.");
 
             double after = actor.distanceToSqr(target);
-            double moved = actor.position().distanceTo(new Vec3(1.5, 1.0, 2.5));
+            double moved = actor.position().distanceTo(startPosition);
             context.assertTrue(after < before, "Direct chase must reduce target distance.");
             context.assertTrue(moved <= 0.501, "Movement must respect the 0.5 block/tick safety cap.");
             context.succeed();
