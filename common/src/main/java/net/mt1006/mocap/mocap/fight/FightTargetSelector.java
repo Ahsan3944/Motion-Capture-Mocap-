@@ -20,7 +20,8 @@ public final class FightTargetSelector
 		if (mode == FightDefinition.TargetMode.CURRENT_TARGET || mode == FightDefinition.TargetMode.FIXED_TARGET)
 		{
 			Entity current = participant.getCurrentTarget();
-			if (isValidWithSquaredRange(participant, current, detectionRangeSqr)) { return current; }
+			if (isValidWithSquaredRange(participant, current, detectionRangeSqr)
+					&& !isInactiveFightParticipant(current, participants)) { return current; }
 			if (mode == FightDefinition.TargetMode.FIXED_TARGET && participant.isFixedTargetLocked()) { return null; }
 		}
 
@@ -118,6 +119,15 @@ public final class FightTargetSelector
 		}
 
 		return selected;
+	}
+
+	private static boolean isInactiveFightParticipant(Entity candidate, List<FightParticipant> participants)
+	{
+		for (FightParticipant participant : participants)
+		{
+			if (participant.getEntity() == candidate) { return !participant.isActive(); }
+		}
+		return false;
 	}
 
 	private static boolean isFightParticipantEntity(List<FightParticipant> participants, Entity candidate)
