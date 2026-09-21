@@ -3,6 +3,7 @@ package net.mt1006.mocap.mocap.fight;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.testframework.junit.EphemeralTestServerProvider;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,7 @@ class FightTargetSelectorServerTest
 
 	private static LivingEntity spawn(MinecraftServer server, double x, double y, double z)
 	{
-		LivingEntity entity = (LivingEntity) EntityType.ZOMBIE.create(server.overworld());
+		LivingEntity entity = (LivingEntity) EntityType.ZOMBIE.create(server.overworld(), EntitySpawnReason.COMMAND);
 		assertNotNull(entity);
 		entity.setNoAi(true);
 		entity.setPos(x, y, z);
