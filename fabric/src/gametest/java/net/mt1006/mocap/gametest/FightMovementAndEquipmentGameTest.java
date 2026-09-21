@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -144,7 +145,7 @@ public final class FightMovementAndEquipmentGameTest
         {
             first.setItemInHand(InteractionHand.MAIN_HAND, Items.STICK.getDefaultInstance());
             first.setItemInHand(InteractionHand.OFF_HAND, Items.IRON_SWORD.getDefaultInstance());
-            first.setItemInHand(InteractionHand.HEAD, Items.IRON_HELMET.getDefaultInstance());
+            first.setItemInHand(EquipmentSlot.HEAD, Items.IRON_HELMET.getDefaultInstance());
             second.setItemInHand(InteractionHand.MAIN_HAND, Items.DIAMOND_SWORD.getDefaultInstance());
 
             firstParticipant.captureResetSnapshot();
