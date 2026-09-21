@@ -22,6 +22,14 @@ class FightServerSmokeTest
 		{
 			assertTrue(FightManager.create(output, id));
 			assertNotNull(FightManager.get(id));
+			assertFalse(FightManager.create(output, id));
+			assertTrue(FightManager.setTargetPlayer(output, id, "Steve"));
+			assertFalse(FightManager.setTargetPlayer(output, id, ""));
+			assertFalse(FightManager.setTargetPlayer(output, id, null));
+			assertFalse(FightManager.setTargetMode(output, id, ""));
+			assertFalse(FightManager.setTargetMode(output, id, null));
+			assertFalse(FightManager.start(output, id));
+			assertFalse(FightManager.stop(output, id));
 			assertTrue(FightManager.setPower(output, id, 10));
 			assertEquals(10, FightManager.get(id).getPower());
 			assertTrue(FightManager.setAttackRange(output, id, 4.5));
@@ -30,6 +38,9 @@ class FightServerSmokeTest
 			assertEquals(FightDefinition.TargetMode.FIXED_TARGET, FightManager.get(id).getTargetMode());
 			assertTrue(FightManager.reset(output, id));
 			assertFalse(FightManager.isRunning(id));
+			FightManager.stopAll();
+			assertNotNull(FightManager.get(id));
+			assertEquals(FightDefinition.State.STOPPED, FightManager.get(id).getState());
 		}
 		finally
 		{

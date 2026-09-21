@@ -3048,3 +3048,23 @@ A loader-level server smoke layer is now added without changing production Fight
 - A dedicated server-backed JUnit smoke test verifies the same Fight definition lifecycle against an actual Minecraft server instance.
 
 These tests intentionally validate server initialization, world-scoped Fight persistence, and configuration lifecycle rather than pretending to cover full cinematic combat. The full runtime matrix still requires recordings/scenes and observation of actual actors, targets, equipment, navigation, and multiplayer behavior.
+
+
+---
+
+# 57. Automated Configuration Boundary Validation — Post Server-Smoke Audit
+
+The loader-backed server smoke layer now also verifies the Fight configuration boundary before any real Fight runtime is started.
+
+Covered cases:
+
+- duplicate Fight IDs are rejected;
+- valid target-player references are accepted;
+- blank/null target-player references are rejected without throwing;
+- blank/null target-mode values are rejected without throwing;
+- starting without a configured source scene fails cleanly;
+- stopping an inactive Fight fails cleanly;
+- manager shutdown/reset clears the in-memory registry and a later lookup reloads the persisted definition;
+- a reloaded definition remains STOPPED.
+
+This is intentionally limited to configuration/lifecycle boundaries. It does not claim coverage for actual Mocap scene playback, runtime participant spawning, autonomous combat, navigation, equipment use, damage/death behavior, multiplayer isolation, or long-run performance.

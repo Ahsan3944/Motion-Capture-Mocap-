@@ -191,6 +191,10 @@ public final class FightManager
 
 	public static boolean setTargetPlayer(CommandOutput out, String id, String player)
 	{
+		if (player == null || player.isBlank())
+		{
+			return out.sendFailure("Target player cannot be empty.");
+		}
 		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
@@ -265,6 +269,10 @@ public final class FightManager
 
 	public static boolean setTargetMode(CommandOutput out, String id, String mode)
 	{
+		if (mode == null || mode.isBlank())
+		{
+			return out.sendFailure("Target mode cannot be empty.");
+		}
 		if (active.containsKey(id)) { return out.sendFailure("Fight configuration cannot be changed while the Fight is running: " + id); }
 		ensureLoaded();
 		FightDefinition definition = definitions.get(id);
