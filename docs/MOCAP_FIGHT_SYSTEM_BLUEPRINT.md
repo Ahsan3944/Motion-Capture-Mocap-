@@ -2969,3 +2969,21 @@ A post-GREEN lifecycle audit identified concrete reliability gaps that can be co
 - formatting artifacts in the previously hardened configuration setters were normalized without behavior changes.
 
 This pass does not change targeting, Power scaling, damage, movement, navigation, equipment, command syntax, or the persistence format. Dedicated-server gameplay validation remains required for runtime-only scenarios.
+
+
+## Final Target-Retention Hardening — Post World-Lifecycle Audit
+
+A fresh performance audit identified a concrete remaining implementation gap against the locked target-acquisition and performance rules: NEAREST and LOWEST_HEALTH target selection was being evaluated every Fight tick even when the current target was still valid.
+
+The runtime now retains a valid target between selection passes:
+
+- CURRENT_TARGET and FIXED_TARGET retain a valid current target until invalidation;
+- NEAREST and LOWEST_HEALTH re-evaluate on a bounded 5-tick selection interval while still immediately invalidating dead, stale, cross-dimension, out-of-range, or otherwise invalid targets;
+- target-selection cooldown is runtime-only and is cleared when a participant is deactivated;
+- no target reference is persisted;
+- target selection ordering, team filtering, live-player handling, damage, movement, navigation, equipment, and command syntax are unchanged;
+- the existing squared-distance validation path remains authoritative.
+
+The bounded interval is deliberately internal rather than a new persisted configuration field so the saved Fight format and command/API surface remain unchanged. This satisfies the blueprint's target-retention/performance requirement without introducing a world-wide spatial index, asynchronous selection, or speculative AI layer.
+
+Runtime target movement/death/retargeting remains part of the dedicated-server validation batch.
