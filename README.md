@@ -229,12 +229,12 @@ The repository implementation now covers the locked Fight architecture through t
 - Active-Fight configuration mutation protection, persistence rollback and world/server lifecycle cleanup.
 - Automated configuration/model regression coverage plus loader-backed server smoke coverage.
 
-### Latest automated verification
+### Latest substantive automated verification
 
 **Build & Verify #213 — SUCCESS**  
 Commit: `eee01a8f78ab20e81b75e4f6060acd19e42048a9`
 
-The latest CI run verified the full Gradle build after the final Fight item-use lifecycle hardening pass. This pass also added a server-side GameTest covering food consumption continuation and defense/item-use isolation.
+The latest substantive CI run verified the full Gradle build after the final Fight item-use lifecycle hardening pass. This pass also added a server-side GameTest covering food consumption continuation and defense/item-use isolation.
 
 The automated regression coverage now includes:
 
