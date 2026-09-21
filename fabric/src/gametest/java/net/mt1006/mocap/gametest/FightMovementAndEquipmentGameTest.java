@@ -244,16 +244,13 @@ public final class FightMovementAndEquipmentGameTest
         {
             participant.captureResetSnapshot();
 
-            boolean fired = false;
-            for (int tick = 0; tick < 30 && !fired; tick++)
+            for (int tick = 0; tick < 30
+                    && !net.minecraft.world.item.CrossbowItem.isCharged(player.getMainHandItem()); tick++)
             {
-                fired = FightRangedController.tickCrossbow(participant);
-                if (tick < 20)
-                {
-                    context.assertFalse(
-                            fired,
-                            "A Crossbow must not fire before its bounded charge lifecycle completes.");
-                }
+                boolean fired = FightRangedController.tickCrossbow(participant);
+                context.assertFalse(
+                        fired,
+                        "Charging alone must not report a fired projectile.");
             }
 
             context.assertTrue(
@@ -262,11 +259,8 @@ public final class FightMovementAndEquipmentGameTest
             context.assertTrue(
                     net.minecraft.world.item.CrossbowItem.isCharged(player.getMainHandItem()),
                     "Completing Crossbow charge must leave the Crossbow in its normal charged state.");
-            context.assertFalse(
-                    fired,
-                    "Charging alone must not report a fired projectile.");
 
-            fired = FightRangedController.tickCrossbow(participant);
+            boolean fired = FightRangedController.tickCrossbow(participant);
             context.assertTrue(fired, "A charged Crossbow must fire through its normal use lifecycle.");
             context.assertFalse(
                     net.minecraft.world.item.CrossbowItem.isCharged(player.getMainHandItem()),
