@@ -3181,3 +3181,16 @@ The change is limited to the existing Fishing Rod interaction boundary. No telep
 Build #243 verified the complete configured CI pipeline after this change, including the existing Fabric server GameTests and loader builds.
 
 Dedicated-server runtime validation remains required for the live Fishing Rod scenario and the other final runtime matrix items; CI success does not mark those observations GREEN.
+
+
+## Implementation Progress — Final Runtime Ownership Hardening
+
+A post-Build #244 ownership audit identified one concrete edge case in the runtime ownership registry: an entity already owned by the same Fight ID could be accepted a second time during runtime participant construction. That was weaker than the blueprint invariant that one live entity has one authoritative runtime participant owner.
+
+Implemented:
+1. FightManager now rejects every existing participant-ownership claim, even when the existing owner is the same Fight ID.
+2. Partial Fight construction still rolls back previously claimed participants through the existing reset path.
+3. Cross-Fight ownership rejection remains unchanged.
+4. No combat, target selection, movement, navigation, equipment, persistence format, command syntax, or public API behavior was changed.
+
+This is a narrow ownership-integrity hardening change. Dedicated-server runtime validation remains the authoritative check for the final cinematic and multiplayer scenarios.
