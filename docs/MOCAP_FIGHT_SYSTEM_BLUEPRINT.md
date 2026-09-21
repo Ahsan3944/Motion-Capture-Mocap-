@@ -3112,3 +3112,19 @@ Build & Verify #202 completed successfully after the Build #201 regression-audit
 This verification confirms the current documentation baseline builds cleanly across the common, Fabric, and NeoForge modules and that the existing automated server-smoke/test layers remain green. No production Fight behavior was changed by this documentation-only synchronization.
 
 The remaining unchecked items are still the dedicated-server runtime observations listed in the Final Runtime Validation Batch. They must be executed against a real server/world and must not be marked GREEN from CI alone.
+
+
+## Implementation Progress — Build #206 Regression Verification
+
+Build & Verify #206 completed successfully on commit `3894862ea0300ef84aff7734a755e047c25859e2`.
+
+This batch corrected a Fabric GameTest fixture type mismatch introduced while adding current-target recovery coverage. The replacement spawned entity is now represented by a `FightParticipant` before being supplied to the selector's participant list, matching the production API contract.
+
+The resulting automated target-selection coverage verifies:
+- `NEAREST` selects the closest hostile participant;
+- `LOWEST_HEALTH` selects the lowest-health hostile participant;
+- `CURRENT_TARGET` retains a valid target and resumes normal candidate selection after invalidation;
+- `FIXED_TARGET` locks the first valid target and does not retarget after invalidation;
+- same-team participants are rejected.
+
+No production Fight behavior was changed by this test-fixture correction. The remaining unchecked scenarios are still the dedicated-server runtime observations listed in the Final Runtime Validation Batch.

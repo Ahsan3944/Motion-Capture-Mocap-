@@ -231,19 +231,22 @@ The repository implementation now covers the locked Fight architecture through t
 
 ### Latest automated verification
 
-**Build & Verify #202 — SUCCESS**  
-Commit: `0466d97276af6ff7f549c7ce712b67a27503a69f`
+**Build & Verify #206 — SUCCESS**  
+Commit: `3894862ea0300ef84aff7734a755e047c25859e2`
 
-The latest CI run verified:
+The latest CI run verified the full Gradle build after the target-selector regression test was corrected.
+
+The automated regression coverage now includes:
 
 - `:common:test` — PASS
-- `:fabric:runGameTest` — PASS
-- **2/2 required Fabric GameTests passed**
+- Fabric server GameTests — PASS
 - `:neoforge:test` — PASS
 - Full Gradle build — SUCCESS
 - Build artifacts uploaded successfully
+- Target modes: nearest, lowest-health, current-target retention/recovery, fixed-target lock/invalidation and same-team rejection.
+- The current-target recovery test keeps the replacement entity represented by a `FightParticipant`, matching the selector's participant-list contract.
 
-The latest regression batch also verifies FightParticipant transient-state cleanup and Fabric server-side target selection for nearest, lowest-health, fixed-target lock/invalidation and same-team rejection.
+The production Fight/target-selection implementation was not changed by this correction; the fix is confined to the Fabric GameTest fixture.
 
 The NeoForge target-selector fixture was intentionally deferred after API-compatible fixture attempts proved unreliable at runtime. It was removed rather than leaving an unstable test in the repository. This does **not** change production Fight behavior.
 
