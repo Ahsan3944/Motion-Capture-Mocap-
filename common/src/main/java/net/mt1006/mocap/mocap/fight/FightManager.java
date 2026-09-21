@@ -384,11 +384,15 @@ public final class FightManager
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
 		if (runtime == null) { return out.sendFailure("Fight is not running: " + id); }
-		FightFishingRodController.clearFight(id);
-		runtime.reset();
 
+		FightFishingRodController.clearFight(id);
+		boolean resetOk = resetRuntime(runtime, id);
 		definition.setState(FightDefinition.State.STOPPED);
-		save(definition);
+		boolean saved = save(definition);
+		if (!resetOk || !saved)
+		{
+			return out.sendFailure("Fight '%s' stopped, but cleanup or persistence reported an error.".formatted(id));
+		}
 		return out.sendSuccessLiteral("Stopped Fight '%s'.", id);
 	}
 
@@ -399,11 +403,29 @@ public final class FightManager
 		FightDefinition definition = definitions.get(id);
 		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
 
-		if (runtime != null) { runtime.reset(); }
 		FightFishingRodController.clearFight(id);
+		boolean resetOk = runtime == null || resetRuntime(runtime, id);
 		definition.setState(FightDefinition.State.STOPPED);
-		save(definition);
+		boolean saved = save(definition);
+		if (!resetOk || !saved)
+		{
+			return out.sendFailure("Fight '%s' reset, but cleanup or persistence reported an error.".formatted(id));
+		}
 		return out.sendSuccessLiteral("Reset Fight '%s'.", id);
+	}
+
+	private static boolean resetRuntime(FightRuntime runtime, String id)
+	{
+		try
+		{
+			runtime.reset();
+			return true;
+		}
+		catch (Exception e)
+		{
+			MocapMod.LOGGER.error("Failed to reset Fight runtime '{}'.", id, e);
+			return false;
+		}
 	}
 
 	public static void tick()
@@ -435,6 +457,7 @@ public final class FightManager
 				try { runtime.reset(); }
 				catch (Exception e) { MocapMod.LOGGER.error("Failed to reset isolated Fight runtime '{}'.", id, e); }
 			}
+			FightFishingRodController.clearFight(id);
 			FightDefinition definition = definitions.get(id);
 			if (definition != null) { definition.setState(FightDefinition.State.STOPPED); save(definition); }
 		}
@@ -449,6 +472,7 @@ public final class FightManager
 		}
 		active.clear();
 		participantOwners.clear();
+		FightFishingRodController.clearAll();
 		for (FightDefinition definition : definitions.values())
 		{
 			definition.setState(FightDefinition.State.STOPPED);

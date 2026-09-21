@@ -2919,3 +2919,15 @@ The implementation now:
 - keeps the existing file untouched when the temporary write itself fails.
 
 No combat, targeting, movement, navigation, equipment, or command behavior was changed by this hardening pass.
+
+
+## Final Runtime-Lifecycle Hardening — Post Validation-Batch Review
+
+A fresh lifecycle audit identified two concrete cleanup gaps that were safe to correct without expanding the Fight architecture:
+
+- failed/isolated Fight runtimes now clear any Fishing Rod binding associated with that Fight;
+- global Fight shutdown now clears all Fishing Rod bindings;
+- explicit STOP/RESET now convert runtime cleanup exceptions into logged failures instead of leaving the definition in an ambiguous RUNNING state;
+- STOP/RESET now report persistence failure instead of silently returning success when the STOPPED definition could not be saved.
+
+No combat, targeting, movement, navigation, equipment, persistence-format, or command syntax was changed.
