@@ -54,7 +54,8 @@ public final class FightTargetSelectorGameTest
 							context.getLevel().getServer(), definition.getDetectionRange()) == farther,
 						"CURRENT_TARGET must resume normal candidate selection after invalidation.");
 			nearest = (LivingEntity) context.spawn(EntityType.ZOMBIE, new Vec3(3.5, 1.0, 1.5));
-			participants = List.of(sourceParticipant, nearest, fartherParticipant);
+			nearestParticipant = new FightParticipant("nearest-replacement", nearest, FightParticipant.Side.TARGET, "BLUE");
+			participants = List.of(sourceParticipant, nearestParticipant, fartherParticipant);
 			sourceParticipant.setCurrentTarget(null);
 
 			definition.setTargetMode(FightDefinition.TargetMode.FIXED_TARGET);
