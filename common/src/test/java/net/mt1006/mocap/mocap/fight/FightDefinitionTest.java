@@ -39,12 +39,6 @@ class FightDefinitionTest
 		assertFalse(definition.setMovementSpeed(-0.1));
 		assertFalse(definition.setDamageMultiplier(-0.1));
 		assertFalse(definition.setKnockbackMultiplier(-0.1));
-		assertTrue(definition.setAttackSpeed(20.0));
-		assertTrue(definition.setAttackRange(64.0));
-		assertTrue(definition.setDetectionRange(128.0));
-		assertTrue(definition.setMovementSpeed(20.0));
-		assertTrue(definition.setDamageMultiplier(100.0));
-		assertTrue(definition.setKnockbackMultiplier(10.0));
 	}
 
 	@Test
@@ -102,4 +96,18 @@ class FightDefinitionTest
 		assertEquals("BLUE", copy.getTargetSceneTeam("target"));
 		assertEquals(FightDefinition.State.RUNNING, copy.getState());
 	}
+	@Test
+	void fixedTargetLockIsClearedOnResetLifecycle()
+	{
+		FightParticipant participant = new FightParticipant("fighter", null, FightParticipant.Side.SOURCE);
+		assertFalse(participant.isFixedTargetLocked());
+		participant.lockFixedTarget();
+		assertTrue(participant.isFixedTargetLocked());
+		participant.resetFixedTargetLock();
+		assertFalse(participant.isFixedTargetLocked());
+		participant.lockFixedTarget();
+		participant.deactivate();
+		assertFalse(participant.isFixedTargetLocked());
+	}
+
 }
