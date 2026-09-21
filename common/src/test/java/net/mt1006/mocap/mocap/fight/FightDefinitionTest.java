@@ -35,10 +35,20 @@ class FightDefinitionTest
 		assertFalse(definition.setAttackSpeed(Double.POSITIVE_INFINITY));
 		assertTrue(definition.setAttackSpeed(2.5));
 		assertFalse(definition.setAttackRange(0.0));
+		assertFalse(definition.setAttackRange(Double.NaN));
+		assertFalse(definition.setAttackRange(Double.POSITIVE_INFINITY));
 		assertFalse(definition.setDetectionRange(-1.0));
+		assertFalse(definition.setDetectionRange(Double.NaN));
+		assertFalse(definition.setDetectionRange(Double.POSITIVE_INFINITY));
 		assertFalse(definition.setMovementSpeed(-0.1));
+		assertFalse(definition.setMovementSpeed(Double.NaN));
+		assertFalse(definition.setMovementSpeed(Double.POSITIVE_INFINITY));
 		assertFalse(definition.setDamageMultiplier(-0.1));
+		assertFalse(definition.setDamageMultiplier(Double.NaN));
+		assertFalse(definition.setDamageMultiplier(Double.POSITIVE_INFINITY));
 		assertFalse(definition.setKnockbackMultiplier(-0.1));
+		assertFalse(definition.setKnockbackMultiplier(Double.NaN));
+		assertFalse(definition.setKnockbackMultiplier(Double.POSITIVE_INFINITY));
 	}
 
 	@Test
