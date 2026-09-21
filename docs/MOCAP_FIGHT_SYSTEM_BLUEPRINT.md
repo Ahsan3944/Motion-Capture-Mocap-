@@ -3128,3 +3128,17 @@ The resulting automated target-selection coverage verifies:
 - same-team participants are rejected.
 
 No production Fight behavior was changed by this test-fixture correction. The remaining unchecked scenarios are still the dedicated-server runtime observations listed in the Final Runtime Validation Batch.
+
+
+## Implementation Progress — Build #213 Final Fight Item-Use Hardening
+
+Build & Verify #213 completed successfully on commit `eee01a8f78ab20e81b75e4f6060acd19e42048a9`.
+
+This final hardening pass addressed two concrete lifecycle issues found during the source audit:
+
+1. Food/Consumable use no longer gets cancelled by the runtime food cooldown while the normal Minecraft consumable lifecycle is still in progress. The runtime cooldown remains a post-start guard against immediate re-entry, while an already-active food use is allowed to finish normally.
+2. Shield cleanup now only stops an active Shield item. Defense checks no longer cancel unrelated Food or Crossbow item-use lifecycles when the participant has no valid shield-defense condition.
+
+A Fabric server-side GameTest now exercises the food lifecycle through the same defense-before-food decision ordering used by `FightManager`, including the active-use/cooldown boundary.
+
+Build #213 is the current automated verification baseline. The remaining Final Runtime Validation Batch is unchanged and still requires execution on an actual dedicated Minecraft server/world; CI success does not mark those runtime observations GREEN.
