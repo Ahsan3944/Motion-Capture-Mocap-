@@ -5,34 +5,37 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import com.mojang.authlib.GameProfile;
-import net.minecraft.server.level.ClientInformation;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.mt1006.mocap.mocap.fight.FightDefenseController;
+import net.mt1006.mocap.mocap.fight.FightEquipmentController;
 import net.mt1006.mocap.mocap.fight.FightGroupController;
 import net.mt1006.mocap.mocap.fight.FightParticipant;
 
 import java.util.List;
-import java.util.UUID;
 
 public final class FightRuntimeSafetyGameTest
 {
     @GameTest(maxTicks = 80)
     public void shieldLifecycleUsesNormalBlockingState(GameTestHelper context)
     {
-        ServerPlayer player = new ServerPlayer(
-                context.getLevel().getServer(),
-                context.getLevel(),
-                new GameProfile(UUID.randomUUID(), "mocap-test-player"),
-                ClientInformation.createDefault());
-        player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+        Player player = context.makeMockPlayer(GameType.SURVIVAL);
         player.setPos(context.absoluteVec(new Vec3(0.5, 1.0, 1.5)));
         LivingEntity target = context.spawn(EntityType.ZOMBIE, 4, 1, 1);
         FightParticipant participant = new FightParticipant("shield-test", player, FightParticipant.Side.SOURCE);
 
         player.setItemInHand(InteractionHand.OFF_HAND, Items.SHIELD.getDefaultInstance());
+
+        context.assertTrue(player.isAlive(), "Mock player must be alive.");
+        context.assertTrue(target.isAlive(), "Shield target must be alive.");
+        context.assertTrue(player.level() instanceof net.minecraft.server.level.ServerLevel,
+                "Mock player must use the GameTest server level.");
+        context.assertTrue(FightEquipmentController.hasShield(player),
+                "Shield must be visible in the participant equipment.");
+        context.assertTrue(player.distanceToSqr(target) <= 25.0,
+                "Shield target must be inside the defense range.");
 
         try
         {
