@@ -92,9 +92,10 @@ public final class FightMovementController
 		Vec3 after = actor.position();
 		double movedX = after.x - before.x;
 		double movedZ = after.z - before.z;
-		double movedDistance = Math.sqrt(movedX * movedX + movedZ * movedZ);
-		return Double.isFinite(movedDistance)
-				&& movedDistance >= Math.max(MIN_SUCCESSFUL_MOVE, requestedDistance * SUCCESS_RATIO);
+		double movedDistanceSqr = movedX * movedX + movedZ * movedZ;
+		double requiredDistance = Math.max(MIN_SUCCESSFUL_MOVE, requestedDistance * SUCCESS_RATIO);
+		double requiredDistanceSqr = requiredDistance * requiredDistance;
+		return Double.isFinite(movedDistanceSqr) && movedDistanceSqr >= requiredDistanceSqr;
 	}
 
 	public static void faceTarget(Entity actor, double dx, double dz)

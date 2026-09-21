@@ -2768,3 +2768,29 @@ Deliberately not implemented in Phase 7O:
 - persistent state;
 - asynchronous selection;
 - movement or navigation changes.
+
+## Implementation Progress — Phase 7P
+
+Phase 7P removes an unnecessary square-root operation from FightMovementController.tryMove(...). The method only needs to determine whether the actual horizontal movement reached a non-negative minimum threshold, so the comparison can be performed using squared distances without changing the acceptance condition.
+
+Pre-implementation checks:
+1. The full tryMove(...) call path was traced. It is used by moveToward(...) for normal movement and bounded perpendicular recovery, so this optimization affects the hot movement path without changing ownership, collision handling, or recovery flow.
+2. The mathematical condition was checked. The previous comparison was movedDistance >= requiredDistance, where both values are non-negative. Comparing movedDistanceSqr >= requiredDistanceSqr is therefore equivalent for the same X/Z displacement.
+3. Input bounds were checked. requestedDistance is produced only after a positive finite distanceToMove is calculated from validated movement inputs, and SUCCESS_RATIO/MIN_SUCCESSFUL_MOVE are finite non-negative constants. The squared threshold is therefore safe and bounded.
+4. Regression/API checks were performed. No public method signature, movement speed calculation, stop-distance logic, collision call, blocked-tick handling, recovery direction, or entity movement API changes.
+
+Implemented scope:
+1. Replace Math.sqrt(...) in tryMove(...) with a squared horizontal-distance calculation.
+2. Square the same non-negative required movement threshold once.
+3. Preserve the existing finite-value guard and exact success threshold.
+4. Keep all normal movement, collision, recovery, navigation, and Fight behavior unchanged.
+
+Deliberately not implemented in Phase 7P:
+- movement speed formula changes;
+- stop-distance changes;
+- collision behavior changes;
+- recovery threshold changes;
+- navigation/pathfinding changes;
+- target selection changes;
+- persistent/shared caches;
+- public API changes;
