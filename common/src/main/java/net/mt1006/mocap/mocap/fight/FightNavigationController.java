@@ -15,6 +15,7 @@ import java.util.PriorityQueue;
 public final class FightNavigationController
 {
 	private static final int NAVIGATION_TRIGGER_STALL_TICKS = 8;
+	private static final int NAVIGATION_RETRY_COOLDOWN_TICKS = 12;
 	private static final int SEARCH_RADIUS = 8;
 	private static final int MAX_SEARCH_NODES = 96;
 	private static final int MAX_PATH_NODES = 12;
@@ -40,8 +41,14 @@ public final class FightNavigationController
 		Vec3 waypoint = participant.getNavigationWaypoint();
 		Vec3 plannedTarget = participant.getNavigationTargetPosition();
 		boolean targetMoved = plannedTarget == null || plannedTarget.distanceToSqr(targetPosition) > TARGET_REPATH_DISTANCE_SQR;
+		if (targetMoved) { participant.resetNavigationRetryCooldown(); }
 		boolean expired = participant.getNavigationAgeTicks() >= NAVIGATION_TIMEOUT_TICKS;
 		boolean needsRepath = waypoint == null || targetMoved || expired;
+		if (waypoint == null && !targetMoved && participant.getNavigationRetryCooldownTicks() > 0)
+		{
+			participant.tickNavigationRetryCooldown();
+			return false;
+		}
 
 		if (waypoint != null && waypoint.distanceToSqr(actor.position()) <= WAYPOINT_REACHED_DISTANCE_SQR)
 		{
@@ -72,6 +79,7 @@ public final class FightNavigationController
 		if (path.isEmpty())
 		{
 			participant.clearNavigationPath();
+			participant.setNavigationRetryCooldownTicks(NAVIGATION_RETRY_COOLDOWN_TICKS);
 			return false;
 		}
 
