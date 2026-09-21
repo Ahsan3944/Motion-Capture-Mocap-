@@ -103,12 +103,12 @@ public final class FightNavigationController
 	{
 		GridPos start = new GridPos(BlockPos.containing(actor.getX(), actor.getY(), actor.getZ()).getX(),
 				BlockPos.containing(actor.getX(), actor.getY(), actor.getZ()).getZ());
-		Map<GridPos, Boolean> walkabilityCache = new HashMap<>();
+		Map<GridPos, Boolean> walkabilityCache = new HashMap<>(128);
 		if (!isWalkableCached(level, actor, start, walkabilityCache)) { return Collections.emptyList(); }
 
-		PriorityQueue<SearchNode> open = new PriorityQueue<>();
-		Map<GridPos, Double> bestCost = new HashMap<>();
-		Map<GridPos, GridPos> cameFrom = new HashMap<>();
+		PriorityQueue<SearchNode> open = new PriorityQueue<>(MAX_SEARCH_NODES);
+		Map<GridPos, Double> bestCost = new HashMap<>(128);
+		Map<GridPos, GridPos> cameFrom = new HashMap<>(128);
 
 		double startDistanceSqr = distanceToTargetSqr(start, targetPosition);
 		GridPos best = start;
