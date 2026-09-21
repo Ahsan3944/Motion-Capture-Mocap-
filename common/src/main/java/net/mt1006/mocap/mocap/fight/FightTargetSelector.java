@@ -16,13 +16,14 @@ public final class FightTargetSelector
 			List<FightParticipant> participants, FightDefinition definition, MinecraftServer server,
 			double detectionRange)
 	{
+		double detectionRangeSqr = detectionRange * detectionRange;
 		if (mode == FightDefinition.TargetMode.CURRENT_TARGET || mode == FightDefinition.TargetMode.FIXED_TARGET)
 		{
 			Entity current = participant.getCurrentTarget();
-			if (isValid(participant, current, detectionRange)) { return current; }
+			if (isValid(participant, current, detectionRangeSqr)) { return current; }
 		}
 
-		return selectCandidate(participant, mode, participants, definition, server, detectionRange);
+		return selectCandidate(participant, mode, participants, definition, server, detectionRangeSqr);
 	}
 
 	public static boolean isValid(FightParticipant participant, @Nullable Entity target, double detectionRange)
@@ -31,11 +32,20 @@ public final class FightTargetSelector
 		Entity actor = participant.getEntity();
 		if (!actor.isAlive() || actor == target) { return false; }
 		if (actor.level() != target.level()) { return false; }
-		return actor.distanceToSqr(target) <= detectionRange * detectionRange;
+		return isValid(participant, target, detectionRange * detectionRange);
+	}
+
+	private static boolean isValid(FightParticipant participant, @Nullable Entity target, double detectionRangeSqr)
+	{
+		if (!(target instanceof LivingEntity living) || !living.isAlive()) { return false; }
+		Entity actor = participant.getEntity();
+		if (!actor.isAlive() || actor == target) { return false; }
+		if (actor.level() != target.level()) { return false; }
+		return actor.distanceToSqr(target) <= detectionRangeSqr;
 	}
 
 	private static @Nullable Entity selectCandidate(FightParticipant participant, FightDefinition.TargetMode mode,
-			List<FightParticipant> participants, FightDefinition definition, MinecraftServer server, double detectionRange)
+			List<FightParticipant> participants, FightDefinition definition, MinecraftServer server, double detectionRangeSqr)
 	{
 		Entity actor = participant.getEntity();
 		Entity selected = null;
