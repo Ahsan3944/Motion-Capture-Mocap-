@@ -163,7 +163,7 @@ public final class FightMovementAndEquipmentGameTest
 
             first.setItemInHand(InteractionHand.MAIN_HAND, Items.GOLDEN_SWORD.getDefaultInstance());
             first.setItemInHand(InteractionHand.OFF_HAND, Items.AIR.getDefaultInstance());
-            first.setItemInHand(InteractionHand.HEAD, Items.AIR.getDefaultInstance());
+            first.setItemSlot(EquipmentSlot.HEAD, Items.AIR.getDefaultInstance());
             second.setItemInHand(InteractionHand.MAIN_HAND, Items.STICK.getDefaultInstance());
 
             firstParticipant.restoreEquipmentSnapshot();
