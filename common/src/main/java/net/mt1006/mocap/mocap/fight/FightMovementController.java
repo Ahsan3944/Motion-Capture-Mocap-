@@ -32,7 +32,7 @@ public final class FightMovementController
 		double horizontalDistanceSqr = dx * dx + dz * dz;
 		double distanceSqr = horizontalDistanceSqr + dy * dy;
 		if (!Double.isFinite(horizontalDistanceSqr) || !Double.isFinite(distanceSqr)) { return false; }
-		if (distanceSqr <= stopDistance * stopDistance) { participant.resetMovementBlockedTicks(); return true; }
+		if (stopDistance >= 0.0 && distanceSqr <= stopDistance * stopDistance) { participant.resetMovementBlockedTicks(); return true; }
 		if (horizontalDistanceSqr <= MIN_SUCCESSFUL_MOVE * MIN_SUCCESSFUL_MOVE)
 		{
 			return false;
