@@ -54,6 +54,7 @@ public final class FightCommand
 								.then(Commands.argument("name", StringArgumentType.word())
 										.suggests(FightCommand::suggestions)
 										.then(Commands.argument("mode", StringArgumentType.word())
+												.suggests(FightCommand::targetModeSuggestions)
 												.executes(CommandUtils.command(FightCommand::setTargetMode)))))
 						.then(Commands.literal("power")
 								.then(Commands.argument("name", StringArgumentType.word())
@@ -191,6 +192,17 @@ public final class FightCommand
 			case "TARGET_PLAYER" -> FightManager.setTargetPlayerTeam(info, name, reference, team);
 			default -> info.sendFailure("Unknown team assignment kind: " + kind + ". Use SOURCE_SCENE, TARGET_SCENE, or TARGET_PLAYER.");
 		};
+	}
+
+	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> targetModeSuggestions(
+			com.mojang.brigadier.context.CommandContext<?> ctx,
+			com.mojang.brigadier.suggestion.SuggestionsBuilder builder)
+	{
+		builder.suggest("NEAREST");
+		builder.suggest("CURRENT_TARGET");
+		builder.suggest("LOWEST_HEALTH");
+		builder.suggest("FIXED_TARGET");
+		return builder.buildFuture();
 	}
 
 	private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> teamKindSuggestions(

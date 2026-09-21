@@ -2997,3 +2997,10 @@ The implementation now resolves the definition before detaching the runtime. If 
 This is defensive lifecycle hardening only. It does not change Fight configuration format, command syntax, targeting, movement, navigation, equipment, combat formulas, or persisted runtime state.
 
 The remaining validation that cannot be safely replaced by source-level changes is live dedicated-server gameplay validation across the documented Fight matrix.
+
+
+## Final Automated Definition Validation Layer — Post Lifecycle Audit
+
+A lightweight JUnit 5 regression suite now covers the pure `FightDefinition` model: defaults, numeric bounds and finite-value rejection, team/reference alignment, target-mode copying, copy isolation, and state/team preservation.
+
+The common build executes the JUnit platform as part of the normal Gradle `test` lifecycle. This remains deterministic configuration validation and does not replace dedicated-server gameplay validation.

@@ -13,6 +13,13 @@ dependencies
 	minecraft "com.mojang:minecraft:${minecraft_version}"
 
 	compileOnly "org.spongepowered:mixin:0.8.5:processor"
+
+	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
+
+	tasks.test
+	{
+		useJUnitPlatform()
+	}
 }
 
 loom
