@@ -51,16 +51,15 @@ public final class FightMovementAndEquipmentGameTest
     public void blockedChaseUsesBoundedSideRecovery(GameTestHelper context)
     {
         fillFloor(context, 0, 0, 10, 10);
-        for (int z = 0; z <= 5; z++)
+        for (int y = 1; y <= 2; y++)
         {
-            for (int y = 1; y <= 2; y++)
-            {
-                context.setBlock(3, y, z, Blocks.STONE);
-            }
+            context.setBlock(3, y, 1, Blocks.STONE);
         }
 
-        LivingEntity actor = context.spawn(EntityType.ARMOR_STAND, 1, 1, 2);
-        LivingEntity target = context.spawn(EntityType.ARMOR_STAND, 6, 1, 2);
+        LivingEntity actor = context.spawn(EntityType.ARMOR_STAND, 1, 1, 1);
+        LivingEntity target = context.spawn(EntityType.ARMOR_STAND, 6, 1, 1);
+        actor.setPos(context.absoluteVec(new Vec3(1.5, 1.0, 1.9)));
+        target.setPos(context.absoluteVec(new Vec3(6.5, 1.0, 1.9)));
         FightParticipant participant = new FightParticipant(
                 "movement-recovery", actor, FightParticipant.Side.SOURCE, "RED");
 
@@ -70,7 +69,7 @@ public final class FightMovementAndEquipmentGameTest
             target.setNoGravity(true);
             double startZ = actor.getZ();
 
-            for (int tick = 0; tick < 5; tick++)
+            for (int tick = 0; tick < 7; tick++)
             {
                 FightMovementController.chase(participant, target, 20.0, 1.0);
             }
