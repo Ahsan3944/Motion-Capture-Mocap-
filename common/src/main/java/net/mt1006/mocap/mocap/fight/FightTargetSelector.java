@@ -6,7 +6,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class FightTargetSelector
@@ -23,44 +22,7 @@ public final class FightTargetSelector
 			if (isValid(participant, current, detectionRange)) { return current; }
 		}
 
-		List<Entity> candidates = collectCandidates(participant, participants, definition, server, detectionRange);
-		if (candidates.isEmpty())
-		{
-			return null;
-		}
-
-		if (mode == FightDefinition.TargetMode.FIXED_TARGET)
-		{
-			return candidates.get(0);
-		}
-
-		if (mode == FightDefinition.TargetMode.LOWEST_HEALTH)
-		{
-			Entity lowest = null;
-			float lowestHealth = Float.MAX_VALUE;
-			for (Entity candidate : candidates)
-			{
-				if (candidate instanceof LivingEntity living && living.getHealth() < lowestHealth)
-				{
-					lowestHealth = living.getHealth();
-					lowest = candidate;
-				}
-			}
-			return lowest;
-		}
-
-		Entity nearest = null;
-		double nearestDistance = Double.MAX_VALUE;
-		for (Entity candidate : candidates)
-		{
-			double distance = participant.getEntity().distanceToSqr(candidate);
-			if (distance < nearestDistance)
-			{
-				nearestDistance = distance;
-				nearest = candidate;
-			}
-		}
-		return nearest;
+return selectCandidate(participant, mode, participants, definition, server, detectionRange);
 	}
 
 	public static boolean isValid(FightParticipant participant, @Nullable Entity target, double detectionRange)
@@ -72,15 +34,41 @@ public final class FightTargetSelector
 		return actor.distanceToSqr(target) <= detectionRange * detectionRange;
 	}
 
-	private static List<Entity> collectCandidates(FightParticipant participant, List<FightParticipant> participants,
-			FightDefinition definition, MinecraftServer server, double detectionRange)
+	private static @Nullable Entity selectCandidate(FightParticipant participant, FightDefinition.TargetMode mode,
+			List<FightParticipant> participants, FightDefinition definition, MinecraftServer server, double detectionRange)
 	{
-		List<Entity> candidates = new ArrayList<>();
+		Entity actor = participant.getEntity();
+		Entity selected = null;
+		double selectedDistance = Double.MAX_VALUE;
+		float selectedHealth = Float.MAX_VALUE;
+		boolean first = true;
+
 		for (FightParticipant other : participants)
 		{
 			if (!other.isActive() || other.getTeamId().equals(participant.getTeamId())) { continue; }
-			Entity entity = other.getEntity();
-			if (isValid(participant, entity, detectionRange)) { candidates.add(entity); }
+			Entity candidate = other.getEntity();
+			if (!isValid(participant, candidate, detectionRange)) { continue; }
+
+			if (mode == FightDefinition.TargetMode.FIXED_TARGET) { return candidate; }
+			if (mode == FightDefinition.TargetMode.LOWEST_HEALTH && candidate instanceof LivingEntity living)
+			{
+				if (living.getHealth() < selectedHealth)
+				{
+					selectedHealth = living.getHealth();
+					selected = candidate;
+				}
+				continue;
+			}
+			if (mode != FightDefinition.TargetMode.LOWEST_HEALTH)
+			{
+				double distance = actor.distanceToSqr(candidate);
+				if (first || distance < selectedDistance)
+				{
+					selectedDistance = distance;
+					selected = candidate;
+					first = false;
+				}
+			}
 		}
 
 		if (participant.getSide() == FightParticipant.Side.SOURCE)
@@ -89,14 +77,41 @@ public final class FightTargetSelector
 			{
 				ServerPlayer player = server.getPlayerList().getPlayerByName(playerName);
 				String playerTeam = definition.getTargetPlayerTeam(playerName);
-				if (player != null && !playerTeam.equals(participant.getTeamId())
-						&& isValid(participant, player, detectionRange) && !candidates.contains(player))
+				if (player == null || playerTeam.equals(participant.getTeamId())
+						|| isFightParticipantEntity(participants, player)
+						|| !isValid(participant, player, detectionRange)) { continue; }
+
+				if (mode == FightDefinition.TargetMode.FIXED_TARGET) { return player; }
+				if (mode == FightDefinition.TargetMode.LOWEST_HEALTH)
 				{
-					candidates.add(player);
+					if (player.getHealth() < selectedHealth)
+					{
+						selectedHealth = player.getHealth();
+						selected = player;
+					}
+				}
+				else
+				{
+					double distance = actor.distanceToSqr(player);
+					if (first || distance < selectedDistance)
+					{
+						selectedDistance = distance;
+						selected = player;
+						first = false;
+					}
 				}
 			}
 		}
 
-		return candidates;
+		return selected;
+	}
+
+	private static boolean isFightParticipantEntity(List<FightParticipant> participants, Entity candidate)
+	{
+		for (FightParticipant participant : participants)
+		{
+			if (participant.getEntity() == candidate) { return true; }
+		}
+		return false;
 	}
 }
