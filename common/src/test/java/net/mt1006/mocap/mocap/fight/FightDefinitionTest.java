@@ -97,6 +97,30 @@ class FightDefinitionTest
 		assertEquals(FightDefinition.State.RUNNING, copy.getState());
 	}
 	@Test
+	void participantTransientStateClearsOnDeactivate()
+	{
+		FightParticipant participant = new FightParticipant("fighter", null, FightParticipant.Side.SOURCE);
+		participant.lockFixedTarget();
+		participant.setAttackCooldownTicks(4);
+		participant.setTargetSelectionCooldownTicks(3);
+		participant.setCrossbowChargeTicks(5);
+		participant.setShieldBlockTicks(6);
+		participant.setFoodCooldownTicks(7);
+		participant.setNavigationPath(List.of(new net.minecraft.world.phys.Vec3(1, 2, 3)), new net.minecraft.world.phys.Vec3(4, 5, 6));
+		participant.incrementMovementBlockedTicks();
+		participant.deactivate();
+		assertFalse(participant.isActive());
+		assertFalse(participant.isFixedTargetLocked());
+		assertEquals(0, participant.getAttackCooldownTicks());
+		assertEquals(0, participant.getCrossbowChargeTicks());
+		assertEquals(0, participant.getShieldBlockTicks());
+		assertEquals(0, participant.getFoodCooldownTicks());
+		assertEquals(0, participant.getMovementBlockedTicks());
+		assertNull(participant.getNavigationWaypoint());
+		assertNull(participant.getNavigationTargetPosition());
+	}
+
+	@Test
 	void fixedTargetLockIsClearedOnResetLifecycle()
 	{
 		FightParticipant participant = new FightParticipant("fighter", null, FightParticipant.Side.SOURCE);
