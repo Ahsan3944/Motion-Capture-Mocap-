@@ -231,10 +231,10 @@ The repository implementation now covers the locked Fight architecture through t
 
 ### Latest automated verification
 
-**Build & Verify #206 — SUCCESS**  
-Commit: `3894862ea0300ef84aff7734a755e047c25859e2`
+**Build & Verify #213 — SUCCESS**  
+Commit: `eee01a8f78ab20e81b75e4f6060acd19e42048a9`
 
-The latest CI run verified the full Gradle build after the target-selector regression test was corrected.
+The latest CI run verified the full Gradle build after the final Fight item-use lifecycle hardening pass. This pass also added a server-side GameTest covering food consumption continuation and defense/item-use isolation.
 
 The automated regression coverage now includes:
 
