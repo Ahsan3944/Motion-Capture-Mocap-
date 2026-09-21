@@ -668,6 +668,7 @@ public final class FightManager
 	{
 		private final String id;
 		private final MinecraftServer server;
+		private static final int TARGET_RESELECT_INTERVAL_TICKS = 5;
 		private final List<MocapPlaybackRoot> playbackRoots = new ArrayList<>();
 		private final List<FightParticipant> participants = new ArrayList<>();
 
@@ -807,9 +808,30 @@ public final class FightManager
 
 				participant.tickAttackCooldown();
 				participant.tickFoodCooldown();
-				Entity target = FightTargetSelector.select(participant, targetMode, participants,
-						definition, server, detectionRange);
+
+				Entity currentTarget = participant.getCurrentTarget();
+				boolean currentTargetValid = currentTarget != null
+						&& FightTargetSelector.isValid(participant, currentTarget, detectionRange);
+				boolean cacheTarget = currentTargetValid && switch (targetMode)
+				{
+					case CURRENT_TARGET, FIXED_TARGET -> true;
+					case NEAREST, LOWEST_HEALTH -> !participant.tickTargetSelectionCooldown();
+					default -> false;
+				};
+			Entity target = cacheTarget
+					? currentTarget
+					: FightTargetSelector.select(participant, targetMode, participants, definition, server, detectionRange);
 				participant.setCurrentTarget(target);
+				if (target != null && target != currentTarget)
+				{
+					participant.setTargetSelectionCooldownTicks(TARGET_RESELECT_INTERVAL_TICKS);
+				}
+				else if (target != null && (targetMode == FightDefinition.TargetMode.NEAREST
+						|| targetMode == FightDefinition.TargetMode.LOWEST_HEALTH)
+						&& !currentTargetValid)
+				{
+					participant.setTargetSelectionCooldownTicks(TARGET_RESELECT_INTERVAL_TICKS);
+				}
 
 				if (target == null)
 				{
