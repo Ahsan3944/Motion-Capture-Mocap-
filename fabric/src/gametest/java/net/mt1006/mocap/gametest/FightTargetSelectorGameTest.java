@@ -42,6 +42,21 @@ public final class FightTargetSelectorGameTest
 							context.getLevel().getServer(), definition.getDetectionRange()) == farther,
 						"LOWEST_HEALTH must select the lowest-health hostile participant.");
 
+			definition.setTargetMode(FightDefinition.TargetMode.CURRENT_TARGET);
+			sourceParticipant.setCurrentTarget(nearest);
+			context.assertTrue(
+					FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
+							context.getLevel().getServer(), definition.getDetectionRange()) == nearest,
+						"CURRENT_TARGET must retain a valid current target.");
+			nearest.discard();
+			context.assertTrue(
+					FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
+							context.getLevel().getServer(), definition.getDetectionRange()) == farther,
+						"CURRENT_TARGET must resume normal candidate selection after invalidation.");
+			nearest = (LivingEntity) context.spawn(EntityType.ZOMBIE, new Vec3(3.5, 1.0, 1.5));
+			participants = List.of(sourceParticipant, nearest, fartherParticipant);
+			sourceParticipant.setCurrentTarget(null);
+
 			definition.setTargetMode(FightDefinition.TargetMode.FIXED_TARGET);
 			var fixed = FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
 					context.getLevel().getServer(), definition.getDetectionRange());
