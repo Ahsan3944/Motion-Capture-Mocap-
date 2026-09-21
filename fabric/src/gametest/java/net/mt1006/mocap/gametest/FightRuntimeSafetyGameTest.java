@@ -21,6 +21,7 @@ public final class FightRuntimeSafetyGameTest
     public void shieldLifecycleUsesNormalBlockingState(GameTestHelper context)
     {
         Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        player.setPos(context.absoluteVec(new Vec3(0.5, 1.0, 1.5)));
         LivingEntity target = context.spawn(EntityType.ZOMBIE, 4, 1, 1);
         FightParticipant participant = new FightParticipant("shield-test", player, FightParticipant.Side.SOURCE);
 
@@ -49,9 +50,19 @@ public final class FightRuntimeSafetyGameTest
     @GameTest(maxTicks = 80)
     public void groupFormationTeleportsOnlyTheSelectedParticipants(GameTestHelper context)
     {
+        for (int x = 0; x <= 12; x++)
+        {
+            for (int z = 0; z <= 12; z++)
+            {
+                context.setBlock(x, 0, z, net.minecraft.world.level.block.Blocks.STONE);
+            }
+        }
+
         LivingEntity first = context.spawn(EntityType.ZOMBIE, 1, 1, 1);
         LivingEntity second = context.spawn(EntityType.ZOMBIE, 2, 1, 1);
         LivingEntity third = context.spawn(EntityType.ZOMBIE, 3, 1, 1);
+        LivingEntity unselected = context.spawn(EntityType.ZOMBIE, 10, 1, 10);
+        Vec3 unselectedStart = unselected.position();
 
         FightParticipant firstParticipant =
                 new FightParticipant("group-first", first, FightParticipant.Side.SOURCE, "RED");
@@ -88,6 +99,9 @@ public final class FightRuntimeSafetyGameTest
             context.assertTrue(
                     second.position().distanceToSqr(third.position()) >= 1.0,
                     "Formation slots must keep participants separated.");
+            context.assertTrue(
+                    unselected.position().distanceToSqr(unselectedStart) < 0.000001,
+                    "Entities outside the selected group must not be teleported.");
 
             context.succeed();
         }
@@ -96,6 +110,7 @@ public final class FightRuntimeSafetyGameTest
             first.discard();
             second.discard();
             third.discard();
+            unselected.discard();
         }
     }
 }
