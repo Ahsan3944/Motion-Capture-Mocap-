@@ -1021,8 +1021,11 @@ public final class FightManager
 
 		private static boolean claimParticipant(UUID uuid, String fightId)
 		{
+			// Every live entity may belong to exactly one runtime participant. Even within
+			// the same Fight, accepting an existing owner would allow the same entity to
+			// be registered twice when two playback roots resolve to the same UUID.
 			String owner = participantOwners.putIfAbsent(uuid, fightId);
-			return owner == null || owner.equals(fightId);
+			return owner == null;
 		}
 
 		private static void releaseParticipant(UUID uuid, String fightId)
