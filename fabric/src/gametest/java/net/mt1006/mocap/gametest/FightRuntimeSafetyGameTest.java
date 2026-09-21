@@ -5,9 +5,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.mt1006.mocap.mocap.fight.FightDefenseController;
 import net.mt1006.mocap.mocap.fight.FightGroupController;
@@ -20,7 +19,7 @@ public final class FightRuntimeSafetyGameTest
     @GameTest(maxTicks = 80)
     public void shieldLifecycleUsesNormalBlockingState(GameTestHelper context)
     {
-        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
         player.setPos(context.absoluteVec(new Vec3(0.5, 1.0, 1.5)));
         LivingEntity target = context.spawn(EntityType.ZOMBIE, 4, 1, 1);
         FightParticipant participant = new FightParticipant("shield-test", player, FightParticipant.Side.SOURCE);
