@@ -13,8 +13,20 @@ neoForge
 		server { server() }
 	}
 
-	mods
+ 	mods
 	{
 		"${mod_id}" { sourceSet sourceSets.main }
 	}
+
+	unitTest
+	{
+		enable()
+		testedMod = mods.mocap
+	}
+}
+
+
+tasks.test
+{
+	useJUnitPlatform()
 }

@@ -3034,3 +3034,17 @@ Implemented scope:
 This closes the concrete movement/equipment ownership gap described by Phases 4A and 6B without changing Fight combat rules, persistence, targeting, navigation, or command syntax.
 
 Runtime validation remains required for the final cinematic matrix.
+
+## Automated Server-Smoke Validation Layer — Post Runtime-Readiness Audit
+
+A loader-level server smoke layer is now added without changing production Fight behavior.
+
+### Fabric
+- Fabric Loom GameTest source set is enabled for server-side tests only.
+- A dedicated GameTest verifies Fight definition creation, persisted configuration mutation, target-mode mutation, reset behavior, and active-runtime isolation on a real Minecraft test server.
+
+### NeoForge
+- NeoForge JUnit integration is enabled with the official Test Framework and ephemeral test-server provider.
+- A dedicated server-backed JUnit smoke test verifies the same Fight definition lifecycle against an actual Minecraft server instance.
+
+These tests intentionally validate server initialization, world-scoped Fight persistence, and configuration lifecycle rather than pretending to cover full cinematic combat. The full runtime matrix still requires recordings/scenes and observation of actual actors, targets, equipment, navigation, and multiplayer behavior.
