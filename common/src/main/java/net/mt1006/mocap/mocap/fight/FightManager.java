@@ -417,10 +417,20 @@ public final class FightManager
 	public static boolean stop(CommandOutput out, String id)
 	{
 		ensureLoaded();
-		FightRuntime runtime = active.remove(id);
+		FightRuntime runtime = active.get(id);
 		FightDefinition definition = definitions.get(id);
-		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (definition == null)
+		{
+			if (runtime != null)
+			{
+				active.remove(id);
+				FightFishingRodController.clearFight(id);
+				resetRuntime(runtime, id);
+			}
+			return out.sendFailure("Fight not found: " + id);
+		}
 		if (runtime == null) { return out.sendFailure("Fight is not running: " + id); }
+		active.remove(id);
 
 		FightFishingRodController.clearFight(id);
 		boolean resetOk = resetRuntime(runtime, id);
@@ -436,9 +446,20 @@ public final class FightManager
 	public static boolean reset(CommandOutput out, String id)
 	{
 		ensureLoaded();
-		FightRuntime runtime = active.remove(id);
+		FightRuntime runtime = active.get(id);
 		FightDefinition definition = definitions.get(id);
-		if (definition == null) { return out.sendFailure("Fight not found: " + id); }
+		if (definition == null)
+		{
+			if (runtime != null)
+			{
+				active.remove(id);
+				FightFishingRodController.clearFight(id);
+				resetRuntime(runtime, id);
+			}
+			return out.sendFailure("Fight not found: " + id);
+		}
+
+		active.remove(id);
 
 		FightFishingRodController.clearFight(id);
 		boolean resetOk = runtime == null || resetRuntime(runtime, id);

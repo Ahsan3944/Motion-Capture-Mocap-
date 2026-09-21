@@ -2987,3 +2987,13 @@ The runtime now retains a valid target between selection passes:
 The bounded interval is deliberately internal rather than a new persisted configuration field so the saved Fight format and command/API surface remain unchanged. This satisfies the blueprint's target-retention/performance requirement without introducing a world-wide spatial index, asynchronous selection, or speculative AI layer.
 
 Runtime target movement/death/retargeting remains part of the dedicated-server validation batch.
+
+## Final Lifecycle Consistency Hardening — Post Target-Retention Audit
+
+A final source audit identified one concrete failure-path leak in `stop`/ `reset`: the runtime entry was removed before the saved definition was resolved. If the definition map and active-runtime map ever became inconsistent, the runtime could be detached without cleanup.
+
+The implementation now resolves the definition before detaching the runtime. If the definition is missing but an active runtime still exists, the runtime is explicitly cleaned up and its Fishing Rod binding is cleared before the command reports the missing definition.
+
+This is defensive lifecycle hardening only. It does not change Fight configuration format, command syntax, targeting, movement, navigation, equipment, combat formulas, or persisted runtime state.
+
+The remaining validation that cannot be safely replaced by source-level changes is live dedicated-server gameplay validation across the documented Fight matrix.
