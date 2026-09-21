@@ -9,7 +9,8 @@
       "net.mt1006.mocap.gametest.FightServerSmokeGameTest",
       "net.mt1006.mocap.gametest.FightTargetSelectorGameTest",
       "net.mt1006.mocap.gametest.FightFoodGameTest",
-      "net.mt1006.mocap.gametest.FightRuntimeSafetyGameTest"
+      "net.mt1006.mocap.gametest.FightRuntimeSafetyGameTest",
+      "net.mt1006.mocap.gametest.FightMovementAndEquipmentGameTest"
     ]
   }
 }
