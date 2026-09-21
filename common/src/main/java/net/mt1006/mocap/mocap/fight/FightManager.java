@@ -397,7 +397,9 @@ public final class FightManager
 		{
 			try
 			{
-				entry.getValue().tick(definitions.get(entry.getKey()));
+				FightRuntime runtime = entry.getValue();
+				runtime.tick(definitions.get(entry.getKey()));
+				if (!runtime.hasActiveParticipants()) { failed.add(entry.getKey()); }
 			}
 			catch (Exception e)
 			{
@@ -641,7 +643,7 @@ public final class FightManager
 			{
 				if (root instanceof PlaybackRoot playbackRoot) { playbackRoot.tick(); }
 			}
-			for (FightParticipant participant : participants) { participant.captureEquipmentSnapshot(); }
+			for (FightParticipant participant : participants) { participant.captureResetSnapshot(); }
 			for (MocapPlaybackRoot root : playbackRoots)
 			{
 				if (root instanceof PlaybackRoot playbackRoot) { playbackRoot.setEquipmentControlled(true); }
@@ -649,6 +651,15 @@ public final class FightManager
 		}
 
 		private boolean isEmpty() { return participants.isEmpty(); }
+
+		private boolean hasActiveParticipants()
+		{
+			for (FightParticipant participant : participants)
+			{
+				if (participant.isActive() && participant.getEntity().isAlive()) { return true; }
+			}
+			return false;
+		}
 
 		private boolean teleportGroup(FightParticipant.Side side, Vec3 destination)
 		{
