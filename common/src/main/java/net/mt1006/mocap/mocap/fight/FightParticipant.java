@@ -55,6 +55,7 @@ public final class FightParticipant
 	private @Nullable Vec3 navigationTargetPosition;
 	private boolean active = true;
 	private float initialHealth = 0.0F;
+	private boolean resetSnapshotCaptured = false;
 	private Vec3 initialPosition = Vec3.ZERO;
 	private float initialYaw = 0.0F;
 	private float initialPitch = 0.0F;
@@ -79,6 +80,7 @@ public final class FightParticipant
 
 	public void captureResetSnapshot()
 	{
+		resetSnapshotCaptured = true;
 		initialPosition = entity.position();
 		initialYaw = entity.getYRot();
 		initialPitch = entity.getXRot();
@@ -121,8 +123,11 @@ public final class FightParticipant
 	 * This is used only during Fight reset/rollback so repeated runs do not inherit
 	 * combat damage, movement, rotation, or equipment mutations from a prior run.
 	 */
+	public boolean hasResetSnapshot() { return resetSnapshotCaptured; }
+
 	public void restoreResetSnapshot()
 	{
+		if (!resetSnapshotCaptured) { return; }
 		entity.snapTo(initialPosition.x, initialPosition.y, initialPosition.z);
 		entity.setYRot(initialYaw);
 		entity.setXRot(initialPitch);
