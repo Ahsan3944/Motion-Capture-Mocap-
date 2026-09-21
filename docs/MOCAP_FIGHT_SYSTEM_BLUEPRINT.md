@@ -2956,3 +2956,16 @@ A source audit identified a concrete consistency gap in Fight configuration upda
 Configuration mutations now snapshot the previous definition and restore it when persistence fails. This applies to scene/target/team assignments, target mode, Power, attack speed/range, detection range, movement speed, damage multiplier, knockback multiplier, and target clearing.
 
 This keeps the in-memory configuration and persisted configuration aligned after a failed write, without changing successful command syntax or runtime combat behavior.
+
+
+## Final World-Lifecycle and Auto-Stop Persistence Hardening
+
+A post-GREEN lifecycle audit identified concrete reliability gaps that can be corrected without changing Fight combat semantics:
+
+- `ensureLoaded()` no longer marks Fight definitions as loaded before the world-scoped Fight directory is initialized, preventing an early call from permanently suppressing definition loading for that server session;
+- `stopAll()` now clears the static definition cache and resets the loaded flag after persisting STOPPED state, so a later server/world instance in the same JVM reloads definitions from its own Fight directory;
+- automatic runtime isolation now logs a persistence error if the STOPPED definition cannot be written;
+- shutdown persistence failures are now logged instead of being silently ignored;
+- formatting artifacts in the previously hardened configuration setters were normalized without behavior changes.
+
+This pass does not change targeting, Power scaling, damage, movement, navigation, equipment, command syntax, or the persistence format. Dedicated-server gameplay validation remains required for runtime-only scenarios.
