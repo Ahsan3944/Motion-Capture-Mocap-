@@ -69,7 +69,10 @@ public final class FightFishingRodController
 		HitResult hit = serverPlayer.pick(MAX_RAY_DISTANCE, 1.0F, false);
 		if (!(hit instanceof BlockHitResult blockHit) || hit.getType() != HitResult.Type.BLOCK)
 		{
-			return false;
+			// An armed Fight-control rod owns the interaction. Do not fall through to
+			// vanilla fishing, because that would create a real fishing bobber instead
+			// of leaving the controlled group at its current location.
+			return true;
 		}
 		return handleDestination(serverPlayer, blockHit.getLocation());
 	}
