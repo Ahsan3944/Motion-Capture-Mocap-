@@ -64,7 +64,7 @@ public final class FightDefenseController
 			return false;
 		}
 
-		shieldItem.use(level, player, hand);
+		player.startUsingItem(hand);
 		participant.setShieldBlockTicks(participant.getShieldBlockTicks() + 1);
 		participant.setState(FightParticipant.State.USE_ITEM);
 		return living.isBlocking();
