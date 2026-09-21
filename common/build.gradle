@@ -16,10 +16,11 @@ dependencies
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
 
-	tasks.test
-	{
-		useJUnitPlatform()
-	}
+}
+
+tasks.test
+{
+	useJUnitPlatform()
 }
 
 loom
