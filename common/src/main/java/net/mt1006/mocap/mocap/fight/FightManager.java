@@ -731,8 +731,12 @@ public final class FightManager
 			double detectionRange = definition.getDetectionRange();
 			double attackRange = definition.getAttackRange();
 			double attackRangeSqr = attackRange * attackRange;
-			double attackSpeed = definition.getAttackSpeed();
-			double movementSpeed = definition.getMovementSpeed();
+			double powerFactor = calculatePowerFactor(definition.getPower());
+		// Power is a bounded runtime modifier, not an unbounded intelligence/stat multiplier.
+		// Power 1..10 maps linearly to 0.75x..1.25x for attack speed and movement speed.
+		// Damage remains controlled exclusively by damageMultiplier.
+			double attackSpeed = definition.getAttackSpeed() * powerFactor;
+			double movementSpeed = definition.getMovementSpeed() * powerFactor;
 			double damageMultiplier = definition.getDamageMultiplier();
 			double knockbackMultiplier = definition.getKnockbackMultiplier();
 
@@ -874,6 +878,12 @@ public final class FightManager
 						damageMultiplier, knockbackMultiplier);
 				participant.setAttackCooldownTicks(calculateAttackCooldown(attackSpeed));
 			}
+		}
+
+		private static double calculatePowerFactor(int power)
+		{
+			int boundedPower = Math.max(1, Math.min(power, 10));
+			return 0.75 + (boundedPower - 1) * (0.50 / 9.0);
 		}
 
 		private static int calculateAttackCooldown(double attacksPerSecond)

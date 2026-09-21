@@ -2931,3 +2931,19 @@ A fresh lifecycle audit identified two concrete cleanup gaps that were safe to c
 - STOP/RESET now report persistence failure instead of silently returning success when the STOPPED definition could not be saved.
 
 No combat, targeting, movement, navigation, equipment, persistence-format, or command syntax was changed.
+
+
+## Final Power-System Completion — Post Build #175 Audit
+
+A final source audit identified one concrete implementation gap against the locked Power System contract: `FightDefinition.power` was validated and persisted but had no runtime effect.
+
+The runtime now applies a bounded Power mapping:
+
+- Power `1` → `0.75x` attack-speed and movement-speed factor;
+- Power `10` → `1.25x` factor;
+- values `2..9` interpolate linearly between those bounds;
+- the factor is applied only to runtime attack speed and movement speed;
+- configured damage remains controlled by `damageMultiplier`, so Power does not silently multiply damage;
+- the attack-speed safety clamp remains in `calculateAttackCooldown`.
+
+This completes the documented Power influence without introducing unbounded statistics or a new AI system. Runtime behavior still requires dedicated-server validation before the Power scenarios can be marked GREEN.
