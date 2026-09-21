@@ -227,6 +227,60 @@ public final class FightMovementAndEquipmentGameTest
     }
 
 
+
+    @GameTest(maxTicks = 80)
+    public void crossbowChargeReleaseClearsItemUseState(GameTestHelper context)
+    {
+        LivingEntity target = context.spawn(EntityType.ARMOR_STAND, 8, 1, 4);
+        net.minecraft.world.entity.player.Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        player.setPos(context.absoluteVec(new Vec3(4.0, 1.0, 4.0)));
+        player.getInventory().add(Items.ARROW.getDefaultInstance());
+        player.setItemInHand(InteractionHand.MAIN_HAND, Items.CROSSBOW.getDefaultInstance());
+        FightParticipant participant =
+                new FightParticipant("crossbow-lifecycle", player, FightParticipant.Side.SOURCE, "RED");
+
+        try
+        {
+            participant.captureResetSnapshot();
+
+            boolean fired = false;
+            for (int tick = 0; tick < 30 && !fired; tick++)
+            {
+                fired = FightRangedController.tickCrossbow(participant);
+                if (tick < 20)
+                {
+                    context.assertFalse(
+                            fired,
+                            "A Crossbow must not fire before its bounded charge lifecycle completes.");
+                }
+            }
+
+            context.assertTrue(
+                    !player.isUsingItem(),
+                    "Completing Crossbow charge must release the entity's active item-use state.");
+            context.assertTrue(
+                    net.minecraft.world.item.CrossbowItem.isCharged(player.getMainHandItem()),
+                    "Completing Crossbow charge must leave the Crossbow in its normal charged state.");
+            context.assertFalse(
+                    fired,
+                    "Charging alone must not report a fired projectile.");
+
+            fired = FightRangedController.tickCrossbow(participant);
+            context.assertTrue(fired, "A charged Crossbow must fire through its normal use lifecycle.");
+            context.assertFalse(
+                    net.minecraft.world.item.CrossbowItem.isCharged(player.getMainHandItem()),
+                    "A successfully fired Crossbow must leave its charged state.");
+
+            context.succeed();
+        }
+        finally
+        {
+            participant.deactivate();
+            target.discard();
+        }
+    }
+
+
     @GameTest(maxTicks = 40)
     public void resetSnapshotRestoresRuntimeStateAfterCombatMutations(GameTestHelper context)
     {
