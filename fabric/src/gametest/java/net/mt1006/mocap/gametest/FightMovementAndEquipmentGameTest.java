@@ -191,6 +191,42 @@ public final class FightMovementAndEquipmentGameTest
         }
     }
 
+    @GameTest(maxTicks = 20)
+    public void resetWithoutCapturedSnapshotLeavesRuntimeEntityUntouched(GameTestHelper context)
+    {
+        LivingEntity actor = context.spawn(EntityType.ARMOR_STAND, 4, 1, 4);
+        FightParticipant participant =
+                new FightParticipant("reset-no-snapshot", actor, FightParticipant.Side.SOURCE, "RED");
+
+        try
+        {
+            actor.setPos(context.absoluteVec(new Vec3(7.0, 1.0, 7.0)));
+            actor.setYRot(145.0F);
+            actor.setXRot(18.0F);
+
+            context.assertFalse(
+                    participant.hasResetSnapshot(),
+                    "A participant must not report a reset snapshot before capture.");
+            participant.restoreResetSnapshot();
+
+            context.assertTrue(
+                    actor.position().distanceTo(context.absoluteVec(new Vec3(7.0, 1.0, 7.0))) < 1.0E-6,
+                    "A failed or partial Fight construction must not move an uncaptured participant.");
+            context.assertTrue(
+                    Math.abs(actor.getYRot() - 145.0F) < 1.0E-6,
+                    "An uncaptured participant's yaw must remain untouched.");
+            context.assertTrue(
+                    Math.abs(actor.getXRot() - 18.0F) < 1.0E-6,
+                    "An uncaptured participant's pitch must remain untouched.");
+            context.succeed();
+        }
+        finally
+        {
+            actor.discard();
+        }
+    }
+
+
     @GameTest(maxTicks = 40)
     public void resetSnapshotRestoresRuntimeStateAfterCombatMutations(GameTestHelper context)
     {
