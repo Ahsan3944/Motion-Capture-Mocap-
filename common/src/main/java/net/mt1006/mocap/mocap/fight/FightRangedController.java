@@ -68,10 +68,15 @@ public final class FightRangedController
 		crossbow.onUseTick(level, player, stack, ticksRemaining);
 		if (chargeTicks >= chargeDuration)
 		{
-			// Release through LivingEntity so Minecraft clears the active-item state
-			// as well as invoking CrossbowItem.releaseUsing(). Calling the item method
-			// directly would fire/load correctly but leave the player stuck in use state.
-			player.releaseUsingItem();
+			// CrossbowItem.releaseUsing() must receive the manually tracked remaining
+			// use time so vanilla can calculate the full charge and load the projectile.
+			// Calling LivingEntity.releaseUsingItem() here would pass the untouched
+			// active-item countdown (still near the full 1200-tick use duration), so
+			// CrossbowItem would treat this as an early release and never charge.
+			crossbow.releaseUsing(stack, level, player, ticksRemaining);
+			// We invoked the item callback directly, so clear the entity's active-item
+			// state separately without invoking releaseUsing() a second time.
+			player.stopUsingItem();
 			participant.clearCrossbowCharge();
 		}
 		else
