@@ -12,8 +12,8 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Server-authoritative ranged execution for Fight participants.
  *
- * Phase 6D intentionally supports Bow only. Crossbow loading/charged state is
- * a separate lifecycle and is not approximated here.
+ * Bow and Crossbow use the normal Minecraft item/projectile lifecycle. Crossbow
+ * charging is tracked explicitly because it spans multiple Fight ticks.
  */
 public final class FightRangedController
 {
@@ -68,7 +68,10 @@ public final class FightRangedController
 		crossbow.onUseTick(level, player, stack, ticksRemaining);
 		if (chargeTicks >= chargeDuration)
 		{
-			crossbow.releaseUsing(stack, level, player, ticksRemaining);
+			// Release through LivingEntity so Minecraft clears the active-item state
+			// as well as invoking CrossbowItem.releaseUsing(). Calling the item method
+			// directly would fire/load correctly but leave the player stuck in use state.
+			player.releaseUsingItem();
 			participant.clearCrossbowCharge();
 		}
 		else
