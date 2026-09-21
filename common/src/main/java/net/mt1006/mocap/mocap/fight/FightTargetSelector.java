@@ -28,11 +28,7 @@ public final class FightTargetSelector
 
 	public static boolean isValid(FightParticipant participant, @Nullable Entity target, double detectionRange)
 	{
-		if (!(target instanceof LivingEntity living) || !living.isAlive()) { return false; }
-		Entity actor = participant.getEntity();
-		if (!actor.isAlive() || actor == target) { return false; }
-		if (actor.level() != target.level()) { return false; }
-		return isValidWithSquaredRange(participant, target, detectionRange * detectionRange);
+		return getValidDistanceSqr(participant, target, detectionRange * detectionRange) >= 0.0;
 	}
 
 	private static boolean isValidWithSquaredRange(FightParticipant participant, @Nullable Entity target, double detectionRangeSqr)
@@ -53,7 +49,6 @@ public final class FightTargetSelector
 	private static @Nullable Entity selectCandidate(FightParticipant participant, FightDefinition.TargetMode mode,
 			List<FightParticipant> participants, FightDefinition definition, MinecraftServer server, double detectionRangeSqr)
 	{
-		Entity actor = participant.getEntity();
 		Entity selected = null;
 		double selectedDistance = Double.MAX_VALUE;
 		float selectedHealth = Float.MAX_VALUE;

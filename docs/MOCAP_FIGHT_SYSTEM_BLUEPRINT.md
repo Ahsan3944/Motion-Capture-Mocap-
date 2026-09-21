@@ -2740,3 +2740,31 @@ Deliberately not implemented in Phase 7N:
 - asynchronous selection;
 - team-relation changes;
 - detection-range behavior changes.
+
+
+## Implementation Progress — Phase 7O
+
+Phase 7O consolidates the public Fight target-validation path onto the already centralized squared-distance validation helper. Before this phase, isValid(...) performed the same alive/entity/dimension checks once and then called a helper that repeated those checks again. The helper was introduced in Phase 7N and already returns the exact internal validity result needed by isValid(...).
+
+Pre-implementation checks:
+1. The Phase 7N helper was audited line-by-line. Its invalid conditions exactly cover non-living/dead targets, dead actors, self-targeting, cross-dimension targets, and out-of-range targets—the same conditions enforced by isValid(...).
+2. The public isValid(...) signature and boolean contract were checked. The refactor keeps the same signature and maps the helper's internal negative sentinel to the same true/false result; no sentinel escapes the private helper.
+3. All Fight-package call sites were checked. FightTargetSelector.select(...) is called only by FightManager, while isValid(...) remains a public compatibility method. No caller depends on the duplicated internal checks or on intermediate state.
+4. The change was restricted to FightTargetSelector.java plus this blueprint entry. No target ordering, team filtering, detection-range semantics, or combat behavior is altered.
+
+Implemented scope:
+1. Make isValid(...) call getValidDistanceSqr(...) directly and return whether the result is non-negative.
+2. Remove the now-redundant validation checks from isValid(...).
+3. Remove one unused local Entity actor variable from selectCandidate(...).
+4. Preserve the exact public method signature, return type, and validation conditions.
+5. Keep all Phase 7N candidate-distance reuse behavior unchanged.
+
+Deliberately not implemented in Phase 7O:
+- public API signature changes;
+- target caching;
+- target ordering changes;
+- detection-range changes;
+- team/relation changes;
+- persistent state;
+- asynchronous selection;
+- movement or navigation changes.
