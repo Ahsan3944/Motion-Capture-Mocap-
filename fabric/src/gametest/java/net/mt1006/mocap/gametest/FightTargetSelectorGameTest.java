@@ -48,7 +48,7 @@ public final class FightTargetSelectorGameTest
 			context.assertTrue(fixed == nearest, "FIXED_TARGET must lock the first valid hostile participant.");
 			sourceParticipant.setCurrentTarget(fixed);
 			sourceParticipant.lockFixedTarget();
-			nearest.kill();
+			nearest.discard();
 			context.assertTrue(
 					FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
 							context.getLevel().getServer(), definition.getDetectionRange()) == null,

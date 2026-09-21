@@ -45,7 +45,7 @@ class FightTargetSelectorServerTest
 			assertSame(nearest, fixed);
 			sourceParticipant.setCurrentTarget(fixed);
 			sourceParticipant.lockFixedTarget();
-			nearest.kill();
+			nearest.discard();
 			assertNull(FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
 					server, definition.getDetectionRange()));
 
