@@ -20,7 +20,7 @@ public final class FightTargetSelector
 		if (mode == FightDefinition.TargetMode.CURRENT_TARGET || mode == FightDefinition.TargetMode.FIXED_TARGET)
 		{
 			Entity current = participant.getCurrentTarget();
-			if (isValid(participant, current, detectionRangeSqr)) { return current; }
+			if (isValidWithSquaredRange(participant, current, detectionRangeSqr)) { return current; }
 		}
 
 		return selectCandidate(participant, mode, participants, definition, server, detectionRangeSqr);
@@ -57,7 +57,7 @@ public final class FightTargetSelector
 		{
 			if (!other.isActive() || other.getTeamId().equals(participant.getTeamId())) { continue; }
 			Entity candidate = other.getEntity();
-			if (!isValid(participant, candidate, detectionRange)) { continue; }
+			if (!isValidWithSquaredRange(participant, candidate, detectionRangeSqr)) { continue; }
 
 			if (mode == FightDefinition.TargetMode.FIXED_TARGET) { return candidate; }
 			if (mode == FightDefinition.TargetMode.LOWEST_HEALTH && candidate instanceof LivingEntity living)
@@ -89,7 +89,7 @@ public final class FightTargetSelector
 				String playerTeam = definition.getTargetPlayerTeam(playerName);
 				if (player == null || playerTeam.equals(participant.getTeamId())
 						|| isFightParticipantEntity(participants, player)
-						|| !isValid(participant, player, detectionRange)) { continue; }
+						|| !isValidWithSquaredRange(participant, player, detectionRangeSqr)) { continue; }
 
 				if (mode == FightDefinition.TargetMode.FIXED_TARGET) { return player; }
 				if (mode == FightDefinition.TargetMode.LOWEST_HEALTH)
