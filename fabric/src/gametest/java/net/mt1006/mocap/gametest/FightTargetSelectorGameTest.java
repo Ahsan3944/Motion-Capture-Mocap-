@@ -48,6 +48,12 @@ public final class FightTargetSelectorGameTest
 					FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
 							context.getLevel().getServer(), definition.getDetectionRange()) == nearest,
 						"CURRENT_TARGET must retain a valid current target.");
+			nearestParticipant.deactivate();
+			context.assertTrue(
+					FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
+							context.getLevel().getServer(), definition.getDetectionRange()) == farther,
+						"CURRENT_TARGET must invalidate a cached Fight participant after that participant is deactivated.");
+			nearestParticipant = new FightParticipant("nearest-replacement", nearest, FightParticipant.Side.TARGET, "BLUE");
 			nearest.discard();
 			context.assertTrue(
 					FightTargetSelector.select(sourceParticipant, definition.getTargetMode(), participants, definition,
