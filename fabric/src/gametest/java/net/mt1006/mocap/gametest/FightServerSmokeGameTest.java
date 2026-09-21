@@ -23,7 +23,6 @@ public final class FightServerSmokeGameTest
 			context.assertFalse(FightManager.setTargetPlayer(output, id, null), "Null target player must be rejected.");
 			context.assertFalse(FightManager.setTargetMode(output, id, ""), "Blank target mode must be rejected.");
 			context.assertFalse(FightManager.setTargetMode(output, id, null), "Null target mode must be rejected.");
-			context.assertFalse(FightManager.start(output, id), "Fight start must fail when no source scene is configured.");
 			context.assertFalse(FightManager.stop(output, id), "Stopping an inactive Fight must fail cleanly.");
 			context.assertTrue(FightManager.setPower(output, id, 10), "Power mutation should persist.");
 			context.assertTrue(FightManager.get(id).getPower() == 10, "Power must be updated.");

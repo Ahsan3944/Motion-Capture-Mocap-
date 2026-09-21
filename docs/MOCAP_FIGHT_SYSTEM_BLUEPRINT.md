@@ -3062,7 +3062,6 @@ Covered cases:
 - valid target-player references are accepted;
 - blank/null target-player references are rejected without throwing;
 - blank/null target-mode values are rejected without throwing;
-- starting without a configured source scene fails cleanly;
 - stopping an inactive Fight fails cleanly;
 - manager shutdown/reset clears the in-memory registry and a later lookup reloads the persisted definition;
 - a reloaded definition remains STOPPED.

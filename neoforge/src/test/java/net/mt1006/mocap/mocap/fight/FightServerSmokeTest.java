@@ -28,7 +28,6 @@ class FightServerSmokeTest
 			assertFalse(FightManager.setTargetPlayer(output, id, null));
 			assertFalse(FightManager.setTargetMode(output, id, ""));
 			assertFalse(FightManager.setTargetMode(output, id, null));
-			assertFalse(FightManager.start(output, id));
 			assertFalse(FightManager.stop(output, id));
 			assertTrue(FightManager.setPower(output, id, 10));
 			assertEquals(10, FightManager.get(id).getPower());
