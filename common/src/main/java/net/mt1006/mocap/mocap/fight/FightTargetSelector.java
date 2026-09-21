@@ -33,6 +33,13 @@ public final class FightTargetSelector
 		return getValidDistanceSqr(participant, target, detectionRange * detectionRange) >= 0.0;
 	}
 
+	public static boolean isValid(FightParticipant participant, @Nullable Entity target, double detectionRange,
+			List<FightParticipant> participants)
+	{
+		return getValidDistanceSqr(participant, target, detectionRange * detectionRange) >= 0.0
+				&& !isInactiveFightParticipant(target, participants);
+	}
+
 	private static boolean isValidWithSquaredRange(FightParticipant participant, @Nullable Entity target, double detectionRangeSqr)
 	{
 		return getValidDistanceSqr(participant, target, detectionRangeSqr) >= 0.0;
