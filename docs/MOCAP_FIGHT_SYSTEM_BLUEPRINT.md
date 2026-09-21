@@ -2905,3 +2905,17 @@ For each scenario record: server/mod build, loader, world/dimension, Fight defin
 ### Implementation boundary
 
 No additional production subsystem is to be added solely to make these checks easier. If runtime validation exposes a concrete defect, the defect becomes the next focused implementation change; otherwise this blueprint remains the final implementation baseline. NeoForge 26.1 provides Game Tests for in-game behavior testing, but introducing a new Fight-specific GameTest abstraction is intentionally deferred until a concrete runtime scenario shows that it is necessary. Dedicated-server execution remains the authoritative validation layer for this feature.
+
+
+## Final Persistence Hardening — Post Validation-Batch Review
+
+A second implementation review identified one concrete persistence edge case worth fixing before runtime validation: Fight startup previously activated the runtime and returned success even if the definition state could not be persisted. The file replacement path also relied on delete-and-rename behavior that could temporarily remove the previous definition on platforms where replacement is not atomic.
+
+The implementation now:
+- rolls back the newly-created Fight runtime if the RUNNING state cannot be persisted;
+- restores the in-memory definition to STOPPED during that rollback;
+- writes the temporary definition first and then replaces the destination with `java.nio.file.Files.move(..., REPLACE_EXISTING, ATOMIC_MOVE)`;
+- falls back to a non-atomic `REPLACE_EXISTING` move only when the filesystem does not support atomic moves;
+- keeps the existing file untouched when the temporary write itself fails.
+
+No combat, targeting, movement, navigation, equipment, or command behavior was changed by this hardening pass.
