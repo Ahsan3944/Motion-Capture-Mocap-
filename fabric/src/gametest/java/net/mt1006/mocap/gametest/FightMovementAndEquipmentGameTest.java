@@ -13,6 +13,7 @@ import net.mt1006.mocap.mocap.fight.FightEquipmentController;
 import net.mt1006.mocap.mocap.fight.FightMovementController;
 import net.mt1006.mocap.mocap.fight.FightNavigationController;
 import net.mt1006.mocap.mocap.fight.FightParticipant;
+import net.mt1006.mocap.mocap.fight.FightRangedController;
 
 public final class FightMovementAndEquipmentGameTest
 {
