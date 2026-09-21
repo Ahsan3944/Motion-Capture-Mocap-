@@ -2414,3 +2414,29 @@ Deliberately not implemented in Phase 7A:
 - configurable retarget intervals;
 - background worker threads;
 - combat behavior changes.
+
+## Implementation Progress — Phase 7B
+
+Phase 7B removes per-tick candidate-list allocation from Fight target acquisition while preserving the existing target-selection semantics.
+
+Pre-implementation checks:
+1. The Phase 7A selector still allocated a new ArrayList for every fresh target scan and then performed a second pass for NEAREST or LOWEST_HEALTH.
+2. Existing FIXED_TARGET semantics depend on candidate insertion order: active Fight participants are considered before configured real players, with duplicate player entities excluded.
+3. The target modes and validation rules were inspected before refactoring. The new implementation evaluates candidates in the same logical order and keeps the existing current-target retention behavior.
+
+Implemented scope:
+1. Target candidates are evaluated in a single pass instead of being copied into a temporary List.
+2. NEAREST tracks the nearest valid candidate directly using squared distance.
+3. LOWEST_HEALTH tracks the lowest-health valid LivingEntity directly.
+4. FIXED_TARGET returns the first valid candidate in the same participant-then-configured-player order as before.
+5. Duplicate configured players that are already Fight participants remain excluded.
+6. CURRENT_TARGET retention remains unchanged and still occurs before candidate evaluation.
+7. No full-world scan, persistent cache, asynchronous work, or combat behavior change is introduced.
+8. No Fight definition or recording data is changed.
+
+Deliberately not implemented in Phase 7B:
+- spatial indexes;
+- background target workers;
+- retarget scheduling changes;
+- navigation/pathfinding changes;
+- combat-rule changes.
