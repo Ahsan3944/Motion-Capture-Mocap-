@@ -840,7 +840,7 @@ public final class FightManager
 
 				Entity currentTarget = participant.getCurrentTarget();
 				boolean currentTargetValid = currentTarget != null
-						&& FightTargetSelector.isValid(participant, currentTarget, detectionRange);
+						&& FightTargetSelector.isValid(participant, currentTarget, detectionRange, participants);
 				boolean cacheTarget = currentTargetValid && switch (targetMode)
 				{
 					case CURRENT_TARGET, FIXED_TARGET -> true;
