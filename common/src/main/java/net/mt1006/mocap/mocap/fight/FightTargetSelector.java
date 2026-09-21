@@ -21,6 +21,7 @@ public final class FightTargetSelector
 		{
 			Entity current = participant.getCurrentTarget();
 			if (isValidWithSquaredRange(participant, current, detectionRangeSqr)) { return current; }
+			if (mode == FightDefinition.TargetMode.FIXED_TARGET && participant.isFixedTargetLocked()) { return null; }
 		}
 
 		return selectCandidate(participant, mode, participants, definition, server, detectionRangeSqr);

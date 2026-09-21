@@ -38,6 +38,7 @@ public final class FightParticipant
 	private final String teamId;
 	private final List<ItemStack> equipmentSnapshot = new ArrayList<>();
 	private @Nullable Entity currentTarget;
+	private boolean fixedTargetLocked = false;
 	private int targetSelectionCooldownTicks = 0;
 	private State state = State.IDLE;
 	private int attackCooldownTicks = 0;
@@ -134,6 +135,9 @@ public final class FightParticipant
 	}
 
 	public @Nullable Entity getCurrentTarget() { return currentTarget; }
+	public boolean isFixedTargetLocked() { return fixedTargetLocked; }
+	public void lockFixedTarget() { fixedTargetLocked = true; }
+	public void resetFixedTargetLock() { fixedTargetLocked = false; }
 
 	public boolean tickTargetSelectionCooldown()
 	{
@@ -278,6 +282,7 @@ public final class FightParticipant
 		active = false;
 		if (entity instanceof LivingEntity living && living.isUsingItem()) { living.stopUsingItem(); }
 		currentTarget = null;
+		fixedTargetLocked = false;
 		targetSelectionCooldownTicks = 0;
 		state = State.DEAD;
 		attackCooldownTicks = 0;

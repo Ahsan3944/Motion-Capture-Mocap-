@@ -3004,3 +3004,15 @@ The remaining validation that cannot be safely replaced by source-level changes 
 A lightweight JUnit 5 regression suite now covers the pure `FightDefinition` model: defaults, numeric bounds and finite-value rejection, team/reference alignment, target-mode copying, copy isolation, and state/team preservation.
 
 The common build executes the JUnit platform as part of the normal Gradle `test` lifecycle. This remains deterministic configuration validation and does not replace dedicated-server gameplay validation.
+
+## Final Fixed-Target Semantics Hardening — Post Automated Definition Audit
+
+A focused runtime audit identified a semantic gap in the existing `FIXED_TARGET` mode: the selector retained a valid current target, but after that target became invalid it could acquire a different candidate. The mode is now explicitly lock-on semantics for each runtime participant:
+
+- the first valid target acquired is locked for that participant;
+- while the locked target remains valid, it is retained;
+- if the locked target dies, disappears, changes dimension, or leaves the configured detection range, the participant has no replacement target;
+- the lock is runtime-only and is cleared when the participant is deactivated/reset through the normal Fight runtime lifecycle;
+- no persisted entity reference or new Fight file field is introduced.
+
+This keeps `FIXED_TARGET` deterministic without adding a new persisted target-identity architecture. Other target modes remain unchanged. Dedicated-server observation of target death/disappearance remains part of the final runtime validation matrix.

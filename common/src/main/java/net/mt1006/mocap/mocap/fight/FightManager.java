@@ -843,6 +843,10 @@ public final class FightManager
 					? currentTarget
 					: FightTargetSelector.select(participant, targetMode, participants, definition, server, detectionRange);
 				participant.setCurrentTarget(target);
+				if (targetMode == FightDefinition.TargetMode.FIXED_TARGET && target != null)
+				{
+					participant.lockFixedTarget();
+				}
 				if (!cacheTarget && target != null
 						&& (targetMode == FightDefinition.TargetMode.NEAREST
 						|| targetMode == FightDefinition.TargetMode.LOWEST_HEALTH))
