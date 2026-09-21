@@ -1,6 +1,7 @@
 package net.mt1006.mocap.mocap.fight;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.testframework.junit.EphemeralTestServerProvider;
