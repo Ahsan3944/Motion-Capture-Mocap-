@@ -3067,3 +3067,40 @@ Covered cases:
 - a reloaded definition remains STOPPED.
 
 This is intentionally limited to configuration/lifecycle boundaries. It does not claim coverage for actual Mocap scene playback, runtime participant spawning, autonomous combat, navigation, equipment use, damage/death behavior, multiplayer isolation, or long-run performance.
+
+
+## Implementation Progress — Build #201 Regression Audit
+
+Build & Verify #201 completed successfully on commit `2883d2c3318509749cf97dd4d9a18e73e4a55521`.
+
+This batch was deliberately limited to deterministic regression coverage and did not change production Fight behavior.
+
+### Automated coverage added/verified
+
+- FightParticipant transient runtime state clears correctly on `deactivate()`, including:
+  - attack cooldown;
+  - crossbow charge;
+  - shield-block state;
+  - food cooldown;
+  - movement-blocked state;
+  - navigation path/target;
+  - fixed-target lock.
+- Fabric server GameTest verifies:
+  - `NEAREST` target selection;
+  - `LOWEST_HEALTH` target selection;
+  - `FIXED_TARGET` first-target lock;
+  - no retarget after a locked target becomes invalid;
+  - same-team participants are rejected as targets.
+- `:common:test`, Fabric GameTest and NeoForge test suites all pass in CI.
+
+### NeoForge fixture decision
+
+A NeoForge target-selector fixture was attempted against the current 26.1 APIs. Several fixture-only API mismatches were corrected during verification, but the final entity-creation approach remained unreliable in the ephemeral test-server fixture. The unstable fixture was removed instead of weakening assertions or adding production-only test hooks.
+
+This is an intentional test-scope boundary. It does not represent a production Fight failure.
+
+### Current implementation boundary
+
+The code/test audit remains complete. The remaining unchecked items in the master completion checklist are runtime-world observations: dedicated-server cinematic behavior, real-player interaction, full equipment/combat matrix, repeated reset/inventory observation, multiplayer/dimension/chunk edge cases, restart behavior and long-run performance.
+
+Those scenarios must not be marked GREEN from CI alone. They require execution on an actual dedicated Minecraft server/world and evidence captured according to Section 62/Validation Batch requirements.

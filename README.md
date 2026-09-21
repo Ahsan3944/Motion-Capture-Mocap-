@@ -214,42 +214,59 @@ Do not assume compatibility with another Minecraft version without explicitly up
 
 ## Runtime Fight System — Implementation Status
 
-The runtime Fight System is being implemented incrementally on top of the existing playback architecture.
+**Current status: implementation/code audit complete; dedicated-server runtime validation remains the final unverified layer.**
 
-### Phase 1 completed
-- Added versioned Fight definitions.
-- Added persistent Fight storage under `mocap_files/fights/`.
-- Added safe load/validation with malformed-file isolation.
-- Added Fight lifecycle commands under `/mocap playback fight`.
-- Added source-scene and target-player configuration primitives.
-- Added Fight runtime ticking and server-stop cleanup hooks.
-- Added duplicate-start protection and runtime isolation scaffolding.
+The repository implementation now covers the locked Fight architecture through the final hardening phases, including:
 
-### Phase 2 completed
-- Reused the existing PlaybackRoot, RecordingPlayback and ScenePlayback entity lifecycle.
-- Bound Fight runtime ownership to playback-created actors.
-- Added independent playback configuration per Fight source.
-- Added damageable Fight playback state.
-- Added rollback of partially initialized Fight playback roots.
-- Added cleanup of owned playback roots on stop/reset/server shutdown.
+- Fight definitions, persistence, validation and lifecycle management.
+- Playback-root ownership and explicit movement/equipment ownership boundaries.
+- Independent runtime participants and cross-Fight ownership isolation.
+- Live target selection: `NEAREST`, `LOWEST_HEALTH`, `CURRENT_TARGET` and deterministic `FIXED_TARGET` lock semantics.
+- Runtime melee, Bow, Crossbow, Shield and Food/Consumable controllers.
+- Runtime damage, knockback, death handling and combat cooldown state.
+- Live movement, bounded navigation and obstacle/hole recovery.
+- Safe group formation teleport and Fishing Rod destination control.
+- Active-Fight configuration mutation protection, persistence rollback and world/server lifecycle cleanup.
+- Automated configuration/model regression coverage plus loader-backed server smoke coverage.
 
-### Phase 3A completed
-- Added independent runtime Fight participants for controlled living actors.
-- Added source/target side isolation.
-- Added entity ownership protection across simultaneous Fights.
-- Added live target acquisition with nearest/current/lowest-health/fixed selection modes.
-- Added target-scene playback roots for Scene-vs-Scene / Mocap-vs-Mocap setups.
-- Added persisted target/combat configuration setters for power, attack speed/range, detection range, movement speed, damage and knockback multipliers.
-- Revalidates live targets every runtime tick without scanning the full world.
+### Latest automated verification
 
-### Phase 3A intentionally does not yet provide
-- Autonomous movement/navigation.
-- Runtime attack execution and hit validation.
-- Weapon/item switching.
-- Full combat state machine.
-- Health/inventory/armor reset snapshots.
-- Death presentation/drop policy.
-- Multi-team relationship configuration beyond source/target sides.
-- Group formation teleport and Fishing Rod destination control.
+**Build & Verify #201 — SUCCESS**  
+Commit: `2883d2c3318509749cf97dd4d9a18e73e4a55521`
 
-These systems will continue to reuse the existing Recording, Scene and Playback systems rather than replacing them.
+The latest CI run verified:
+
+- `:common:test` — PASS
+- `:fabric:runGameTest` — PASS
+- **2/2 required Fabric GameTests passed**
+- `:neoforge:test` — PASS
+- Full Gradle build — SUCCESS
+- Build artifacts uploaded successfully
+
+The latest regression batch also verifies FightParticipant transient-state cleanup and Fabric server-side target selection for nearest, lowest-health, fixed-target lock/invalidation and same-team rejection.
+
+The NeoForge target-selector fixture was intentionally deferred after API-compatible fixture attempts proved unreliable at runtime. It was removed rather than leaving an unstable test in the repository. This does **not** change production Fight behavior.
+
+### Remaining validation
+
+The following items are intentionally **not** marked GREEN by source code alone:
+
+- Real dedicated-server cinematic playback.
+- Mocap vs Mocap combat observation.
+- Mocap vs real-player combat.
+- Melee/Bow/Crossbow/Shield/Food behavior in a real world.
+- Death, reset and repeated lifecycle observation.
+- Inventory/equipment isolation and duplication checks.
+- Fishing Rod group teleport in a real world.
+- Navigation, holes, obstacles and timeout behavior.
+- Multiple simultaneous Fights.
+- Dimension/chunk edge cases.
+- Server restart/persistence observation.
+- Long-run stability and measured runtime performance.
+- Fabric + NeoForge real gameplay regression.
+
+These require an actual running Minecraft dedicated server/world and should only be marked GREEN after direct observation with the required evidence. No speculative production-code rewrite is required while those scenarios remain unverified.
+
+The master implementation contract and runtime validation matrix remain in:
+
+`docs/MOCAP_FIGHT_SYSTEM_BLUEPRINT.md`
