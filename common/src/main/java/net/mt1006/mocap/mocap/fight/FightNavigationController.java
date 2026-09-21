@@ -109,9 +109,11 @@ public final class FightNavigationController
 		Map<GridPos, Double> bestCost = new HashMap<>();
 		Map<GridPos, GridPos> cameFrom = new HashMap<>();
 
-		double startDistance = distanceToTarget(start, targetPosition);
+		double startDistanceSqr = distanceToTargetSqr(start, targetPosition);
 		GridPos best = start;
-		double bestDistance = startDistance;
+		double bestDistanceSqr = startDistanceSqr;
+		double attackRangeSqr = Math.max(attackRange, 1.0);
+		attackRangeSqr *= attackRangeSqr;
 		open.add(new SearchNode(start, 0.0, heuristic(start, targetPosition)));
 		bestCost.put(start, 0.0);
 
@@ -123,13 +125,13 @@ public final class FightNavigationController
 			if (current.cost() > knownCost + 1.0E-9) { continue; }
 			expanded++;
 
-			double currentDistance = distanceToTarget(current.position(), targetPosition);
-			if (currentDistance < bestDistance)
+			double currentDistanceSqr = distanceToTargetSqr(current.position(), targetPosition);
+			if (currentDistanceSqr < bestDistanceSqr)
 			{
 				best = current.position();
-				bestDistance = currentDistance;
+				bestDistanceSqr = currentDistanceSqr;
 			}
-			if (currentDistance <= Math.max(attackRange, 1.0))
+			if (currentDistanceSqr <= attackRangeSqr)
 			{
 				best = current.position();
 				break;
@@ -219,11 +221,16 @@ public final class FightNavigationController
 		return distanceToTarget(position, target);
 	}
 
-	private static double distanceToTarget(GridPos position, Vec3 target)
+	private static double distanceToTargetSqr(GridPos position, Vec3 target)
 	{
 		double dx = position.x() + 0.5 - target.x;
 		double dz = position.z() + 0.5 - target.z;
-		return Math.sqrt(dx * dx + dz * dz);
+		return dx * dx + dz * dz;
+	}
+
+	private static double distanceToTarget(GridPos position, Vec3 target)
+	{
+		return Math.sqrt(distanceToTargetSqr(position, target));
 	}
 
 	private record GridPos(int x, int z) {}
