@@ -17,14 +17,13 @@ public final class FightTargetSelector
 			List<FightParticipant> participants, FightDefinition definition, MinecraftServer server,
 			double detectionRange)
 	{
-		List<Entity> candidates = collectCandidates(participant, participants, definition, server, detectionRange);
-
 		if (mode == FightDefinition.TargetMode.CURRENT_TARGET || mode == FightDefinition.TargetMode.FIXED_TARGET)
 		{
 			Entity current = participant.getCurrentTarget();
 			if (isValid(participant, current, detectionRange)) { return current; }
 		}
 
+		List<Entity> candidates = collectCandidates(participant, participants, definition, server, detectionRange);
 		if (candidates.isEmpty())
 		{
 			return null;
