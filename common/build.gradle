@@ -15,7 +15,7 @@ dependencies
 	compileOnly "org.spongepowered:mixin:0.8.5:processor"
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.13.4"
-
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 tasks.test
