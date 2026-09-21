@@ -67,6 +67,9 @@ jobs:
           done
           exit 1
 
+      - name: 6. Run Fabric server GameTests
+        run: ./gradlew :fabric:runGameTest --no-daemon --stacktrace
+
       - name: 6. Upload build artifacts
         if: ${{ success() }}
         uses: actions/upload-artifact@v6
