@@ -236,6 +236,7 @@ public final class FightParticipant
 	public void deactivate()
 	{
 		active = false;
+		if (entity instanceof LivingEntity living && living.isUsingItem()) { living.stopUsingItem(); }
 		currentTarget = null;
 		state = State.DEAD;
 		attackCooldownTicks = 0;
