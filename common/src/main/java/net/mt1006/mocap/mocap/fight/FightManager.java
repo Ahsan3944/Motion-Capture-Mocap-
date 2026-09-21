@@ -715,7 +715,8 @@ public final class FightManager
 				}
 				double targetDistanceSqr = entity.distanceToSqr(target);
 				double rangedRange = FightEquipmentController.getRangedRange(participant);
-				if (targetDistanceSqr > attackRangeSqr && rangedRange > attackRange && targetDistanceSqr <= rangedRange * rangedRange)
+				double rangedRangeSqr = rangedRange * rangedRange;
+				if (targetDistanceSqr > attackRangeSqr && rangedRange > attackRange && targetDistanceSqr <= rangedRangeSqr)
 				{
 					FightMovementController.faceTarget(entity, target.getX() - entity.getX(), target.getZ() - entity.getZ());
 					if (participant.getAttackCooldownTicks() > 0)

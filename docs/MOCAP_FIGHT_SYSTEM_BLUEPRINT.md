@@ -2656,3 +2656,31 @@ Deliberately not implemented in Phase 7K:
 - attack-speed changes;
 - combat-rule changes;
 - persistent runtime caches.
+
+
+## Implementation Progress — Phase 7L
+
+Phase 7L removes the remaining repeated ranged-range squaring from the per-participant Fight decision loop without changing ranged-weapon selection or combat behavior.
+
+Pre-implementation checks:
+1. The Phase 7K attack-range optimization was revalidated first. Its attackRangeSqr is independent of the equipment-derived ranged threshold, so the next safe local optimization is the separate rangedRange * rangedRange comparison.
+2. FightEquipmentController.getRangedRange(participant) was inspected. The returned ranged distance is derived from the participant's currently equipped Bow/Crossbow and projectile availability, so the range value itself must remain runtime-derived and must not become a shared or persistent cache.
+3. The ranged decision branch was traced from range calculation through Bow/Crossbow execution. Only the repeated arithmetic is changed: the actual rangedRange value remains available for the existing rangedRange > attackRange comparison, while its squared threshold is computed once for the squared-distance comparison.
+
+Implemented scope:
+1. Compute rangedRangeSqr once after the existing runtime ranged-range lookup.
+2. Reuse that value for the existing targetDistanceSqr <= rangedRange * rangedRange gate.
+3. Preserve the runtime equipment lookup and projectile-availability semantics.
+4. Preserve the existing rangedRange > attackRange comparison using the unsquared range values.
+5. Preserve Bow/Crossbow preparation, firing, cooldowns, chase/navigation, target selection, damage, knockback, item-use, and persistence behavior.
+6. No persistent cache, shared mutable state, or equipment-state mutation is introduced.
+7. The optimization remains local to the active participant tick and cannot alter saved Fight definitions or recordings.
+
+Deliberately not implemented in Phase 7L:
+- ranged-range caching across ticks;
+- equipment selection changes;
+- target-selection changes;
+- movement/pathfinding changes;
+- attack-speed changes;
+- combat-rule changes;
+- persistent runtime caches.
