@@ -2585,3 +2585,25 @@ Deliberately not implemented in Phase 7H:
 - new heuristics;
 - terrain modification;
 - chunk loading changes.
+## Implementation Progress — Phase 7I
+
+Phase 7I reduces redundant square-root calculations in the bounded Fight movement layer by using squared horizontal distance for threshold checks, while preserving the existing normalized movement vector and actual displacement measurement.
+
+Pre-implementation checks:
+1. FightMovementController was audited separately from navigation. Its threshold checks only need squared distance, while movement normalization still requires the actual distance.
+2. The actual post-move displacement measurement was intentionally left unchanged because it determines whether Minecraft's collision-aware movement produced sufficient real movement.
+3. Stop-distance, minimum-movement, speed cap, recovery direction, and movement vector behavior were checked before changing the comparisons.
+
+Implemented scope:
+1. Use squared horizontal distance for minimum/stop threshold comparisons.
+2. Calculate the square root only when a normalized movement vector or exact movement amount is required.
+3. Preserve the existing bounded speed cap and recovery behavior.
+4. Preserve actual post-move displacement measurement.
+5. Keep movement ownership and collision handling unchanged.
+
+Deliberately not implemented in Phase 7I:
+- movement-speed changes;
+- collision bypass;
+- teleportation;
+- pathfinding changes;
+- recovery algorithm changes.
