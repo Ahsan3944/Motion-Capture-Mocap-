@@ -2362,3 +2362,29 @@ Deliberately not implemented in Phase 6H:
 - death/drop behavior;
 - synthetic inventory/loadouts.
 
+## Implementation Progress — Phase 6I
+
+Phase 6I hardens Fight death completion and reset-state ownership.
+
+Pre-implementation checks:
+1. The current runtime was audited against the Death/Reset contracts. Participant death already stopped attack/food/shield decisions, but the Fight itself could remain registered indefinitely after every participant became inactive.
+2. FakePlayer was inspected. Its death override intentionally avoids vanilla drop/removal behavior and schedules playback shutdown, so Phase 6I does not introduce a global loot rule or alter real-player death behavior.
+3. Playback stop/reset semantics were inspected. A Fight reset intentionally tears down its runtime playback and creates fresh runtime actors on the next explicit start; therefore reset snapshots must remain runtime-owned metadata and must never be written into recordings or shared entity state.
+
+Implemented scope:
+1. Participant captures initial health, position, yaw and pitch alongside its existing equipment snapshot.
+2. Death transitions clear target, combat timers, navigation/recovery state and active combat-use states before marking the participant DEAD.
+3. Dead participants remain excluded from target selection immediately.
+4. A Fight with no active participants is treated as completed and removed from the active runtime registry; it cannot continue ticking combat logic.
+5. Runtime ownership is released during completion/reset exactly as during explicit stop.
+6. Saved Fight definitions remain STOPPED/unchanged after runtime completion; a new START creates fresh runtime participants from the source.
+7. Reset/stop remain safe for repeated invocation and do not restore runtime snapshots into unrelated entities.
+8. Existing FakePlayer death/drop behavior is preserved; no global player loot suppression is added.
+
+Deliberately not implemented in Phase 6I:
+- full player inventory container snapshots;
+- custom death animations;
+- real-player death interception;
+- automatic Fight restart after completion;
+- configurable death/drop policies;
+- battlefield loot/pickup systems.
