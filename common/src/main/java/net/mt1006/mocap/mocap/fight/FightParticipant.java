@@ -38,6 +38,7 @@ public final class FightParticipant
 	private final String teamId;
 	private final List<ItemStack> equipmentSnapshot = new ArrayList<>();
 	private @Nullable Entity currentTarget;
+	private int targetSelectionCooldownTicks = 0;
 	private State state = State.IDLE;
 	private int attackCooldownTicks = 0;
 	private int crossbowChargeTicks = 0;
@@ -133,6 +134,24 @@ public final class FightParticipant
 	}
 
 	public @Nullable Entity getCurrentTarget() { return currentTarget; }
+
+	public boolean tickTargetSelectionCooldown()
+	{
+		if (targetSelectionCooldownTicks <= 0) { return true; }
+		targetSelectionCooldownTicks--;
+		return targetSelectionCooldownTicks == 0;
+	}
+
+	public void setTargetSelectionCooldownTicks(int ticks)
+	{
+		targetSelectionCooldownTicks = Math.max(0, ticks);
+	}
+
+	public void resetTargetSelectionCooldown()
+	{
+		targetSelectionCooldownTicks = 0;
+	}
+
 	public void setCurrentTarget(@Nullable Entity target)
 	{
 		if (currentTarget != target)
@@ -259,6 +278,7 @@ public final class FightParticipant
 		active = false;
 		if (entity instanceof LivingEntity living && living.isUsingItem()) { living.stopUsingItem(); }
 		currentTarget = null;
+		targetSelectionCooldownTicks = 0;
 		state = State.DEAD;
 		attackCooldownTicks = 0;
 		crossbowChargeTicks = 0;
