@@ -31,6 +31,12 @@ public final class FightFoodGameTest
 			context.assertTrue(player.isUsingItem(), "The first food-use tick must enter the normal item-use lifecycle.");
 			context.assertTrue(participant.getFoodCooldownTicks() > 0, "Food cooldown should be armed after starting consumption.");
 
+			// Mirror the FightManager decision order: the defense controller runs before food.
+			// It must not cancel an unrelated consumable that is already in progress.
+			context.assertFalse(net.mt1006.mocap.mocap.fight.FightDefenseController.tick(participant, target),
+					"Defense should not claim a participant without a shield.");
+			context.assertTrue(player.isUsingItem(),
+					"Defense checks must not cancel an already-active food use.");
 			context.assertTrue(FightFoodController.tick(participant, target, 3.0),
 					"Food use must continue even while the runtime cooldown is counting down.");
 			context.assertTrue(player.isUsingItem(),
