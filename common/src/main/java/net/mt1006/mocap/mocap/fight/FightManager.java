@@ -366,7 +366,14 @@ public final class FightManager
 		}
 		active.put(id, runtime);
 		definition.setState(FightDefinition.State.RUNNING);
-		save(definition);
+		if (!save(definition))
+		{
+			active.remove(id);
+			try { runtime.reset(); }
+			catch (Exception e) { MocapMod.LOGGER.error("Failed to roll back Fight '{}' after persistence failure.", id, e); }
+			definition.setState(FightDefinition.State.STOPPED);
+			return out.sendFailure("Failed to persist Fight state; Fight was rolled back: " + id);
+		}
 		return out.sendSuccessLiteral("Started Fight '%s'.", id);
 	}
 
@@ -484,16 +491,31 @@ public final class FightManager
 		try (FileOutputStream stream = new FileOutputStream(tmp))
 		{
 			p.store(stream, "MoCap Fight definition");
-			if (!tmp.renameTo(file))
+		}
+		catch (Exception e)
+		{
+			MocapMod.LOGGER.error("Failed to write Fight '{}'.", definition.getId(), e);
+			return false;
+		}
+
+		try
+		{
+			try
 			{
-				if (file.exists() && !file.delete()) { return false; }
-				return tmp.renameTo(file);
+				java.nio.file.Files.move(tmp.toPath(), file.toPath(),
+						java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+						java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+			}
+			catch (java.nio.file.AtomicMoveNotSupportedException e)
+			{
+				java.nio.file.Files.move(tmp.toPath(), file.toPath(),
+						java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 			}
 			return true;
 		}
 		catch (Exception e)
 		{
-			MocapMod.LOGGER.error("Failed to save Fight '{}'.", definition.getId(), e);
+			MocapMod.LOGGER.error("Failed to replace Fight '{}'.", definition.getId(), e);
 			return false;
 		}
 		finally
