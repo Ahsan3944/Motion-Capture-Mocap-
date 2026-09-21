@@ -28,7 +28,8 @@ public final class FightFoodController
 		if (!(participant.getEntity() instanceof LivingEntity living) || !living.isAlive()) { return false; }
 		if (!FightEquipmentController.isUsableFood(living.getMainHandItem())
 				&& !FightEquipmentController.isUsableFood(living.getOffhandItem())) { return false; }
-		if (participant.getFoodCooldownTicks() > 0) { return false; }
+		boolean continuingFoodUse = living.isUsingItem() && FightEquipmentController.isUsableFood(living.getUseItem());
+		if (participant.getFoodCooldownTicks() > 0 && !continuingFoodUse) { return false; }
 		if (living.getMaxHealth() <= 0.0F || !Float.isFinite(living.getHealth())) { return false; }
 		if (living.getHealth() > living.getMaxHealth() * HEALTH_THRESHOLD) { return false; }
 
