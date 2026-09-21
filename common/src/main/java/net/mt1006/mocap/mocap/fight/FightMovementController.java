@@ -29,11 +29,11 @@ public final class FightMovementController
 		double dx = target.getX() - actor.getX();
 		double dy = target.getY() - actor.getY();
 		double dz = target.getZ() - actor.getZ();
-		double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
-		double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-		if (!Double.isFinite(horizontalDistance) || !Double.isFinite(distance)) { return false; }
-		if (distance <= stopDistance) { participant.resetMovementBlockedTicks(); return true; }
-		if (horizontalDistance <= MIN_SUCCESSFUL_MOVE)
+		double horizontalDistanceSqr = dx * dx + dz * dz;
+		double distanceSqr = horizontalDistanceSqr + dy * dy;
+		if (!Double.isFinite(horizontalDistanceSqr) || !Double.isFinite(distanceSqr)) { return false; }
+		if (distanceSqr <= stopDistance * stopDistance) { participant.resetMovementBlockedTicks(); return true; }
+		if (horizontalDistanceSqr <= MIN_SUCCESSFUL_MOVE * MIN_SUCCESSFUL_MOVE)
 		{
 			return false;
 		}
@@ -48,14 +48,16 @@ public final class FightMovementController
 
 		double dx = destination.x - actor.getX();
 		double dz = destination.z - actor.getZ();
-		double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
-		if (!Double.isFinite(horizontalDistance)) { return false; }
-		if (horizontalDistance <= Math.max(0.0, stopDistance))
+		double horizontalDistanceSqr = dx * dx + dz * dz;
+		if (!Double.isFinite(horizontalDistanceSqr)) { return false; }
+		double safeStopDistance = Math.max(0.0, stopDistance);
+		if (horizontalDistanceSqr <= safeStopDistance * safeStopDistance)
 		{
 			participant.resetMovementBlockedTicks();
 			return true;
 		}
-		if (horizontalDistance <= MIN_SUCCESSFUL_MOVE) { return false; }
+		if (horizontalDistanceSqr <= MIN_SUCCESSFUL_MOVE * MIN_SUCCESSFUL_MOVE) { return false; }
+		double horizontalDistance = Math.sqrt(horizontalDistanceSqr);
 
 		faceTarget(actor, dx, dz);
 
