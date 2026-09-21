@@ -51,6 +51,10 @@ public final class FightParticipant
 	private int navigationStallTicks = 0;
 	private @Nullable Vec3 navigationTargetPosition;
 	private boolean active = true;
+	private float initialHealth = 0.0F;
+	private Vec3 initialPosition = Vec3.ZERO;
+	private float initialYaw = 0.0F;
+	private float initialPitch = 0.0F;
 
 	public FightParticipant(String id, Entity entity, Side side)
 	{
@@ -69,6 +73,20 @@ public final class FightParticipant
 	public Entity getEntity() { return entity; }
 	public Side getSide() { return side; }
 	public String getTeamId() { return teamId; }
+
+	public void captureResetSnapshot()
+	{
+		initialPosition = entity.position();
+		initialYaw = entity.getYRot();
+		initialPitch = entity.getXRot();
+		if (entity instanceof LivingEntity living) { initialHealth = living.getHealth(); }
+		captureEquipmentSnapshot();
+	}
+
+	public float getInitialHealth() { return initialHealth; }
+	public Vec3 getInitialPosition() { return initialPosition; }
+	public float getInitialYaw() { return initialYaw; }
+	public float getInitialPitch() { return initialPitch; }
 
 	public void captureEquipmentSnapshot()
 	{
