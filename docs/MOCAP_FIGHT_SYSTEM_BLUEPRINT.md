@@ -2492,3 +2492,27 @@ Deliberately not implemented in Phase 7D:
 - terrain mutation;
 - world/chunk loading;
 - configurable retry timing.
+
+## Implementation Progress — Phase 7E
+
+Phase 7E fixes a navigation replanning trigger precedence issue discovered during the post-7D audit.
+
+Pre-implementation checks:
+1. The complete Phase 7D navigation decision order was traced, including target movement detection, navigation timeout, waypoint completion, retry cooldown, and bounded path search.
+2. A state-transition edge case was reproduced logically: when a target had moved materially or a path had expired in the same tick that the current waypoint was reached, waypoint advancement could overwrite the earlier repath reason and incorrectly continue without immediate replanning.
+3. The correction was kept local to the navigation decision boundary so target selection, direct movement, search bounds, retry backoff, and combat behavior remain unchanged.
+
+Implemented scope:
+1. Preserve target-moved and navigation-expired repath reasons when advancing a reached waypoint.
+2. Replan immediately when any existing repath condition remains true after waypoint advancement.
+3. Continue the current waypoint normally when no repath condition exists.
+4. Preserve the Phase 7D failed-search retry cooldown.
+5. Keep all navigation state runtime-only.
+
+Deliberately not implemented in Phase 7E:
+- new pathfinding algorithms;
+- larger search bounds;
+- terrain modification;
+- async navigation;
+- target-selection changes;
+- combat behavior changes.
