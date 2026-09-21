@@ -54,7 +54,7 @@ public final class FightNavigationController
 		{
 			participant.advanceNavigationWaypoint();
 			waypoint = participant.getNavigationWaypoint();
-			needsRepath = waypoint == null;
+			needsRepath = targetMoved || expired || waypoint == null;
 		}
 
 		if (!needsRepath && waypoint != null)
