@@ -37,11 +37,17 @@ public final class FightTargetSelector
 
 	private static boolean isValidWithSquaredRange(FightParticipant participant, @Nullable Entity target, double detectionRangeSqr)
 	{
-		if (!(target instanceof LivingEntity living) || !living.isAlive()) { return false; }
+		return getValidDistanceSqr(participant, target, detectionRangeSqr) >= 0.0;
+	}
+
+	private static double getValidDistanceSqr(FightParticipant participant, @Nullable Entity target, double detectionRangeSqr)
+	{
+		if (!(target instanceof LivingEntity living) || !living.isAlive()) { return -1.0; }
 		Entity actor = participant.getEntity();
-		if (!actor.isAlive() || actor == target) { return false; }
-		if (actor.level() != target.level()) { return false; }
-		return actor.distanceToSqr(target) <= detectionRangeSqr;
+		if (!actor.isAlive() || actor == target) { return -1.0; }
+		if (actor.level() != target.level()) { return -1.0; }
+		double distanceSqr = actor.distanceToSqr(target);
+		return distanceSqr <= detectionRangeSqr ? distanceSqr : -1.0;
 	}
 
 	private static @Nullable Entity selectCandidate(FightParticipant participant, FightDefinition.TargetMode mode,
@@ -57,7 +63,8 @@ public final class FightTargetSelector
 		{
 			if (!other.isActive() || other.getTeamId().equals(participant.getTeamId())) { continue; }
 			Entity candidate = other.getEntity();
-			if (!isValidWithSquaredRange(participant, candidate, detectionRangeSqr)) { continue; }
+			double candidateDistanceSqr = getValidDistanceSqr(participant, candidate, detectionRangeSqr);
+			if (candidateDistanceSqr < 0.0) { continue; }
 
 			if (mode == FightDefinition.TargetMode.FIXED_TARGET) { return candidate; }
 			if (mode == FightDefinition.TargetMode.LOWEST_HEALTH && candidate instanceof LivingEntity living)
@@ -71,7 +78,7 @@ public final class FightTargetSelector
 			}
 			if (mode != FightDefinition.TargetMode.LOWEST_HEALTH)
 			{
-				double distance = actor.distanceToSqr(candidate);
+				double distance = candidateDistanceSqr;
 				if (first || distance < selectedDistance)
 				{
 					selectedDistance = distance;
@@ -88,8 +95,9 @@ public final class FightTargetSelector
 				ServerPlayer player = server.getPlayerList().getPlayerByName(playerName);
 				String playerTeam = definition.getTargetPlayerTeam(playerName);
 				if (player == null || playerTeam.equals(participant.getTeamId())
-						|| isFightParticipantEntity(participants, player)
-						|| !isValidWithSquaredRange(participant, player, detectionRangeSqr)) { continue; }
+						|| isFightParticipantEntity(participants, player)) { continue; }
+				double playerDistanceSqr = getValidDistanceSqr(participant, player, detectionRangeSqr);
+				if (playerDistanceSqr < 0.0) { continue; }
 
 				if (mode == FightDefinition.TargetMode.FIXED_TARGET) { return player; }
 				if (mode == FightDefinition.TargetMode.LOWEST_HEALTH)
@@ -102,7 +110,7 @@ public final class FightTargetSelector
 				}
 				else
 				{
-					double distance = actor.distanceToSqr(player);
+					double distance = playerDistanceSqr;
 					if (first || distance < selectedDistance)
 					{
 						selectedDistance = distance;

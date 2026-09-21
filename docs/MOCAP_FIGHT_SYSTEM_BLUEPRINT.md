@@ -2713,3 +2713,30 @@ Deliberately not implemented in Phase 7M:
 - movement/pathfinding changes;
 - combat behavior changes;
 - new Minecraft APIs.
+
+
+## Implementation Progress — Phase 7N
+
+Phase 7N removes duplicate squared-distance calculation inside FightTargetSelector candidate evaluation. The same candidate distance was first calculated for range validation and then recalculated for nearest-target ordering.
+
+Pre-implementation checks:
+1. Phase 7M was verified as a local per-tick configuration-read optimization. The next safe hotspot is inside target selection, where candidate validation and nearest ordering can evaluate the same distance twice.
+2. FightTargetSelector was traced for all candidate sources: active Fight participants and explicitly configured target players. Both paths use the same validation semantics before nearest-distance ordering.
+3. The existing public isValid(...) contract was checked. It remains boolean and continues to use the same alive, actor, identity, dimension, and squared-range conditions.
+4. A negative sentinel is safe internally because squared distances are never negative. It is used only by the new private helper and is never exposed through the public API.
+
+Implemented scope:
+1. Compute a valid candidate's squared distance once during validation.
+2. Reuse that exact value for nearest-target ordering instead of calling distanceToSqr(...) a second time.
+3. Apply the same optimization to configured target-player candidates.
+4. Preserve FIXED_TARGET and LOWEST_HEALTH behavior, candidate ordering, team filtering, duplicate participant filtering, alive checks, dimension checks, and detection-range semantics.
+5. Preserve the public isValid(...) method signature and behavior.
+6. No persistent cache, shared mutable state, new API, or cross-tick state is introduced.
+
+Deliberately not implemented in Phase 7N:
+- target caching across ticks;
+- changes to target priority/order;
+- spatial indexes;
+- asynchronous selection;
+- team-relation changes;
+- detection-range behavior changes.
