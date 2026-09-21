@@ -19,7 +19,6 @@ public final class FightNavigationController
 	private static final int MAX_SEARCH_NODES = 96;
 	private static final int MAX_PATH_NODES = 12;
 	private static final int NAVIGATION_TIMEOUT_TICKS = 40;
-	private static final int REPATH_INTERVAL_TICKS = 8;
 	private static final double TARGET_REPATH_DISTANCE_SQR = 4.0;
 	private static final double WAYPOINT_REACHED_DISTANCE_SQR = 0.16;
 	private static final double SUPPORT_DEPTH = 0.15;
@@ -42,7 +41,7 @@ public final class FightNavigationController
 		Vec3 plannedTarget = participant.getNavigationTargetPosition();
 		boolean targetMoved = plannedTarget == null || plannedTarget.distanceToSqr(targetPosition) > TARGET_REPATH_DISTANCE_SQR;
 		boolean expired = participant.getNavigationAgeTicks() >= NAVIGATION_TIMEOUT_TICKS;
-		boolean needsRepath = waypoint == null || targetMoved || expired || participant.getNavigationAgeTicks() % REPATH_INTERVAL_TICKS == 0;
+		boolean needsRepath = waypoint == null || targetMoved || expired;
 
 		if (waypoint != null && waypoint.distanceToSqr(actor.position()) <= WAYPOINT_REACHED_DISTANCE_SQR)
 		{
@@ -55,14 +54,19 @@ public final class FightNavigationController
 		{
 			participant.tickNavigationAge();
 			boolean moved = FightMovementController.moveToward(participant, waypoint, movementSpeed, 0.05);
-			if (moved) { participant.resetNavigationStallTicks(); }
-			return moved;
+			if (moved)
+			{
+				participant.resetNavigationStallTicks();
+				return true;
+			}
+			int stalled = participant.incrementNavigationStallTicks();
+			if (stalled < NAVIGATION_TRIGGER_STALL_TICKS) { return false; }
+			participant.clearNavigationPath();
+			waypoint = null;
+			needsRepath = true;
 		}
 
-		if (waypoint == null && participant.getNavigationStallTicks() < NAVIGATION_TRIGGER_STALL_TICKS)
-		{
-			return false;
-		}
+		if (!needsRepath && waypoint == null) { return false; }
 
 		List<Vec3> path = findPath(level, actor, targetPosition, attackRange);
 		if (path.isEmpty())
@@ -78,8 +82,13 @@ public final class FightNavigationController
 		participant.resetNavigationStallTicks();
 		participant.tickNavigationAge();
 		boolean moved = FightMovementController.moveToward(participant, waypoint, movementSpeed, 0.05);
-		if (moved) { participant.resetNavigationStallTicks(); }
-		return moved;
+		if (moved)
+		{
+			participant.resetNavigationStallTicks();
+			return true;
+		}
+		participant.incrementNavigationStallTicks();
+		return false;
 	}
 
 	private static List<Vec3> findPath(ServerLevel level, Entity actor, Vec3 targetPosition, double attackRange)
