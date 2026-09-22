@@ -751,11 +751,11 @@ public final class FightManager
 		private void startTargets(FightDefinition definition, CommandInfo info, MocapPlaybackConfig baseConfig)
 		{
 			int index = 0;
-\t\t\tfor (String target : definition.getTargetScenes())
-\t\t\t{
-\t\t\t\tstartPlayable(info, target, baseConfig, FightParticipant.Side.TARGET, "target-" + index++, definition.getTargetSceneTeam(target));
-\t\t\t}
-\t\t}
+			for (String target : definition.getTargetScenes())
+			{
+				startPlayable(info, target, baseConfig, FightParticipant.Side.TARGET, "target-" + index++, definition.getTargetSceneTeam(target));
+			}
+		}
 
 		private void startPlayable(CommandInfo info, String source, MocapPlaybackConfig baseConfig,
 				FightParticipant.Side side, String idPrefix, String teamId)
