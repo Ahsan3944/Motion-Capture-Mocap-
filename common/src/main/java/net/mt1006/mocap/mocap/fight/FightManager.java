@@ -832,6 +832,10 @@ public final class FightManager
 					FightDefenseController.stop(participant);
 					FightFoodController.stop(participant);
 					participant.deactivate();
+					// A dead/disappeared participant no longer owns its runtime entity UUID.
+					// Release the claim immediately so a later independent Fight can safely
+					// reuse the entity lifecycle instead of waiting for full runtime reset.
+					releaseParticipant(entity.getUUID(), id);
 					continue;
 				}
 
