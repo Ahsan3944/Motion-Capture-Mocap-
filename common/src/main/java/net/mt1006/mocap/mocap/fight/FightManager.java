@@ -401,6 +401,8 @@ public final class FightManager
 		{
 			return out.sendFailure("Fight has no target configured: " + id);
 		}
+		try { validateTargetPlayers(definition, out.getServer()); }
+		catch (IllegalArgumentException e) { return out.sendFailure(e.getMessage()); }
 		FightRuntime runtime;
 		try { runtime = new FightRuntime(definition, out); }
 		catch (Exception e) { MocapMod.LOGGER.error("Failed to initialize Fight '{}' .", id, e); return out.sendFailure("Failed to initialize Fight '" + id + "'."); }
@@ -420,6 +422,22 @@ public final class FightManager
 			return out.sendFailure("Failed to persist Fight state; Fight was rolled back: " + id);
 		}
 		return out.sendSuccessLiteral("Started Fight '%s'.", id);
+	}
+
+	private static void validateTargetPlayers(FightDefinition definition, MinecraftServer server)
+	{
+		for (String playerName : definition.getTargetPlayers())
+		{
+			if (playerName == null || playerName.isBlank())
+			{
+				throw new IllegalArgumentException("Fight target player name cannot be empty.");
+			}
+			var player = server.getPlayerList().getPlayerByName(playerName);
+			if (player == null || !player.isAlive() || player.isRemoved())
+			{
+				throw new IllegalArgumentException("Fight target player is not online/alive: " + playerName);
+			}
+		}
 	}
 
 	public static boolean stop(CommandOutput out, String id)
@@ -733,42 +751,11 @@ public final class FightManager
 		private void startTargets(FightDefinition definition, CommandInfo info, MocapPlaybackConfig baseConfig)
 		{
 			int index = 0;
-			for (String target : definition.getTargetScenes())
-			{
-				startPlayable(info, target, baseConfig, FightParticipant.Side.TARGET, "target-" + index++, definition.getTargetSceneTeam(target));
-			}
-
-			startTargetPlayers(definition, "target-player-", info.getServer());
-		}
-
-		private void startTargetPlayers(FightDefinition definition, String idPrefix, MinecraftServer server)
-		{
-			int index = 0;
-			for (String playerName : definition.getTargetPlayers())
-			{
-				if (playerName == null || playerName.isBlank())
-				{
-					throw new IllegalArgumentException("Fight target player name cannot be empty.");
-				}
-
-				net.minecraft.server.level.ServerPlayer player = server.getPlayerList().getPlayerByName(playerName);
-				if (player == null || !player.isAlive())
-				{
-					throw new IllegalArgumentException("Fight target player is not online/alive: " + playerName);
-				}
-
-				if (!claimParticipant(player.getUUID(), id))
-				{
-					throw new IllegalStateException("Target player is already controlled by another Fight: " + player.getUUID());
-				}
-
-				participants.add(new FightParticipant(
-						idPrefix + index++,
-						player,
-						FightParticipant.Side.TARGET,
-						definition.getTargetPlayerTeam(playerName)));
-			}
-		}
+\t\t\tfor (String target : definition.getTargetScenes())
+\t\t\t{
+\t\t\t\tstartPlayable(info, target, baseConfig, FightParticipant.Side.TARGET, "target-" + index++, definition.getTargetSceneTeam(target));
+\t\t\t}
+\t\t}
 
 		private void startPlayable(CommandInfo info, String source, MocapPlaybackConfig baseConfig,
 				FightParticipant.Side side, String idPrefix, String teamId)
@@ -827,7 +814,7 @@ public final class FightManager
 		{
 			for (FightParticipant participant : participants)
 			{
-				if (participant.isActive() && participant.getEntity().isAlive()) { return true; }
+				if (participant.isActive() && participant.getEntity().isAlive() && !participant.getEntity().isRemoved()) { return true; }
 			}
 			return false;
 		}
