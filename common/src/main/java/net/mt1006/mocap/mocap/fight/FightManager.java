@@ -793,7 +793,7 @@ public final class FightManager
 			for (int i = 0; i < entities.size(); i++)
 			{
 				Entity entity = entities.get(i);
-				if (entity == null || !entity.isAlive()) { continue; }
+				if (entity == null || !entity.isAlive() || entity.isRemoved()) { continue; }
 				if (!(entity instanceof LivingEntity))
 				{
 					throw new IllegalStateException("Fight participant is not a LivingEntity.");
