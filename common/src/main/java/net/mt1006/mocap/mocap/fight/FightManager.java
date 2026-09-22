@@ -858,7 +858,7 @@ public final class FightManager
 				if (!participant.isActive()) { continue; }
 
 				Entity entity = participant.getEntity();
-				if (!entity.isAlive())
+				if (!entity.isAlive() || entity.isRemoved())
 				{
 					FightDefenseController.stop(participant);
 					FightFoodController.stop(participant);
